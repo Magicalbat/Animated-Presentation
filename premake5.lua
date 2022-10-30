@@ -1,4 +1,4 @@
-workspace "Animated Presentation"
+workspace "Animated-Presentation"
     configurations {"Debug", "Release"}
     architecture "x64"
     startproject "Animated Presentation"
@@ -7,8 +7,8 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDirs = {}
 
-project "Animated Presentation"
-    location "Animated Presentation"
+project "Animated-Presentation"
+    location "Animated-Presentation"
     kind "ConsoleApp"
     language "C"
 
@@ -28,6 +28,17 @@ project "Animated Presentation"
 
     links { }
 
+    filter "system:linux"
+      links
+      {
+        "m"
+      }
+
+      defines
+      {
+        "AP_PLATFORM_LINUX"
+      }
+
     filter "system:windows"
         cdialect "C17"
         staticruntime "On"
@@ -39,7 +50,7 @@ project "Animated Presentation"
         }
 
     filter "configurations:Debug"
-        buildoptions "/MDd"
+        --buildoptions "/MDd"
         symbols "On"
 
         defines {
@@ -47,6 +58,6 @@ project "Animated Presentation"
         }
 
     filter "configurations:Release"
-        buildoptions "/MD"
+        --buildoptions "/MD"
         optimize "On"
         defines "NDEBUG"

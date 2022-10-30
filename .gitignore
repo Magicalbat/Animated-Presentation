@@ -5,3 +5,7 @@ bin-int
 **.vcxproj
 **.vcxproj.filters
 **.vcxproj.user
+**.replit
+**.nix
+.ccls-cache
+Makefile
