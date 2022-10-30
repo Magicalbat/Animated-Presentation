@@ -26,7 +26,7 @@ void arena_pop(arena_t* arena, uint64_t size) {
 	ASSERT(arena->cur - size > 0 && "Arena cannot pop any more memory");
 
 	arena->cur -= size;
-	memset(arena->cur, 0, size);
+	memset((void*)(arena->data + arena->cur), 0, size);
 }
 void arena_free(arena_t* arena) {
 	ASSERT(arena != NULL       && "Cannot free NULL arena"     );
