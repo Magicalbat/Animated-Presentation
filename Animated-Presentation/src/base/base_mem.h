@@ -17,4 +17,12 @@ void*    arena_malloc( arena_t* arena, uint64_t size );
 void     arena_pop   ( arena_t* arena, uint64_t size );
 void     arena_free  ( arena_t* arena                );
 
+typedef struct string8 {
+	uint8_t* str;
+	uint64_t len;
+} string8_t;
+
+string8_t string8_create    ( arena_t* arena, uint64_t len );
+string8_t string8_from_cstr ( uint8_t* str );
+
 #endif

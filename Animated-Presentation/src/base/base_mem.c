@@ -1,10 +1,15 @@
 #include "base_mem.h"
+#include "os.h"
 
+// TODO: use commit and decommit 
 arena_t* arena_create(uint64_t size) {
-	arena_t* out = malloc(sizeof(arena_t));
+	arena_t* out = (arena_t*)os_mem_reserve(sizeof(arena_t));//malloc(sizeof(arena_t));
+	os_mem_commit(out, sizeof(arena_t));
 
 	if (out) {
-		out->data = (uint8_t*)malloc(size);
+		out->data = (uint8_t*)os_mem_reserve(size);//(uint8_t*)malloc(size);
+		bool commit = os_mem_commit(out->data, size);
+		ASSERT(commit && "Failed to commit arena memory");
 		if (out->data)
 			memset(out->data, 0, size);
 	
@@ -32,6 +37,17 @@ void arena_free(arena_t* arena) {
 	ASSERT(arena != NULL       && "Cannot free NULL arena"     );
 	ASSERT(arena->data != NULL && "Cannot free NULL arena data");
 
-	free(arena->data);
-	free(arena      );
+	os_mem_release(arena->data, arena->size);
+	os_mem_release(arena, sizeof(arena_t));
+	//free(arena->data);
+	//free(arena      );
 } 
+
+string8_t string8_create(arena_t* arena, uint64_t len) {
+	uint8_t* data = (uint8_t*)arena_malloc(arena, len);
+	string8_t out = { data, len };
+	return out;
+}
+string8_t string8_from_cstr(uint8_t* str) {
+	return (string8_t){ str, strlen(str) };
+}
