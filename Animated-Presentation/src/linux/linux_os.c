@@ -1,32 +1,7 @@
-#include <stdio.h>
-
-#include "base/base.h"
-
-int main() {
-	// Page size of my pc is 4096
-    
-    printf("program init\n");
-
-	arena_t* arena = arena_create(4096);
-
-    printf("arena made\n");
-
-	string8_t str = string8_create(arena, 128);
-	memset(str.str, 'a', str.len);
-	printf("%s\n", str.str);
-    
-    printf("string made\n");
-
-	arena_free(arena);
-    
-    printf("arena free\n");
-	
-	return 0;
-}
-
-
-/*
 #ifdef AP_PLATFORM_LINUX
+
+#include <stddef.h>
+#include <stdio.h>
 
 #include <sys/mman.h>
 
@@ -36,7 +11,8 @@ int main() {
 //https://www.ibm.com/docs/en/i/7.2?topic=ssw_ibm_i_72/apis/mmap.html
 
 void* os_mem_reserve(uint64_t size) {
-	void* out = mmap(0, size, PROT_NONE, MAP_ANONYMOUS, -1, 0);
+	void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+    ASSERT(out != MAP_FAILED && "Failed to allocate memory");
 	return out;
 }
 void os_mem_commit(void* ptr, uint64_t size) {
@@ -50,4 +26,3 @@ void os_mem_release(void* ptr, uint64_t size) {
 }
 
 #endif 
-*/

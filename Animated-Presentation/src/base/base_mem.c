@@ -3,13 +3,13 @@
 
 // TODO: use commit and decommit 
 arena_t* arena_create(uint64_t size) {
-	arena_t* out = (arena_t*)os_mem_reserve(sizeof(arena_t));//malloc(sizeof(arena_t));
-	os_mem_commit(out, sizeof(arena_t));
+	arena_t* out = (arena_t*)malloc(sizeof(arena_t));//malloc(sizeof(arena_t));
 
 	if (out) {
 		out->data = (uint8_t*)os_mem_reserve(size);//(uint8_t*)malloc(size);
-		bool commit = os_mem_commit(out->data, size);
-		ASSERT(commit && "Failed to commit arena memory");
+		os_mem_commit(out->data, size);
+        printf("%d\n", out->data);
+		//ASSERT(commit && "Failed to commit arena memory");
 		if (out->data)
 			memset(out->data, 0, size);
 	
@@ -38,7 +38,7 @@ void arena_free(arena_t* arena) {
 	ASSERT(arena->data != NULL && "Cannot free NULL arena data");
 
 	os_mem_release(arena->data, arena->size);
-	os_mem_release(arena, sizeof(arena_t));
+	free(arena);
 	//free(arena->data);
 	//free(arena      );
 } 
