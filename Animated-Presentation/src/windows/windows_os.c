@@ -19,4 +19,10 @@ void os_mem_release(void* ptr, uint64_t size) {
 	VirtualFree(ptr, 0, MEM_RELEASE);
 }
 
+uint64_t os_mem_pagesize() {
+	SYSTEM_INFO si;
+	GetSystemInfo(&si);
+	return si.dwPageSize;
+}
+
 #endif
