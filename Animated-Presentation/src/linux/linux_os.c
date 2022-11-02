@@ -1,9 +1,9 @@
 #ifdef AP_PLATFORM_LINUX
 
 #include <stddef.h>
-#include <stdio.h>
 
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "os.h"
 
@@ -23,6 +23,10 @@ void os_mem_decommit(void* ptr, uint64_t size) {
 }
 void os_mem_release(void* ptr, uint64_t size) {
     munmap(ptr, size);
+}
+
+uint64_t os_mem_pagesize() {
+    return sysconf(_SC_PAGE_SIZE);
 }
 
 #endif 

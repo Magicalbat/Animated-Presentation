@@ -10,4 +10,6 @@ void  os_mem_commit   ( void* ptr, uint64_t size );
 void  os_mem_decommit ( void* ptr, uint64_t size );
 void  os_mem_release  ( void* ptr, uint64_t size );
 
+uint64_t os_mem_pagesize();
+
 #endif

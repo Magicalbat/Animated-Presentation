@@ -1,31 +1,29 @@
 #include <stdio.h>
 
-#include "base/base.h" #include "os.h"
+#include "base/base.h"
+#include "os.h"
 
 int main() {
+    printf("Page Size: %lu\n", os_mem_pagesize());
+    
     printf("program init\n");
 
-    getwchar();
-
-    uint8_t* buff = os_mem_reserve(4096 * 1000);
-
+    uint64_t size = MB(512);
+    uint8_t* buff = os_mem_reserve(size);
+    
     printf("mem reserved\n");
-    getwchar();
 
-    os_mem_commit(buff, 4096 * 500);
+    os_mem_commit(buff, size >> 1);
 
     printf("mem commited\n");
-    getwchar();
 
-    os_mem_decommit(buff, 4096 * 500);
+    os_mem_decommit(buff, size >> 1);
 
     printf("mem decommited\n");
-    getwchar();
 
-    os_mem_release(buff, 4096 * 1000);
+    os_mem_release(buff, size);
 
     printf("mem released\n");
-    getwchar();
-	
+
 	return 0;
 }

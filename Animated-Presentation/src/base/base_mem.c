@@ -8,7 +8,6 @@ arena_t* arena_create(uint64_t size) {
 	if (out) {
 		out->data = (uint8_t*)os_mem_reserve(size);//(uint8_t*)malloc(size);
 		os_mem_commit(out->data, size);
-        printf("%d\n", out->data);
 		//ASSERT(commit && "Failed to commit arena memory");
 		if (out->data)
 			memset(out->data, 0, size);
