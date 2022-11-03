@@ -7,9 +7,11 @@
 #include "base.h"
 
 typedef struct arena {
-	uint8_t* data;
+	//uint8_t* data;
 	uint64_t size;
 	uint64_t cur;
+    uint64_t cur_commit;
+    // Data is stored in the memory following the struct
 } arena_t;
 
 arena_t* arena_create( uint64_t size                 );
@@ -22,7 +24,7 @@ typedef struct string8 {
 	uint64_t len;
 } string8_t;
 
-string8_t string8_create    ( arena_t* arena, uint64_t len );
-string8_t string8_from_cstr ( uint8_t* str );
+string8_t string8_create   ( arena_t* arena, uint64_t len );
+string8_t string8_from_cstr( uint8_t* str );
 
 #endif

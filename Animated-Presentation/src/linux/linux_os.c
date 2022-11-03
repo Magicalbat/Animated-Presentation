@@ -12,7 +12,7 @@
 
 void* os_mem_reserve(uint64_t size) {
 	void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
-    ASSERT(out != MAP_FAILED && "Failed to allocate memory");
+    ASSERT(out != MAP_FAILED, "Failed to allocate memory");
 	return out;
 }
 void os_mem_commit(void* ptr, uint64_t size) {

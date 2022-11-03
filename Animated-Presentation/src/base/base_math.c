@@ -10,7 +10,7 @@ float  vec2_len( vec2_t           v ) { return sqrtf(v.x * v.x + v.y * v.y);    
 vec2_t vec2_prp( vec2_t           v ) { return (vec2_t) { -v.y, v.x };            }
 vec2_t vec2_nrm( vec2_t           v ) {
 	float l = sqrtf(v.x * v.x + v.y * v.y);
-	ASSERT(l != 0.0f && "Cannot normalize vec2_t of length 0.");
+	ASSERT(l != 0.0f, "Cannot normalize vec2_t of length 0.");
 	l = 1 / l;
 	return (vec2_t) { v.x * l, v.y * l };
 }
@@ -31,7 +31,7 @@ vec3_t vec3_crs( vec3_t a, vec3_t b ) {
 }
 vec3_t vec3_nrm(vec3_t v) {
 	float l = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
-	ASSERT(l != 0 && "Cannot normalize vec3_t of length 0.");
+	ASSERT(l != 0, "Cannot normalize vec3_t of length 0.");
 	l = 1 / l;
 	return (vec3_t) { v.x * l, v.y * l, v.z * l };
 }
@@ -45,7 +45,7 @@ float  vec4_sql( vec4_t           v ) { return v.x * v.x + v.y * v.y + v.z * v.z
 float  vec4_len( vec4_t           v ) { return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);    }
 vec4_t vec4_nrm( vec4_t           v ) {
 	float l = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
-	ASSERT(l != 0 && "Cannot normalize vec4_t of length 0.");
+	ASSERT(l != 0, "Cannot normalize vec4_t of length 0.");
 	l = 1 / l;
 	return (vec4_t) { v.x * l, v.y * l, v.z * l, v.w * l };
 }
