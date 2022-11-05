@@ -6,8 +6,8 @@
 int main() {
     arena_t* arena = arena_create(os_mem_pagesize() * 4);
 
-    uint64_t buff_size = os_mem_pagesize() * 2;
-    uint8_t* buff = (uint8_t*)arena_malloc(arena, buff_size);
+    u64 buff_size = os_mem_pagesize() * 2;
+    u8* buff = (u8*)arena_malloc(arena, buff_size);
     buff[0]  = 'h';
     buff[1]  = 'e';
     buff[2]  = 'l';
@@ -23,12 +23,6 @@ int main() {
     printf("%s\n", buff);
 
     arena_pop(arena, buff_size + 8);
-
-    // Testing when the seg fault happens, seems to be working 
-    for (int i = 0; i < buff_size; i++) {
-        printf("%d\n", i);
-        buff[i] = 0;
-    }
     
     arena_free(arena);
 

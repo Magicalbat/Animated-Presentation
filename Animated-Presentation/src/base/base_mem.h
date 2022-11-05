@@ -8,23 +8,23 @@
 
 typedef struct arena {
 	//uint8_t* data;
-	uint64_t size;
-	uint64_t cur;
-    uint64_t cur_commit;
+	u64 size;
+	u64 cur;
+    u64 cur_commit;
     // Data is stored in the memory following the struct
 } arena_t;
 
-arena_t* arena_create( uint64_t size                 );
-void*    arena_malloc( arena_t* arena, uint64_t size );
-void     arena_pop   ( arena_t* arena, uint64_t size );
-void     arena_free  ( arena_t* arena                );
+arena_t* arena_create( u64 size                 );
+void*    arena_malloc( arena_t* arena, u64 size );
+void     arena_pop   ( arena_t* arena, u64 size );
+void     arena_free  ( arena_t* arena           );
 
 typedef struct string8 {
-	uint8_t* str;
-	uint64_t len;
+	u8* str;
+	u64 len;
 } string8_t;
 
-string8_t string8_create   ( arena_t* arena, uint64_t len );
-string8_t string8_from_cstr( uint8_t* str );
+string8_t string8_create   ( arena_t* arena, u64 len );
+string8_t string8_from_cstr( u8* str                 );
 
 #endif
