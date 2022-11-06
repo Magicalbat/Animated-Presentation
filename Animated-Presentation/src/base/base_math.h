@@ -5,9 +5,9 @@
 
 #include "base.h"
 
-typedef struct vec2 { f32 x, y;       } vec2_t;
-typedef struct vec3 { f32 x, y, z;    } vec3_t;
-typedef struct vec4 { f32 x, y, z, w; } vec4_t;
+typedef struct { f32 x, y;       } vec2_t;
+typedef struct { f32 x, y, z;    } vec3_t;
+typedef struct { f32 x, y, z, w; } vec4_t;
 
 vec2_t vec2_add( vec2_t a, vec2_t b );
 vec2_t vec2_sub( vec2_t a, vec2_t b );

@@ -6,7 +6,7 @@
 
 #include "base.h"
 
-typedef struct arena {
+typedef struct {
 	//uint8_t* data;
 	u64 size;
 	u64 cur;
