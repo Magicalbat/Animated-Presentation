@@ -50,12 +50,3 @@ void arena_free(arena_t* arena) {
     
     os_mem_release(arena, arena->size);
 } 
-
-string8_t string8_create(arena_t* arena, u64 len) {
-	u8* data = (u8*)arena_malloc(arena, len);
-	string8_t out = { data, len };
-	return out;
-}
-string8_t string8_from_cstr(u8* str) {
-	return (string8_t){ str, strlen(str) };
-}
