@@ -1,3 +1,4 @@
+#include "base_def.h"
 #include "base_mem.h"
 #include "os.h"
 
@@ -11,7 +12,7 @@ arena_t* arena_create(u64 size) {
     
 	if (arena) {
 		arena->size = size;
-		arena->cur = 24;
+        arena->cur = ALIGN_UP_POW2(sizeof(arena_t), 64);
         arena->cur_commit = init_commit;
 	} else {
 		ASSERT(false, "Arena is NULL");
@@ -22,6 +23,7 @@ arena_t* arena_create(u64 size) {
 void* arena_malloc(arena_t* arena, u64 size) {
 	ASSERT(arena->cur + size < arena->size, "Arena ran out of memory");
 
+    void* out = ((u8*)arena) + arena->cur;
 	arena->cur += size;
 
     if (arena->cur > arena->cur_commit) {
@@ -30,7 +32,8 @@ void* arena_malloc(arena_t* arena, u64 size) {
         arena->cur_commit += commit_size;
     }
 
-	return (void*)((u64)arena + arena->cur - size);
+	//return (void*)((u64)arena + arena->cur - size);
+    return out;
 }
 void arena_pop(arena_t* arena, u64 size) {
 	ASSERT(arena->cur - size > 0, "Arena cannot pop any more memory");
