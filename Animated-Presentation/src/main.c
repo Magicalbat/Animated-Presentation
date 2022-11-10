@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "base/base.h"
-#include "os.h"
+#include "os/os.h"
 
 int main() {
     arena_t* arena = arena_create(os_mem_pagesize() * 4);
