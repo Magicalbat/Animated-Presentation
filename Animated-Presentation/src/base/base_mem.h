@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "base.h"
+#include "base_def.h"
 
 typedef struct {
 	u64 size;
@@ -14,7 +14,7 @@ typedef struct {
 } arena_t;
 
 arena_t* arena_create( u64 size                 );
-void*    arena_malloc( arena_t* arena, u64 size );
+void*    arena_alloc ( arena_t* arena, u64 size );
 void     arena_pop   ( arena_t* arena, u64 size );
 void     arena_free  ( arena_t* arena           );
 

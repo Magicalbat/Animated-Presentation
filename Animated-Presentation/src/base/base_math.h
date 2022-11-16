@@ -1,9 +1,9 @@
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 
-#include <math.h>
+#include "base_def.h"
 
-#include "base.h"
+#include <math.h>
 
 typedef struct { f32 x, y;       } vec2_t;
 typedef struct { f32 x, y, z;    } vec3_t;

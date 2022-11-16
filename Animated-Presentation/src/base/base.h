@@ -4,5 +4,6 @@
 #include "base_def.h"
 #include "base_math.h"
 #include "base_mem.h"
+#include "base_str.h"
 
 #endif // BASE_H

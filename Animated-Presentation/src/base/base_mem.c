@@ -1,5 +1,5 @@
-#include "base_def.h"
 #include "base_mem.h"
+
 #include "os/os.h"
 
 #define INIT_COMMIT_PAGES 1
@@ -23,7 +23,7 @@ arena_t* arena_create(u64 size) {
 
 	return arena;
 }
-void* arena_malloc(arena_t* arena, u64 size) {
+void* arena_alloc(arena_t* arena, u64 size) {
 	ASSERT(arena->cur + size < arena->size, "Arena ran out of memory");
 
     void* out = ((u8*)arena) + arena->cur;
