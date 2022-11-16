@@ -12,4 +12,4 @@ void  os_mem_release  ( void* ptr, u64 size );
 
 u64 os_mem_pagesize();
 
-#endif
+#endif // OS_H

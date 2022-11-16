@@ -3,6 +3,9 @@
 #include "os/os.h"
 
 #define INIT_COMMIT_PAGES 1
+#define COMMIT_PAGES      1
+
+#define COMMIT_SIZE (os_mem_pagesize() * COMMIT_PAGES)
 
 arena_t* arena_create(u64 size) {
 	arena_t* arena = os_mem_reserve(size);
@@ -27,22 +30,21 @@ void* arena_malloc(arena_t* arena, u64 size) {
 	arena->cur += size;
 
     if (arena->cur > arena->cur_commit) {
-        u64 commit_size = (1 + (arena->cur - arena->cur_commit) / os_mem_pagesize()) * os_mem_pagesize();
-        os_mem_commit((void*)((u64)arena + arena->cur_commit), commit_size);
+        u64 commit_size = (1 + (arena->cur - arena->cur_commit) / COMMIT_SIZE) * COMMIT_SIZE;
+        os_mem_commit(((u8*)arena + arena->cur_commit), commit_size);
         arena->cur_commit += commit_size;
     }
 
-	//return (void*)((u64)arena + arena->cur - size);
     return out;
 }
 void arena_pop(arena_t* arena, u64 size) {
 	ASSERT(arena->cur - size > 0, "Arena cannot pop any more memory");
 
     u64 new_pos = arena->cur - size;
-    u64 commit_pos = ALIGN_UP_POW2(new_pos, os_mem_pagesize());
+    u64 commit_pos = ALIGN_UP_POW2(new_pos, COMMIT_SIZE);
 
     if (commit_pos < arena->cur_commit) {
-        os_mem_decommit((void*)((u64)arena + commit_pos), arena->cur_commit - commit_pos);
+        os_mem_decommit((u8*)arena + commit_pos, arena->cur_commit - commit_pos);
         arena->cur_commit = commit_pos;
     }
 

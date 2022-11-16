@@ -5,4 +5,4 @@
 #include "base_math.h"
 #include "base_mem.h"
 
-#endif
+#endif // BASE_H

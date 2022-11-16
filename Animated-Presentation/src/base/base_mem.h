@@ -7,7 +7,6 @@
 #include "base.h"
 
 typedef struct {
-	//uint8_t* data;
 	u64 size;
 	u64 cur;
     u64 cur_commit;
@@ -19,4 +18,4 @@ void*    arena_malloc( arena_t* arena, u64 size );
 void     arena_pop   ( arena_t* arena, u64 size );
 void     arena_free  ( arena_t* arena           );
 
-#endif
+#endif // BASE_MEM_H

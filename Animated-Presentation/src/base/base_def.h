@@ -26,7 +26,7 @@ typedef double   f64;
 #endif
 
 #ifdef AP_ASSERT
-# define ASSERT(a, b) do { if(!(a)) { fprintf(stderr, "Assert Failed: %s\n", b); BREAK_DEBUGGER(); } } while(0)
+# define ASSERT(a, b) do { if(!(a)) { fprintf(stderr, "%c[35mAssert Failed: %s\n", 0x1b, b); BREAK_DEBUGGER(); } } while(0)
 #else
 # define ASSERT(a, b)
 #endif
@@ -42,4 +42,4 @@ typedef double   f64;
 #define MB(x) ((x) << 20)
 #define GB(x) ((x) << 30) 
 
-#endif
+#endif // BASE_DEF_H

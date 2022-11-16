@@ -38,4 +38,4 @@ f32    vec4_sql( vec4_t v           );
 f32    vec4_len( vec4_t v           );
 vec4_t vec4_nrm( vec4_t v           );
 
-#endif
+#endif // BASE_MATH_H
