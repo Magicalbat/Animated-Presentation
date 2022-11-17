@@ -8,6 +8,7 @@ void test_print_fn(const char* name, string8_t str) {
 }
 
 #define test_print(str) test_print_fn(#str, str)
+#define bool_print(b) (b ? "true" : "false")
 
 int main() {
     arena_t* arena = arena_create(os_mem_pagesize() * 4);
@@ -24,6 +25,12 @@ int main() {
 
     string8_t test_str =  str8_lit("Hello again world");
     string8_t test_str2 = str8_lit("Hello ... again ... world");
+
+    printf("str equals str2: %s\n", bool_print(str8_equals(test_str, test_str2)));
+    printf("str contains \"world\": %s\n", bool_print(str8_contains(test_str, str8_lit("world"))));
+    printf("str contains \"AGAIN\": %s\n", bool_print(str8_contains(test_str, str8_lit("AGAIN"))));
+    printf("str find first \"world\": %lu\n", str8_find_first(test_str, str8_lit("world")));
+    printf("str find last \" \": %lu\n", str8_find_last(test_str, str8_lit(" ")));
 
     string8_t pre = str8_prefix(test_str, 5);
     string8_t post = str8_postfix(test_str, 5);

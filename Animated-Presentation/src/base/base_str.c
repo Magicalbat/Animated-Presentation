@@ -22,7 +22,7 @@ string8_t str8_copy(arena_t* arena, string8_t str) {
     return out;
 }
 
-bool str8_equals(string8_t a, string8_t b) {
+b8 str8_equals(string8_t a, string8_t b) {
     if (a.size != b.size)
         return false;
 
@@ -32,6 +32,57 @@ bool str8_equals(string8_t a, string8_t b) {
     }
     
     return true;
+}
+b8 str8_contains(string8_t a, string8_t b) {
+    for (u64 i = 0; i < a.size - b.size + 1; i++) {
+        b8 contains = true;
+        for (u64 j = 0; j < b.size; j++) {
+            if (a.str[i + j] != b.str[j]) {
+                contains = false;
+                break;
+            }
+        }
+
+        if (contains) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+u64 str8_find_first(string8_t a, string8_t b) {
+    for (u64 i = 0; i < a.size - b.size + 1; i++) {
+        b8 contains = true;
+        for (u64 j = 0; j < b.size; j++) {
+            if (a.str[i + j] != b.str[j]) {
+                contains = false;
+                break;
+            }
+        }
+
+        if (contains) {
+            return i;
+        }
+    }
+    return (u64)(-1);
+}
+u64 str8_find_last(string8_t a, string8_t b) {
+    u64 out = (u64)(-1);
+    for (u64 i = 0; i < a.size - b.size + 1; i++) {
+        b8 contains = true;
+        for (u64 j = 0; j < b.size; j++) {
+            if (a.str[i + j] != b.str[j]) {
+                contains = false;
+                break;
+            }
+        }
+
+        if (contains) {
+            out = i;
+        }
+    }
+    return out;
 }
 
 string8_t str8_prefix(string8_t str, u64 size) {
@@ -69,7 +120,7 @@ string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
     u8* word_first = ptr;
     u8* end = ptr + str.size - split.size;
     for (; ptr < end; ptr += 1) {
-        bool split_found = true;
+        b8 split_found = true;
         for (u64 i = 0; i < split.size; i++) {
             if (ptr[i] != split.str[i]) {
                 split_found = false;
