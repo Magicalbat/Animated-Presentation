@@ -18,7 +18,7 @@ void os_main_init(int argc, char** argv) {
         str8_list_push(lnx_arena, &lnx_cmd_args, str);
     }
 }
-void os_main_end() {
+void os_main_quit() {
     arena_free(lnx_arena);
 }
 string8_list_t os_get_cmd_args() {
