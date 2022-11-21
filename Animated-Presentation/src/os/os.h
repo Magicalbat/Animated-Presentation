@@ -7,7 +7,7 @@
 // These functions will be implemented is specific os c files
 
 void           os_main_init(int argc, char** argv);
-void           os_main_end();
+void           os_main_quit();
 string8_list_t os_get_cmd_args();
 
 void* os_mem_reserve(u64 size);

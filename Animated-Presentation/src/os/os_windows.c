@@ -16,7 +16,7 @@ void os_main_init(int argc, char** argv) {
         str8_list_push(w32_arena, &w32_cmd_args, str);
     }
 }
-void os_main_end() {
+void os_main_quit() {
     arena_free(w32_arena);
 }
 string8_list_t os_get_cmd_args() {

@@ -9,6 +9,6 @@ int main(int argc, char** argv) {
         printf("%.*s\n", (i32)node->str.size, node->str.str);
     }
     
-    os_main_end();
+    os_main_quit();
 	return 0;
 }

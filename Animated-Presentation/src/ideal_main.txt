@@ -1,0 +1,61 @@
+// This is how I would want the main to look after the tool2d and gfx layer is finished
+
+/*
+  - gfx layers interact with os
+    - opengl -> win32 & linux
+    - others -> ...
+  - rendering layers interact with gfx layers
+    - tool2d -> opengl & others
+*/
+
+/* 
+File structure:
+
+- gfx
+  - opengl
+    - win32
+    - linux
+
+- tool2d
+  - opengl
+*/
+
+#include "base/base.h"
+#include "os/os.h"
+#include "gfx/gfx.h"
+#include "tool2d/tool2d.h"
+
+int main(int argc, chr** argv) {
+    os_main_init(argc, argv);
+
+    arena_t* perm_arena = arena_create(MB(4));
+    arena_t* frame_arena = arena_create(MB(4));
+
+    gfx_window_t* win = gfx_win_create(perm_arena, width, height, title);
+    tool2d_init(perm_arena, win);
+
+    while (1) {
+        arena_clear(frame_arena);
+
+        gfx_win_event event;
+        while (gfx_win_poll_events(win, &event)) {
+            // do event stuff
+        }
+
+        tool2d_start_frame(win);
+
+        // do drawing stuff
+
+        tool2d_end_frame(win);
+        gfx_win_display(win);
+    }
+
+    arena_free(frame_arena);
+    arena_free(perm_arena);
+
+    gfx_win_free(win);
+    tool2d_quit();
+
+    os_main_quit();
+    return 0;
+}
