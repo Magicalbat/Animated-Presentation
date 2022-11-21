@@ -12,4 +12,11 @@ void  os_mem_release  ( void* ptr, u64 size );
 
 u64 os_mem_pagesize();
 
+// Load file
+// Write to file
+// Append to file?
+// Load dynamic library
+// Get datetime
+// Functions for profiling?
+
 #endif // OS_H

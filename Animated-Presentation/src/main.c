@@ -13,6 +13,11 @@ void test_print_fn(const char* name, string8_t str) {
 int main() {
     arena_t* arena = arena_create(os_mem_pagesize() * 4);
 
+    vec3_t v1 = (vec3_t){ 1.0f, 20.0f, 5.7f };
+    vec3_t v2 = vec3_nrm(v1);
+
+    printf("( %f, %f, %f )\n", v2.x, v2.y, v2.z);
+
     u8* test_cstr = "Hello";
 
     string8_t create = str8_create(test_cstr, 5);
