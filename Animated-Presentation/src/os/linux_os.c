@@ -7,8 +7,23 @@
 
 #include "os.h"
 
-//https://stackoverflow.com/questions/2782628/any-way-to-reserve-but-not-commit-memory-in-linux
-//https://www.ibm.com/docs/en/i/7.2?topic=ssw_ibm_i_72/apis/mmap.html
+arena_t*       lnx_arena;
+string8_list_t lnx_cmd_args;
+
+void os_main_init(int argc, char** argv) {
+    lnx_arena = arena_create(KB(4));
+
+    for (i32 i = 0; i < argc; i++) {
+        string8_t str = str8_from_cstr(argv[i]);
+        str8_list_push(lnx_arena, &lnx_cmd_args, str);
+    }
+}
+void os_main_end() {
+    arena_free(lnx_arena);
+}
+string8_list_t os_get_cmd_args() {
+    return lnx_cmd_args;
+}
 
 void* os_mem_reserve(u64 size) {
 	void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);

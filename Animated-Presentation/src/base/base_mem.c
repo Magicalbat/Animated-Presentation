@@ -2,14 +2,13 @@
 
 #include "os/os.h"
 
-#define INIT_COMMIT_PAGES 1
-#define COMMIT_PAGES      1
+#define COMMIT_PAGES 1
 
 #define COMMIT_SIZE (os_mem_pagesize() * COMMIT_PAGES)
 
 arena_t* arena_create(u64 size) {
 	arena_t* arena = os_mem_reserve(size);
-    u64 init_commit = os_mem_pagesize() * INIT_COMMIT_PAGES;
+    u64 init_commit = COMMIT_SIZE;
     
     os_mem_commit(arena, init_commit);
     

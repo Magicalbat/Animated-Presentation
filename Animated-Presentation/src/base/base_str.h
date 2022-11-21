@@ -51,11 +51,12 @@ string8_t str8_postfix(string8_t str, u64 size);
 string8_t str8_substr(string8_t str, u64 start, u64 end);
 string8_t str8_substr_size(string8_t str, u64 start, u64 size);
 
-void str8_list_add_existing(string8_list_t* list, string8_t str, string8_node_t* node);
-void str8_list_add(arena_t* arena, string8_list_t* list, string8_t str);
+void str8_list_push_existing(string8_list_t* list, string8_t str, string8_node_t* node);
+void str8_list_push(arena_t* arena, string8_list_t* list, string8_t str);
 
 string8_list_t str8_split(arena_t* arena, string8_t orig, string8_t split);
 string8_list_t str8_split_char(arena_t* arena, string8_t orig, u8 split_char);
+
 string8_t str8_concat(arena_t* arena, string8_list_t list);
 string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join);
 

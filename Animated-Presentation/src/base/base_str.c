@@ -103,15 +103,15 @@ string8_t str8_substr_size(string8_t str, u64 start, u64 size) {
     return str8_substr(str, start, start + size);
 }
 
-void str8_list_add_existing(string8_list_t* list, string8_t str, string8_node_t* node) {
+void str8_list_push_existing(string8_list_t* list, string8_t str, string8_node_t* node) {
     node->str = str;
     SLL_PUSH_BACK(list->first, list->last, node);
     list->node_count++;
     list->total_size += str.size;
 }
-void str8_list_add(arena_t* arena, string8_list_t* list, string8_t str) {
+void str8_list_push(arena_t* arena, string8_list_t* list, string8_t str) {
     string8_node_t* node = CREATE_ZERO_STRUCT(node, string8_node_t, arena);
-    str8_list_add_existing(list, str, node);
+    str8_list_push_existing(list, str, node);
 }
 string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
     string8_list_t list_out = (string8_list_t){ .total_size = 0 };
@@ -130,14 +130,14 @@ string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
 
         if (split_found) {
             if (word_first < ptr) {
-                str8_list_add(arena, &list_out, str8_from_range(word_first, ptr));
+                str8_list_push(arena, &list_out, str8_from_range(word_first, ptr));
             }
             word_first = ptr + split.size;
         }
     }
 
     if (word_first <= ptr) {
-        str8_list_add(arena, &list_out, str8_from_range(word_first, ptr + split.size));
+        str8_list_push(arena, &list_out, str8_from_range(word_first, ptr + split.size));
     }
 
     return list_out;
@@ -146,6 +146,7 @@ string8_list_t str8_split_char(arena_t* arena, string8_t str, u8 split_char) {
     string8_t char_str = (string8_t){ .str=&split_char, .size=1 };
     return str8_split(arena, str, char_str);
 }
+
 string8_t str8_concat(arena_t* arena, string8_list_t list) {
     string8_t out = {
         .str = arena_alloc(arena, list.total_size),
