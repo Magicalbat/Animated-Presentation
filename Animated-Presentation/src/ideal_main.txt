@@ -50,11 +50,11 @@ int main(int argc, chr** argv) {
         gfx_win_display(win);
     }
 
+    gfx_win_destroy(win);
+    tool2d_quit();
+
     arena_free(frame_arena);
     arena_free(perm_arena);
-
-    gfx_win_free(win);
-    tool2d_quit();
 
     os_main_quit();
     return 0;

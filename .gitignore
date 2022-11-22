@@ -9,3 +9,5 @@ bin-int
 **.nix
 .ccls-cache
 Makefile
+X11
+*.vim

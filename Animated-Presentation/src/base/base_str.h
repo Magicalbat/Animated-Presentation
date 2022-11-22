@@ -60,4 +60,6 @@ string8_list_t str8_split_char(arena_t* arena, string8_t orig, u8 split_char);
 string8_t str8_concat(arena_t* arena, string8_list_t list);
 string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join);
 
+// TODO: unicode conversions
+
 #endif // BASE_STR_H

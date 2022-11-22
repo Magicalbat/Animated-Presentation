@@ -26,12 +26,17 @@ project "Animated-Presentation"
         "%{prj.name}/src",
     }
 
+    defines 
+    {
+        "AP_OPENGL"
+    }
+
     links { }
 
     filter "system:linux"
       links
       {
-        "m"
+        "m", "X11", "GL", "GLX"
       }
 
       defines
@@ -50,14 +55,13 @@ project "Animated-Presentation"
         }
 
     filter "configurations:Debug"
-        --buildoptions "/MDd"
         symbols "On"
 
-        defines {
+        defines 
+        {
 			"DEBUG", "AP_ASSERT"
         }
 
     filter "configurations:Release"
-        --buildoptions "/MD"
         optimize "On"
         defines "NDEBUG"
