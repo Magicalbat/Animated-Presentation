@@ -131,7 +131,8 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         .old_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
         .width = width,
         .height = height,
-        .title = title
+        .title = title,
+        .should_close = false
     };
 
     return win;

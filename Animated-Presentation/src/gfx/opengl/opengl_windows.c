@@ -143,6 +143,18 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
     win->wgl.context = wglCreateContexAttribsARB(win->wgl.device_context, NULL, gl_attribs);
 
+    win->info = (gfx_window_info_t){
+        .mouse_pos = (vec2_t){ 0, 0 },
+        .new_mouse_buttons = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_MOUSE_BUTTONS),
+        .old_mouse_buttons = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_MOUSE_BUTTONS),
+        .new_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
+        .old_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
+        .width = width,
+        .height = height,
+        .title = title,
+        .should_close = false
+    };
+
     return win;
 }
 void gfx_win_make_current(gfx_window_t* win) {
@@ -162,10 +174,37 @@ void gfx_win_destroy(gfx_window_t* win) {
 void gfx_win_swap_buffers(gfx_window_t* win) {
     SwapBuffers(win->wgl.device_context);
 }
+void gfx_win_process_events(gfx_window_t* win) {
+    MSG msg;
+    while (PeekMessage(&msg, win->wgl.window, 0, 0, PM_REMOVE)) {
+        if (msg.message == WM_QUIT) {
+            win->info.should_close = true;
+        } else {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+}
 
 void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
+    win->info.width = width;
+    win->info.height = height;
+
+    RECT rect = (RECT){ 0, 0, width, height };
+    i32 out = AdjustWindowRect(&rect, GetWindowLong(win->wgl.window, GWL_STYLE), false);
+
+    SetWindowPos(win->wgl.window, NULL,
+            0, 0, (i32)width, (i32)height,
+            SWP_NOMOVE | SWP_DRAWFRAME);// | WS_VISIBLE);
 }
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
+    win->info.title = title;
+
+    // TODO: replace this after string conversions are made
+    u16* w_title = arena_alloc(arena, (title.size + 1) * sizeof(u16));
+    mbstowcs(w_title, title.str, title.size + 1);
+
+    SetWindowText(win->wgl.window, w_title);
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

@@ -28,6 +28,8 @@ typedef struct gfx_window_info {
     u32 height;
 
     string8_t title;
+
+    b8 should_close;
 } gfx_window_info_t;
 
 #include "gfx/opengl/opengl.h"
@@ -37,6 +39,7 @@ void          gfx_win_make_current(gfx_window_t* win);
 void          gfx_win_destroy(gfx_window_t* win);
 
 void gfx_win_swap_buffers(gfx_window_t* win);
+void gfx_win_process_events(gfx_window_t* win);
 
 void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height);
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title);
