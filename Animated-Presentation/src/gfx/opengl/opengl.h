@@ -10,7 +10,8 @@
     #include <GL/gl.h>
 #endif
 
-//typedef struct gfx_window_info gfx_window_info_t;
+// TODO: Error handling on both platforms
+
 
 typedef struct {
     gfx_window_info_t info;
@@ -24,7 +25,13 @@ typedef struct {
             GLXContext context;
         } glx;
     #elif defined(AP_PLATFORM_WINDOWS)
-        struct { } wgl;
+		struct { 
+            HINSTANCE h_instance;
+            WNDCLASS window_class;
+            HWND window;
+            HDC device_context;
+            HGLRC context;
+        } wgl;
     #endif
 } gfx_window_t;
 

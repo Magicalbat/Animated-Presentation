@@ -11,3 +11,4 @@ bin-int
 Makefile
 X11
 *.vim
+build.bat

@@ -54,6 +54,11 @@ project "Animated-Presentation"
             "AP_PLATFORM_WINDOWS"
         }
 
+        links 
+        {
+            "opengl32"
+        }
+
     filter "configurations:Debug"
         symbols "On"
 
