@@ -4,6 +4,10 @@
 #include "gfx/gfx.h"
 #include "opengl.h"
 
+#define X(ret, name, args) gl_func_##name##_t name = NULL;
+    #include "opengl_xlist.h"
+#undef X
+
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
 static bool isExtensionSupported(const char *extList, const char *extension);
@@ -186,6 +190,12 @@ void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
     XStoreName(win->glx.display, win->glx.window, title_cstr);
     
     arena_pop(arena, title.size + 1);
+}
+
+void opengl_load_functions(gfx_window_t* win) {
+    #define X(ret, name, args) name = (gl_func_##name##_t)glXGetProcAddress(#name);
+    #include "opengl_xlist.h"
+    #undef X
 }
 
 // Helper to check for extension string presence.  Adapted from:
