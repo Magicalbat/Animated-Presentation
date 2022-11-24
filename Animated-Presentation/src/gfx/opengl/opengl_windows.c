@@ -22,11 +22,16 @@
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
+#define X(ret, name, args) gl_func_##name##_t name = NULL;
+    #include "opengl_xlist.h"
+#undef X
+
 // https://www.khronos.org/opengl/wiki/Load_OpenGL_Functions#Windows_2
 static void* wgl_get_proc_address(const char* name) {
 	void* p = (void*)wglGetProcAddress(name);
 	if (p == 0 || (p == (void*)0x1) || (p == (void*)0x2) || (p == (void*)0x3) || (p == (void*)-1)) {
 		HMODULE module = LoadLibrary(L"opengl32.dll");
+        ASSERT(module != 0, "Failed to load opengl32.dll");
 		p = (void*)GetProcAddress(module, name);
 	}
 	return p;
@@ -56,10 +61,10 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         HWND bootstrap_window = CreateWindow(
             bootstrap_wnd_class.lpszClassName,
             L"Bootstrap Win",
-            NULL,
+            0,
             CW_USEDEFAULT, CW_USEDEFAULT,
             CW_USEDEFAULT, CW_USEDEFAULT,
-            NULL, NULL, win->wgl.h_instance, NULL
+            0, 0, win->wgl.h_instance, 0
         );
 
         HDC bootstrap_dc = GetDC(bootstrap_window);
@@ -176,7 +181,7 @@ void gfx_win_swap_buffers(gfx_window_t* win) {
 }
 void gfx_win_process_events(gfx_window_t* win) {
     MSG msg;
-    while (PeekMessage(&msg, win->wgl.window, 0, 0, PM_REMOVE)) {
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT) {
             win->info.should_close = true;
         } else {
@@ -215,6 +220,12 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+void opengl_load_functions(gfx_window_t* win) {
+    #define X(ret, name, args) name = (gl_func_##name##_t)wgl_get_proc_address(#name);
+        #include "opengl_xlist.h"
+    #undef X
 }
 
 #endif // AP_OPENGL && AP_PLATFORM_WINDOWS

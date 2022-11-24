@@ -8,7 +8,11 @@
     #include <GL/gl.h>
 #elif defined (AP_PLATFORM_WINDOWS)
     #include <GL/gl.h>
+    
+    #define OPENGL_CALLSTYLE __stdcall
 #endif
+
+#include "opengl_defs.h"
 
 // TODO: Error handling on both platforms
 
@@ -34,6 +38,8 @@ typedef struct {
         } wgl;
     #endif
 } gfx_window_t;
+
+void opengl_load_functions(gfx_window_t* win);
 
 #endif // OPENGL_H
 #endif // AP_OPENGL
