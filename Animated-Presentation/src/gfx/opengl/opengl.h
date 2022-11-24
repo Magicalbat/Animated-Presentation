@@ -12,7 +12,6 @@
 
 // TODO: Error handling on both platforms
 
-
 typedef struct {
     gfx_window_info_t info;
 
@@ -23,6 +22,7 @@ typedef struct {
             GLXFBConfig fb_config;
             Window window;
             GLXContext context;
+            Atom del_window;
         } glx;
     #elif defined(AP_PLATFORM_WINDOWS)
 		struct { 

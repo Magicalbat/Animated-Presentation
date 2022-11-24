@@ -32,7 +32,9 @@ typedef struct gfx_window_info {
     b8 should_close;
 } gfx_window_info_t;
 
-#include "gfx/opengl/opengl.h"
+#ifdef AP_OPENGL
+    #include "opengl/opengl.h"
+#endif
 
 gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title);
 void          gfx_win_make_current(gfx_window_t* win);

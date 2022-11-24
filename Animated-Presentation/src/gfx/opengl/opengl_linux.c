@@ -1,4 +1,4 @@
-#ifdef defined(AP_OPENGL) && defined(AP_PLATFORM_LINUX)
+#if defined(AP_OPENGL) && defined(AP_PLATFORM_LINUX)
 
 #include "base/base.h"
 #include "gfx/gfx.h"
@@ -90,9 +90,12 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         &window_attribs
     );
     
-    XFree(visual);
-
+    win->glx.del_window = XInternAtom(win->glx.display, "WM_DELETE_WINDOW", 0);
+    XSetWMProtocols(win->glx.display , win->glx.window, &win->glx.del_window, 1);
     XMapWindow(win->glx.display, win->glx.window);
+    XSelectInput(win->glx.display, win->glx.window, KeyPress | ClientMessage);
+    
+    XFree(visual);
 
 	const char *glx_exts = glXQueryExtensionsString(win->glx.display, DefaultScreen(win->glx.display));
     
@@ -150,6 +153,24 @@ void gfx_win_destroy(gfx_window_t* win) {
 void gfx_win_swap_buffers(gfx_window_t* win) {
     glXSwapBuffers(win->glx.display, win->glx.window);
 }
+void gfx_win_process_events(gfx_window_t* win) {
+    while (XPending(win->glx.display)) {
+        XEvent e;
+        XNextEvent(win->glx.display, &e);
+
+        switch(e.type) {
+            case KeyPress:
+                break;
+            case ClientMessage:
+                if (e.xclient.data.l[0] == win->glx.del_window) {
+                    win->info.should_close = true;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
 
 void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
     win->info.width = width;
@@ -201,6 +222,5 @@ static bool isExtensionSupported(const char *extList, const char *extension) {
 
 	return false;
 }
-
 
 #endif // AP_OPENGL && AP_PLATFORM_LINUX
