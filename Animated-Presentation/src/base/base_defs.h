@@ -1,5 +1,5 @@
-#ifndef BASE_DEF_H
-#define BASE_DEF_H
+#ifndef BASE_DEFS_H
+#define BASE_DEFS_H
 
 #include <stdio.h>
 #include <errno.h>
@@ -74,4 +74,4 @@ typedef double   f64;
 
 #define TIME_REGION for(struct { u64 start; u64 end; } _i_ = { os_now_microseconds(), 0 }; !_i_.end; _i_.end = os_now_microseconds(), printf("Region took %" PRId64 " microseconds.\n", _i_.end - _i_.start))
 
-#endif // BASE_DEF_H
+#endif // BASE_DEFS_H

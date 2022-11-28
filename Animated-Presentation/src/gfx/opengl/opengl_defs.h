@@ -1,7 +1,7 @@
 #ifndef GL_DEFS_H
 #define GL_DEFS_H
 
-#include "base/base_def.h"
+#include "base/base_defs.h"
 
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
@@ -57,10 +57,13 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 
 #define GL_TRIANGLES                      0x0004
 
+#define GL_UNSIGNED_INT                   0x1405
 #define GL_FLOAT                          0x1406
 
 #define GL_ARRAY_BUFFER                   0x8892
+#define GL_ELEMENT_ARRAY_BUFFER           0x8893
 #define GL_STATIC_DRAW                    0x88E4
+#define GL_DYNAMIC_DRAW                   0x88E8
 
 #define GL_COMPILE_STATUS                 0x8B81
 #define GL_LINK_STATUS                    0x8B82
@@ -76,5 +79,4 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 
 #define GL_DEBUG_TYPE_ERROR               0x824C
 #define GL_DEBUG_OUTPUT                   0x92E0
-
 #endif // GL_DEFS_H
