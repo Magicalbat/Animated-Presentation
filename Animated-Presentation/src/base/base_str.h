@@ -33,6 +33,11 @@ typedef struct {
     string8_t post;
 } string8_join_t;
 
+typedef struct {
+    u32 code_point;
+    u32 size;
+} string_decode_t;
+
 string8_t str8_create(u8* str, u64 size);
 string8_t str8_from_range(u8* start, u8* end);
 string8_t str8_from_cstr(u8* cstr);
@@ -60,6 +65,9 @@ string8_list_t str8_split_char(arena_t* arena, string8_t orig, u8 split_char);
 string8_t str8_concat(arena_t* arena, string8_list_t list);
 string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join);
 
-// TODO: unicode conversions
+// TODO: unicode stuff
+
+string_decode_t str_decode_utf8(u8* str, u32 cap);
+u32             str_encode_utf8(u8* dest, u32 code_point);
 
 #endif // BASE_STR_H

@@ -72,6 +72,6 @@ typedef double   f64;
     ((f) = (f)->next)                      \
 )
 
-#define TIME_REGION for(struct { u64 start; u64 end; } _i_ = { os_now_microseconds(), 0 }; !_i_.end; _i_.end = os_now_microseconds(), printf("Region took %" PRId64 " microseconds.\n", _i_.end - _i_.start))
+#define TIME_REGION(t) for(struct { u64 start; u64 end; } _i_ = { os_now_microseconds(), 0 }; !_i_.end; _i_.end = os_now_microseconds(), t = _i_.end - _i_.start)
 
 #endif // BASE_DEFS_H

@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 
     arena_t* perm_arena = arena_create(KB(16));
 
-    gfx_window_t* win = gfx_win_create(perm_arena, 320 * 3, 180 * 3, str8_lit("Test window"));
+    gfx_window_t* win = gfx_win_create(perm_arena, 320, 180, str8_lit("Test window"));
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 	printf("GL Renderer: %s\n", glGetString(GL_RENDERER));
 	printf("GL Version: %s\n", glGetString(GL_VERSION));
 
-	glEnable              (GL_DEBUG_OUTPUT);
+	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(opengl_message_callback, 0);
 
 	const char* vertex_shader_source = ""
@@ -106,10 +106,6 @@ int main(int argc, char** argv) {
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
-    TIME_REGION {
-        os_sleep_milliseconds(100);
-    }
-
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
 
@@ -120,13 +116,9 @@ int main(int argc, char** argv) {
         gfx_win_process_events(win);
 
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-        //printf("[ ");
         for (u32 i = 0; i < 3; i++) {
-            vertices[i * 2] += delta * 0.25f;
-            //printf("%f", vertices[i * 2]);
-            //if (i != 2)    printf(", ");
+            vertices[i * 2] += delta * 0.15f;
         }
-        //printf(" ]\n");
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), &vertices[0]);
 
         glClear(GL_COLOR_BUFFER_BIT);

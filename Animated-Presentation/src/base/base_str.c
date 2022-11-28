@@ -191,3 +191,75 @@ string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
 
     return out;
 }
+
+// https://github.com/skeeto/branchless-utf8/blob/master/utf8.h
+// https://github.com/Mr-4th-Programming/mr4th/blob/main/src/base/base_string.cpp
+string_decode_t str_decode_utf8(u8* str, u32 cap) {
+    static u8 lengths[] = {
+        1, 1, 1, 1, // 000xx
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        1, 1, 1, 1,
+        0, 0, 0, 0, // 100xx
+        0, 0, 0, 0,
+        2, 2, 2, 2, // 110xx
+        3, 3,       // 1110x
+        4,          // 11110
+        0,          // 11111
+    };
+    static u8 first_byte_mask[] = { 0, 0x7F, 0x1F, 0x0F, 0x07 };
+    static u8 final_shift[] = { 0, 18, 12, 6, 0 };
+
+    string_decode_t out = { .size=0 };
+
+    if (cap > 0) {
+        out.code_point = '#';
+        out.size = 1;
+        
+        u32 len = lengths[str[0] >> 3];
+        if (len > 0 && len <= cap) {
+            u32 code_point = (str[0] & first_byte_mask[len]) << 18;
+            switch(len) {
+                case 4: code_point |= (str[3] & 0b00111111) << 0;
+                case 3: code_point |= (str[2] & 0b00111111) << 6;
+                case 2: code_point |= (str[1] & 0b00111111) << 12;
+                default: break;
+            }
+            code_point >>= final_shift[len];
+
+            out.code_point = code_point;
+            out.size = len;
+        }
+    }
+
+    return out;
+}
+
+u32 str_encode_utf8(u8* dest, u32 code_point) {
+    u32 size = 0;
+
+    if (code_point < (1 << 8)) {
+        dest[0] = (u8)code_point;
+        size = 1;
+    } else if (code_point < (1 << 11)) {
+        dest[0] = 0b11000000 | (code_point >> 6);
+        dest[1] = 0b10000000 | (code_point & 0b00111111);
+        size = 2;
+    } else if (code_point < (1 << 16)) {
+        dest[0] = 0b11100000 | (code_point >> 12);
+        dest[1] = 0b10000000 | ((code_point >> 6) & 0b00111111);
+        dest[1] = 0b10000000 | (code_point & 0b00111111);
+        size = 3;
+    } else if (code_point < (1 << 21)) {
+        dest[0] = 0b11110000 | (code_point >> 18);
+        dest[1] = 0b10000000 | ((code_point >> 12) & 0b00111111);
+        dest[2] = 0b10000000 | ((code_point >> 6) & 0b00111111);
+        dest[3] = 0b10000000 | (code_point & 0b00111111);
+        size = 4;
+    } else {
+        dest[0] = '#';
+        size = 1;
+    }
+
+    return size;
+}
