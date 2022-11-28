@@ -99,12 +99,16 @@ int main(int argc, char** argv) {
 	u32 vertex_buffer;
 	glGenBuffers(1, &vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+
+    TIME_REGION {
+        os_sleep_milliseconds(100);
+    }
 
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
@@ -116,9 +120,13 @@ int main(int argc, char** argv) {
         gfx_win_process_events(win);
 
         glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+        //printf("[ ");
         for (u32 i = 0; i < 3; i++) {
             vertices[i * 2] += delta * 0.25f;
+            //printf("%f", vertices[i * 2]);
+            //if (i != 2)    printf(", ");
         }
+        //printf(" ]\n");
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), &vertices[0]);
 
         glClear(GL_COLOR_BUFFER_BIT);

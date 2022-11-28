@@ -4,6 +4,7 @@
 
 #include <sys/mman.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "os.h"
 
@@ -41,6 +42,15 @@ void os_mem_release(void* ptr, u64 size) {
 
 uint64_t os_mem_pagesize() {
     return sysconf(_SC_PAGE_SIZE);
+}
+
+u64 os_now_microseconds() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
+}
+void os_sleep_milliseconds(u32 t) {
+    usleep(t * 1000);
 }
 
 #endif 
