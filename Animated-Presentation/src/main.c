@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
 	printf("GL Renderer: %s\n", glGetString(GL_RENDERER));
 	printf("GL Version: %s\n", glGetString(GL_VERSION));
 
-	glEnable              ( GL_DEBUG_OUTPUT );
-	glDebugMessageCallback( opengl_message_callback, 0 );
+	glEnable              (GL_DEBUG_OUTPUT);
+	glDebugMessageCallback(opengl_message_callback, 0);
 
 	const char* vertex_shader_source = ""
 		"#version 330 core\n"
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
 
-	f32 vertices[9] = {
+	f32 vertices[6] = {
 		-0.5f, -0.5f,
 		 0.5f, -0.5f,
 		 0.0f,  0.5f
@@ -106,14 +106,28 @@ int main(int argc, char** argv) {
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
+    // TODO: Better frame independence
+    u64 time_prev = os_now_microseconds();
+
     while (!win->info.should_close) {
+        u64 time_now = os_now_microseconds();
+        f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
+
         gfx_win_process_events(win);
+
+        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+        for (u32 i = 0; i < 3; i++) {
+            vertices[i * 2] += delta * 0.25f;
+        }
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), &vertices[0]);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
         gfx_win_swap_buffers(win);
+
+        time_prev = time_now;
     }
 
     gfx_win_destroy(win);

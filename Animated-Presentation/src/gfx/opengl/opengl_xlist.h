@@ -3,9 +3,10 @@
 #endif
 
 X(void, glGenBuffers, (GLsizei n, GLuint * buffers))
+X(void, glDeleteBuffers, (GLsizei n, const GLuint * buffers)) 
 X(void, glBindBuffer, (GLenum target, GLuint buffer)) 
 X(void, glBufferData, (GLenum target, GLsizeiptr size, const void * data, GLenum usage)) 
-X(void, glDeleteBuffers, (GLsizei n, const GLuint * buffers)) 
+X(void, glBufferSubData, (GLenum target, GLintptr offset, GLsizeiptr size, const void *data))
 
 X(void, glGenVertexArrays, (GLsizei n, GLuint *arrays))
 X(void, glBindVertexArray, (GLuint array))

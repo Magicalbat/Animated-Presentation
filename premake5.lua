@@ -56,7 +56,7 @@ project "Animated-Presentation"
 
         links 
         {
-            "opengl32"
+            "winmm", "opengl32"
         }
 
     filter "configurations:Debug"
