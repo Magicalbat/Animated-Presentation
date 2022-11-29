@@ -104,13 +104,11 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     };
     ATOM atom = RegisterClass(&win->wgl.window_class);
 
-    // TODO: replace this after string conversions are made
-    u16* w_title = arena_alloc(arena, (title.size + 1) * sizeof(u16));
-    mbstowcs(w_title, title.str, title.size + 1);
+    string16_t title16 = str16_from_str8(arena, title);
 
     win->wgl.window = CreateWindow(
         win->wgl.window_class.lpszClassName,
-        w_title,
+        title16.str,
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
         width, height,
@@ -205,11 +203,9 @@ void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
     win->info.title = title;
 
-    // TODO: replace this after string conversions are made
-    u16* w_title = arena_alloc(arena, (title.size + 1) * sizeof(u16));
-    mbstowcs(w_title, title.str, title.size + 1);
+    string16_t title16 = str16_from_str8(arena, title);
 
-    SetWindowText(win->wgl.window, w_title);
+    SetWindowText(win->wgl.window, title16.str);
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

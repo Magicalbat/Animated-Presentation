@@ -13,7 +13,7 @@ string8_t str8_from_cstr(u8* cstr) {
 }
 string8_t str8_copy(arena_t* arena, string8_t str) {
     string8_t out = { 
-        .str = arena_alloc(arena, str.size),
+        .str = (u8*)arena_alloc(arena, str.size),
         .size = str.size
     };
 
@@ -149,7 +149,7 @@ string8_list_t str8_split_char(arena_t* arena, string8_t str, u8 split_char) {
 
 string8_t str8_concat(arena_t* arena, string8_list_t list) {
     string8_t out = {
-        .str = arena_alloc(arena, list.total_size),
+        .str = (u8*)arena_alloc(arena, list.total_size),
         .size = list.total_size
     };
 
@@ -166,7 +166,7 @@ string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
     u64 out_size = join.pre.size + join.inbetween.size * (list.node_count - 1) + list.total_size + join.post.size + 1;
     
     string8_t out = {
-        .str = arena_alloc(arena, out_size),
+        .str = (u8*)arena_alloc(arena, out_size),
         .size = out_size
     };
 
@@ -235,31 +235,160 @@ string_decode_t str_decode_utf8(u8* str, u32 cap) {
     return out;
 }
 
-u32 str_encode_utf8(u8* dest, u32 code_point) {
+u32 str_encode_utf8(u8* dst, u32 code_point) {
     u32 size = 0;
 
     if (code_point < (1 << 8)) {
-        dest[0] = (u8)code_point;
+        dst[0] = (u8)code_point;
         size = 1;
     } else if (code_point < (1 << 11)) {
-        dest[0] = 0b11000000 | (code_point >> 6);
-        dest[1] = 0b10000000 | (code_point & 0b00111111);
+        dst[0] = 0b11000000 | (code_point >> 6);
+        dst[1] = 0b10000000 | (code_point & 0b00111111);
         size = 2;
     } else if (code_point < (1 << 16)) {
-        dest[0] = 0b11100000 | (code_point >> 12);
-        dest[1] = 0b10000000 | ((code_point >> 6) & 0b00111111);
-        dest[1] = 0b10000000 | (code_point & 0b00111111);
+        dst[0] = 0b11100000 | (code_point >> 12);
+        dst[1] = 0b10000000 | ((code_point >> 6) & 0b00111111);
+        dst[1] = 0b10000000 | (code_point & 0b00111111);
         size = 3;
     } else if (code_point < (1 << 21)) {
-        dest[0] = 0b11110000 | (code_point >> 18);
-        dest[1] = 0b10000000 | ((code_point >> 12) & 0b00111111);
-        dest[2] = 0b10000000 | ((code_point >> 6) & 0b00111111);
-        dest[3] = 0b10000000 | (code_point & 0b00111111);
+        dst[0] = 0b11110000 | (code_point >> 18);
+        dst[1] = 0b10000000 | ((code_point >> 12) & 0b00111111);
+        dst[2] = 0b10000000 | ((code_point >> 6) & 0b00111111);
+        dst[3] = 0b10000000 | (code_point & 0b00111111);
         size = 4;
     } else {
-        dest[0] = '#';
+        dst[0] = '#';
         size = 1;
     }
 
     return size;
+}
+
+// https://en.wikipedia.org/wiki/UTF-16
+string_decode_t str_decode_utf16(u16* str, u32 cap) {
+    string_decode_t out = { '#', 1 };
+    u16 x = str[0];
+
+    if (x < 0xd800 || x >= 0xdfff) {
+        out.code_point = x;
+    } else if (cap >= 2) {
+        u16 y = str[1];
+        if (x >= 0xd800 && x <= 0xdbff && y >= 0xdc00 && y <= 0xdfff) {
+            u16 x2 = x - 0xd800;
+            u16 y2 = y - 0xdc00;
+            out.code_point = ((y << 10) | x) + 0x10000;
+            out.size = 2;
+        }
+    }
+
+    return out;
+}
+u32 str_encode_utf16(u16* dst, u32 code_point) {
+    u32 size = 0;
+
+    if (code_point < 0x010000) {
+        dst[0] = (u16)code_point;
+        size = 1;
+    } else {
+        u32 u_p = code_point - 0x10000;
+        dst[0] = 0xd800 + (u_p >> 10);
+        dst[0] = 0xdc00 + (u_p & 0x3ff);
+        size = 2;
+    }
+
+    return size;
+}
+
+string32_t str32_from_str8(arena_t* arena, string8_t str) {
+    u32* buff = (u32*)arena_alloc(arena, sizeof(u32) * str.size + 1);
+
+    u32* ptr_out = buff;
+    u8* ptr = str.str;
+    u8* ptr_end = str.str + str.size;
+    for(;ptr < ptr_end;){
+        string_decode_t decode = str_decode_utf8(ptr, (u32)(ptr_end - ptr));
+
+        *ptr_out = decode.code_point;
+
+        ptr += decode.size;
+        ptr_out += 1;
+    }
+
+    *ptr_out = 0;
+
+    u64 alloc_count = str.size + 1;
+    u64 string_count = (u64)(ptr_out - buff);
+    u64 unused_count = alloc_count - string_count - 1;
+    arena_pop(arena, unused_count * (sizeof(*buff)));
+
+    return (string32_t){ .str = buff, .size = string_count };
+}
+string8_t str8_from_str32(arena_t* arena, string32_t str) {
+    u8* buff = (u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
+
+    u8* ptr_out = buff;
+    u32* ptr = str.str;
+    u32* ptr_end = str.str + str.size;
+    for(;ptr < ptr_end;){
+        u32 encode_size = str_encode_utf8(ptr_out, *ptr);
+
+        ptr_out += encode_size;
+        ptr += 1;
+    }
+
+    *ptr_out = 0;
+
+    u64 alloc_count = str.size * 4 + 1;
+    u64 string_count = (u64)(ptr_out - buff);
+    u64 unused_count = alloc_count - string_count - 1;
+    arena_pop(arena, unused_count * (sizeof(*buff)));
+
+    return (string8_t){ .str = buff, .size = string_count };
+}
+string16_t str16_from_str8(arena_t* arena, string8_t str) {
+    u16* buff = (u16*)arena_alloc(arena, sizeof(u16) * str.size * 2 + 1);
+
+    u16* ptr_out = buff;
+    u8* ptr = str.str;
+    u8* ptr_end = str.str + str.size;
+    for(;ptr < ptr_end;){
+        string_decode_t decode = str_decode_utf8(ptr, (u32)(ptr_end - ptr));
+        u32 encode_size = str_encode_utf16(ptr_out, decode.code_point);
+
+        ptr += decode.size;
+        ptr_out += encode_size;
+    }
+
+    *ptr_out = 0;
+
+    u64 alloc_count = str.size * 2 + 1;
+    u64 string_count = (u64)(ptr_out - buff);
+    u64 unused_count = alloc_count - string_count - 1;
+    arena_pop(arena, unused_count * (sizeof(*buff)));
+
+    return (string16_t){ .str = buff, .size = string_count };
+
+}
+string8_t str8_from_str16(arena_t* arena, string16_t str) {
+    u8* buff = (u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
+
+    u8* ptr_out = buff;
+    u16* ptr = str.str;
+    u16* ptr_end = str.str + str.size;
+    for(;ptr < ptr_end;){
+        string_decode_t decode = str_decode_utf16(ptr, (u32)(ptr_end - ptr));
+        u16 encode_size = str_encode_utf8(ptr_out, decode.code_point);
+
+        ptr_out += encode_size;
+        ptr += decode.size;
+    }
+
+    *ptr_out = 0;
+
+    u64 alloc_count = str.size * 4 + 1;
+    u64 string_count = (u64)(ptr_out - buff);
+    u64 unused_count = alloc_count - string_count - 1;
+    arena_pop(arena, unused_count * (sizeof(*buff)));
+
+    return (string8_t){ .str = buff, .size = string_count };
 }

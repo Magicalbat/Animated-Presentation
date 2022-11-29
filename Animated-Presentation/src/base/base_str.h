@@ -15,6 +15,16 @@ typedef struct {
     u64 size;
 } string8_t;
 
+typedef struct {
+    u16* str;
+    u64 size;
+} string16_t;
+
+typedef struct {
+    u32* str;
+    u64 size;
+} string32_t;
+
 typedef struct string8_node {
     struct string8_node* next;
     string8_t str;
@@ -65,9 +75,16 @@ string8_list_t str8_split_char(arena_t* arena, string8_t orig, u8 split_char);
 string8_t str8_concat(arena_t* arena, string8_list_t list);
 string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join);
 
-// TODO: unicode stuff
-
 string_decode_t str_decode_utf8(u8* str, u32 cap);
-u32             str_encode_utf8(u8* dest, u32 code_point);
+u32             str_encode_utf8(u8* dst, u32 code_point);
+
+string_decode_t str_decode_utf16(u16* str, u32 cap);
+u32             str_encode_utf16(u16* dst, u32 code_point);
+
+string32_t str32_from_str8(arena_t* arena, string8_t str);
+string8_t  str8_from_str32(arena_t* arena, string32_t str);
+string16_t str16_from_str8(arena_t* arena, string8_t str);
+string8_t  str8_from_str16(arena_t* arena, string16_t str);
+
 
 #endif // BASE_STR_H
