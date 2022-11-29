@@ -46,7 +46,7 @@ static wglCreateContextAttribsARB_t *wglCreateContexAttribsARB = NULL;
 static wglChoosePixelFormatARB_t    *wglChoosePixelFormatARB   = NULL;
 
 gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title) {
-    gfx_window_t* win = CREATE_ZERO_STRUCT(win, gfx_window_t, arena);
+    gfx_window_t* win = CREATE_ZERO_STRUCT(arena, win, gfx_window_t);
 
     win->wgl.h_instance = GetModuleHandle(0);
 
@@ -69,15 +69,14 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
         HDC bootstrap_dc = GetDC(bootstrap_window);
 
-        // TODO: standardize or add morme options to pixel format on both
         PIXELFORMATDESCRIPTOR pixel_format_desc = (PIXELFORMATDESCRIPTOR){
             .nSize = sizeof(PIXELFORMATDESCRIPTOR),
             .nVersion = 1,
             .dwFlags = PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER | PFD_DRAW_TO_WINDOW,
             .iPixelType = PFD_TYPE_RGBA,
             .cColorBits = 32,
-            .cDepthBits = 24,
-            .cStencilBits = 8,
+            .cDepthBits = 0,//24,
+            .cStencilBits = 0,//8,
             .iLayerType = PFD_MAIN_PLANE
         };
 
@@ -104,6 +103,7 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     };
     ATOM atom = RegisterClass(&win->wgl.window_class);
 
+    // TODO: Can this be deallocated after setting the title?
     string16_t title16 = str16_from_str8(arena, title);
 
     win->wgl.window = CreateWindow(
@@ -124,8 +124,8 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
         WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
         WGL_COLOR_BITS_ARB,         32,
-        WGL_DEPTH_BITS_ARB,         24,
-        WGL_STENCIL_BITS_ARB,       8,
+        WGL_DEPTH_BITS_ARB,         0,//24,
+        WGL_STENCIL_BITS_ARB,       0,//8,
         0
     };
 
@@ -148,10 +148,10 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
     win->info = (gfx_window_info_t){
         .mouse_pos = (vec2_t){ 0, 0 },
-        .new_mouse_buttons = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_MOUSE_BUTTONS),
-        .old_mouse_buttons = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_MOUSE_BUTTONS),
-        .new_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
-        .old_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
+        .new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
+        .old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
+        .new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
+        .old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
         .width = width,
         .height = height,
         .title = title,
@@ -203,6 +203,7 @@ void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
     win->info.title = title;
 
+    // TODO: Can this be deallocated after setting the title?
     string16_t title16 = str16_from_str8(arena, title);
 
     SetWindowText(win->wgl.window, title16.str);

@@ -13,7 +13,7 @@ typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXC
 static bool isExtensionSupported(const char *extList, const char *extension);
 
 gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title) {
-    gfx_window_t* win = CREATE_ZERO_STRUCT(win, gfx_window_t, arena);
+    gfx_window_t* win = CREATE_ZERO_STRUCT(arena, win, gfx_window_t);
 
     win->glx.display = XOpenDisplay(NULL);
     ASSERT(win->glx.display != NULL, "Cannot open display");
@@ -32,8 +32,8 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         GLX_GREEN_SIZE      , 8,
         GLX_BLUE_SIZE       , 8,
         GLX_ALPHA_SIZE      , 8,
-        GLX_DEPTH_SIZE      , 24,
-        GLX_STENCIL_SIZE    , 8,
+        GLX_DEPTH_SIZE      , 0,//24,
+        GLX_STENCIL_SIZE    , 0,//8,
         GLX_DOUBLEBUFFER    , True,
         None
     };   
@@ -127,15 +127,15 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     u8* title_cstr = (u8*)arena_alloc(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
     title_cstr[title.size] = '\0';
-    XStoreName(win->glx.display, win->glx.window, title_cstr);
+    XStoreName(win->glx.display, win->glx.window, title.str);
     arena_pop(arena, title.size + 1);
     
     win->info = (gfx_window_info_t){
         .mouse_pos = (vec2_t){ 0, 0 },
-        .new_mouse_buttons = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_MOUSE_BUTTONS),
-        .old_mouse_buttons = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_MOUSE_BUTTONS),
-        .new_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
-        .old_keys = (b8*)arena_alloc(arena, sizeof(b8) * GFX_NUM_KEYS),
+        .new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
+        .old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
+        .new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
+        .old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
         .width = width,
         .height = height,
         .title = title,

@@ -20,9 +20,9 @@ int main(int argc, char** argv) {
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
-    printf("GL Vender: %s\n", glGetString(GL_VENDOR));
+    printf("GL Vender: %s\n",   glGetString(GL_VENDOR));
 	printf("GL Renderer: %s\n", glGetString(GL_RENDERER));
-	printf("GL Version: %s\n", glGetString(GL_VERSION));
+	printf("GL Version: %s\n",  glGetString(GL_VERSION));
 
 	glEnable(GL_DEBUG_OUTPUT);
 	glDebugMessageCallback(opengl_message_callback, 0);

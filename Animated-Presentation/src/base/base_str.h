@@ -86,5 +86,4 @@ string8_t  str8_from_str32(arena_t* arena, string32_t str);
 string16_t str16_from_str8(arena_t* arena, string8_t str);
 string8_t  str8_from_str16(arena_t* arena, string16_t str);
 
-
 #endif // BASE_STR_H

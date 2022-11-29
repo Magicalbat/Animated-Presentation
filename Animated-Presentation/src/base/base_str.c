@@ -110,7 +110,7 @@ void str8_list_push_existing(string8_list_t* list, string8_t str, string8_node_t
     list->total_size += str.size;
 }
 void str8_list_push(arena_t* arena, string8_list_t* list, string8_t str) {
-    string8_node_t* node = CREATE_ZERO_STRUCT(node, string8_node_t, arena);
+    string8_node_t* node = CREATE_ZERO_STRUCT(arena, node, string8_node_t);
     str8_list_push_existing(list, str, node);
 }
 string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
@@ -119,7 +119,7 @@ string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
     u8* ptr = str.str;
     u8* word_first = ptr;
     u8* end = ptr + str.size - split.size;
-    for (; ptr < end; ptr += 1) {
+    for (;ptr < end; ptr += 1) {
         b8 split_found = true;
         for (u64 i = 0; i < split.size; i++) {
             if (ptr[i] != split.str[i]) {
@@ -300,7 +300,7 @@ u32 str_encode_utf16(u16* dst, u32 code_point) {
 }
 
 string32_t str32_from_str8(arena_t* arena, string8_t str) {
-    u32* buff = (u32*)arena_alloc(arena, sizeof(u32) * str.size + 1);
+    u32* buff = CREATE_ARRAY(arena, u32, str.size + 1);//(u32*)arena_alloc(arena, sizeof(u32) * str.size + 1);
 
     u32* ptr_out = buff;
     u8* ptr = str.str;
@@ -324,7 +324,7 @@ string32_t str32_from_str8(arena_t* arena, string8_t str) {
     return (string32_t){ .str = buff, .size = string_count };
 }
 string8_t str8_from_str32(arena_t* arena, string32_t str) {
-    u8* buff = (u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
+    u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);//(u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
 
     u8* ptr_out = buff;
     u32* ptr = str.str;
@@ -346,7 +346,7 @@ string8_t str8_from_str32(arena_t* arena, string32_t str) {
     return (string8_t){ .str = buff, .size = string_count };
 }
 string16_t str16_from_str8(arena_t* arena, string8_t str) {
-    u16* buff = (u16*)arena_alloc(arena, sizeof(u16) * str.size * 2 + 1);
+    u16* buff = CREATE_ARRAY(arena, u16, str.size * 2 + 1);//(u16*)arena_alloc(arena, sizeof(u16) * str.size * 2 + 1);
 
     u16* ptr_out = buff;
     u8* ptr = str.str;
@@ -370,7 +370,7 @@ string16_t str16_from_str8(arena_t* arena, string8_t str) {
 
 }
 string8_t str8_from_str16(arena_t* arena, string16_t str) {
-    u8* buff = (u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
+    u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);//(u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
 
     u8* ptr_out = buff;
     u16* ptr = str.str;
