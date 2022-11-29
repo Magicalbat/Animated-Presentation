@@ -182,7 +182,6 @@ void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
     XResizeWindow(win->glx.display, win->glx.window, width, height);
 }
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
-    // TODO: is this necessary?
     win->info.title = title;
     u8* title_cstr = (u8*)arena_alloc(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);

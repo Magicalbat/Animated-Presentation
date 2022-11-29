@@ -103,9 +103,8 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     };
     ATOM atom = RegisterClass(&win->wgl.window_class);
 
-    // TODO: Can this be deallocated after setting the title?
     string16_t title16 = str16_from_str8(arena, title);
-
+    
     win->wgl.window = CreateWindow(
         win->wgl.window_class.lpszClassName,
         title16.str,
@@ -114,6 +113,8 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         width, height,
         NULL, NULL, win->wgl.h_instance, NULL
     );
+
+    arena_pop(arena, sizeof(u16) * title16.size);
 
     win->wgl.device_context = GetDC(win->wgl.window);
 
@@ -203,10 +204,11 @@ void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
     win->info.title = title;
 
-    // TODO: Can this be deallocated after setting the title?
     string16_t title16 = str16_from_str8(arena, title);
 
     SetWindowText(win->wgl.window, title16.str);
+
+    arena_pop(arena, sizeof(u16) * title16.size);
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
