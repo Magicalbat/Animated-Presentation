@@ -9,9 +9,11 @@ X(void, glBufferData, (GLenum target, GLsizeiptr size, const void * data, GLenum
 X(void, glBufferSubData, (GLenum target, GLintptr offset, GLsizeiptr size, const void *data))
 
 X(void, glGenVertexArrays, (GLsizei n, GLuint *arrays))
+X(void, glDeleteVertexArrays, (GLsizei n, const GLuint *arrays))
 X(void, glBindVertexArray, (GLuint array))
 
 X(void, glEnableVertexAttribArray, (GLuint index))
+X(void, glDisableVertexAttribArray, (GLuint index))
 X(void, glVertexAttribPointer, (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void * pointer))
 
 X(GLuint, glCreateShader, (GLenum shaderType))

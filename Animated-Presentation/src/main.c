@@ -3,6 +3,7 @@
 #include "gfx/gfx.h"
 
 #include "gfx/opengl/opengl.h"
+#include "gfx/draw/draw.h"
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
@@ -86,7 +87,7 @@ int main(int argc, char** argv) {
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
 
-	f32 vertices[6] = {
+	/*f32 vertices[6] = {
 		-0.5f, -0.5f,
 		 0.5f, -0.5f,
 		 0.0f,  0.5f
@@ -102,7 +103,9 @@ int main(int argc, char** argv) {
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0], GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);*/
+
+    draw_rect_batch_t* batch = draw_rect_batch_create(perm_arena, 64);
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
@@ -115,20 +118,34 @@ int main(int argc, char** argv) {
 
         gfx_win_process_events(win);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+        /*glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
         for (u32 i = 0; i < 3; i++) {
             vertices[i * 2] += delta * 0.15f;
         }
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), &vertices[0]);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), &vertices[0]);*/
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		//glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 9; y++) {
+                draw_rect_batch_push(batch, (rect_t){
+                    (f32)x / 8.0f - 1.0f,
+                    (f32)y / 4.5f - 1.0f,
+                    0.1f, 0.1f
+                });
+            }
+        }
+        
+        draw_rect_batch_flush(batch);
 
         gfx_win_swap_buffers(win);
 
         time_prev = time_now;
     }
+
+    draw_rect_batch_destroy(batch);
 
     gfx_win_destroy(win);
 
