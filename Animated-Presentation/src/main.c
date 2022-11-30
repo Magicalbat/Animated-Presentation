@@ -22,11 +22,11 @@ int main(int argc, char** argv) {
     opengl_load_functions(win);
 
     printf("GL Vender: %s\n",   glGetString(GL_VENDOR));
-	printf("GL Renderer: %s\n", glGetString(GL_RENDERER));
-	printf("GL Version: %s\n",  glGetString(GL_VERSION));
+    printf("GL Renderer: %s\n", glGetString(GL_RENDERER));
+    printf("GL Version: %s\n",  glGetString(GL_VERSION));
 
-	glEnable(GL_DEBUG_OUTPUT);
-	glDebugMessageCallback(opengl_message_callback, 0);
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rect_batch_t* batch = draw_rect_batch_create(perm_arena, 128);
 
@@ -42,8 +42,6 @@ int main(int argc, char** argv) {
         gfx_win_process_events(win);
 
         glClear(GL_COLOR_BUFFER_BIT);
-
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
 
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 9; y++) {

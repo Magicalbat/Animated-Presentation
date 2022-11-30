@@ -1,6 +1,9 @@
 #ifdef AP_OPENGL
 
-#include "draw.h"
+#include "gfx/gfx.h"
+#include "gfx/opengl/opengl.h"
+
+#include "gfx/draw/draw_rect_batch.h"
 
 draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) { 
     draw_rect_batch_t* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rect_batch_t);
