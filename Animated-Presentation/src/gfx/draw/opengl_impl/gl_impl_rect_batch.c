@@ -1,9 +1,6 @@
 #ifdef AP_OPENGL
 
-#include "gfx/gfx.h"
-#include "gfx/opengl/opengl.h"
-
-#include "gfx/draw/draw_rect_batch.h"
+#include "gl_impl.h"
 
 draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) { 
     draw_rect_batch_t* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rect_batch_t);
@@ -12,14 +9,14 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
     batch->capacity = capacity;
     batch->size = 0;
 
-	const char* vertex_shader_source = ""
+	const char* vertex_source = ""
 		"#version 330 core\n"
 		"layout (location = 0) in vec2 aPos;\n"
 		"void main()\n"
 		"{\n"
 		"   gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
 		"}";
-	const char* fragment_shader_source = ""
+	const char* fragment_source = ""
 		"#version 330 core\n"
 		"out vec4 FragColor;\n"
 		"\n"
@@ -27,8 +24,9 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
 		"{ \n"
 		"    FragColor = vec4(0.2f, 0.8f, 0.5f, 1.0f);\n"
 		"}";
+    batch->gl.shader_program = gl_impl_create_shader_program(vertex_source, fragment_source);
  
-	u32 vertex_shader;
+	/*u32 vertex_shader;
 	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
 	glCompileShader(vertex_shader);
@@ -66,7 +64,7 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
 	}
 	
 	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
+	glDeleteShader(fragment_shader);*/
 
     glGenVertexArrays(1, &batch->gl.vertex_array);
     glBindVertexArray(batch->gl.vertex_array);
