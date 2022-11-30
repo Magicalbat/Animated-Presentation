@@ -9,6 +9,62 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
     batch->capacity = capacity;
     batch->size = 0;
 
+	const char* vertex_shader_source = ""
+		"#version 330 core\n"
+		"layout (location = 0) in vec2 aPos;\n"
+		"void main()\n"
+		"{\n"
+		"   gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
+		"}";
+	const char* fragment_shader_source = ""
+		"#version 330 core\n"
+		"out vec4 FragColor;\n"
+		"\n"
+		"void main()\n"
+		"{ \n"
+		"    FragColor = vec4(0.2f, 0.8f, 0.5f, 1.0f);\n"
+		"}";
+ 
+	u32 vertex_shader;
+	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
+	glCompileShader(vertex_shader);
+	
+	i32 success = GL_TRUE;
+	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
+	if(success == GL_FALSE) {
+		char info_log[512];
+		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
+		printf("Failed to compile vertex shader: %s", info_log);
+	}
+	
+	u32 fragment_shader;
+	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
+	glCompileShader(fragment_shader);
+
+	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
+	if(!success) {
+		char info_log[512];
+		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
+		printf("Failed to compile fragment shader: %s", info_log);
+	}
+
+	batch->gl.shader_program = glCreateProgram();
+	glAttachShader(batch->gl.shader_program, vertex_shader);
+	glAttachShader(batch->gl.shader_program, fragment_shader);
+	glLinkProgram(batch->gl.shader_program);
+
+	glGetProgramiv(batch->gl.shader_program, GL_LINK_STATUS, &success);
+	if(!success) {
+		char info_log[512];
+		glGetProgramInfoLog(batch->gl.shader_program, 512, NULL, info_log);
+		printf("Failed to link shader: %s", info_log);
+	}
+	
+	glDeleteShader(vertex_shader);
+	glDeleteShader(fragment_shader);
+
     glGenVertexArrays(1, &batch->gl.vertex_array);
     glBindVertexArray(batch->gl.vertex_array);
 
@@ -37,6 +93,7 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
     return batch;
 }
 void draw_rect_batch_destroy(draw_rect_batch_t* batch) {
+    glDeleteProgram(batch->gl.shader_program);
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
     glDeleteBuffers(1, &batch->gl.vertex_buffer);
     glDeleteBuffers(1, &batch->gl.index_buffer);
@@ -65,6 +122,7 @@ void draw_rect_batch_flush(draw_rect_batch_t* batch) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rect_t), batch->data);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batch->gl.index_buffer);
+    glUseProgram(batch->gl.shader_program);
 
     glDrawElements(GL_TRIANGLES, batch->size * 6, GL_UNSIGNED_INT, NULL);
     

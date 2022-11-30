@@ -23,6 +23,8 @@ typedef struct {
 
     #ifdef AP_OPENGL
     struct {
+        u32 shader_program;
+
         u32 vertex_array;
         u32 vertex_buffer;
         u32 index_buffer;
