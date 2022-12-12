@@ -5,6 +5,9 @@
 #include "gfx/opengl/opengl.h"
 #include "gfx/draw/draw.h"
 
+// TODO: Consistent init/destroy naming
+// TODO: Figure out my prefered error handling method
+
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
   fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
@@ -35,19 +38,24 @@ int main(int argc, char** argv) {
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
 
+    f32 theta = 0;
+
     while (!win->info.should_close) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
+
+        theta += delta * 2.0f;
 
         gfx_win_process_events(win);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        vec2_t offset = { sinf(theta) * 0.1f, cosf(theta) * 0.1f };
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 9; y++) {
                 draw_rect_batch_push(batch, (rect_t){
-                    (f32)x / 8.0f - 1.0f,
-                    (f32)y / 4.5f - 1.0f,
+                    (f32)x / 8.0f - 1.0f + offset.x,
+                    (f32)y / 4.5f - 1.0f + offset.y,
                     0.1f, 0.1f
                 });
             }
