@@ -276,7 +276,7 @@ string_decode_t str_decode_utf16(u16* str, u32 cap) {
         if (x >= 0xd800 && x <= 0xdbff && y >= 0xdc00 && y <= 0xdfff) {
             u16 x2 = x - 0xd800;
             u16 y2 = y - 0xdc00;
-            out.code_point = ((y << 10) | x) + 0x10000;
+            out.code_point = ((x2 << 10) | y2) + 0x10000;
             out.size = 2;
         }
     }
