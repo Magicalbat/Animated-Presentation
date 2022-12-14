@@ -26,52 +26,16 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
 		"}";
     batch->gl.shader_program = gl_impl_create_shader_program(vertex_source, fragment_source);
  
-	/*u32 vertex_shader;
-	vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-	glCompileShader(vertex_shader);
-	
-	i32 success = GL_TRUE;
-	glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
-	if(success == GL_FALSE) {
-		char info_log[512];
-		glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-		printf("Failed to compile vertex shader: %s", info_log);
-	}
-	
-	u32 fragment_shader;
-	fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
-	glCompileShader(fragment_shader);
-
-	glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
-	if(!success) {
-		char info_log[512];
-		glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-		printf("Failed to compile fragment shader: %s", info_log);
-	}
-
-	batch->gl.shader_program = glCreateProgram();
-	glAttachShader(batch->gl.shader_program, vertex_shader);
-	glAttachShader(batch->gl.shader_program, fragment_shader);
-	glLinkProgram(batch->gl.shader_program);
-
-	glGetProgramiv(batch->gl.shader_program, GL_LINK_STATUS, &success);
-	if(!success) {
-		char info_log[512];
-		glGetProgramInfoLog(batch->gl.shader_program, 512, NULL, info_log);
-		printf("Failed to link shader: %s", info_log);
-	}
-	
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);*/
-
     glGenVertexArrays(1, &batch->gl.vertex_array);
     glBindVertexArray(batch->gl.vertex_array);
 
-    glGenBuffers(1, &batch->gl.vertex_buffer);
+    /*glGenBuffers(1, &batch->gl.vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, batch->gl.vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, capacity * sizeof(draw_rect_t), NULL, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, capacity * sizeof(draw_rect_t), NULL, GL_DYNAMIC_DRAW);*/
+
+    batch->gl.vertex_buffer = gl_impl_create_buffer(
+        GL_ARRAY_BUFFER, capacity * sizeof(draw_rect_t), NULL, GL_DYNAMIC_DRAW
+    );
 
     u32* indices = CREATE_ARRAY(arena, u32, capacity * 6);
     for (int i = 0; i < capacity; i++) {
@@ -84,10 +48,12 @@ draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity) {
         indices[i * 6 + 5] = i * 4 + 3;
     }
 
-    glGenBuffers(1, &batch->gl.index_buffer);
+    /*glGenBuffers(1, &batch->gl.index_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, batch->gl.index_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * capacity * 6, indices, GL_STATIC_DRAW);
-    
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * capacity * 6, indices, GL_STATIC_DRAW);*/
+    batch->gl.index_buffer = gl_impl_create_buffer(
+        GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * capacity * 6, indices, GL_STATIC_DRAW
+    );
 
     arena_pop(arena, sizeof(u32) * capacity * 6);
 

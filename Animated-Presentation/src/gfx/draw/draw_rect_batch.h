@@ -25,8 +25,6 @@ typedef struct {
     #endif
 } draw_rect_batch_t;
 
-// TODO: this needs a shader
-
 draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity);
 void               draw_rect_batch_destroy(draw_rect_batch_t* batch);
 

@@ -49,7 +49,7 @@ void arena_pop(arena_t* arena, u64 size) {
 
     arena->cur = new_pos;
 }
-void arena_free(arena_t* arena) {
+void arena_destroy(arena_t* arena) {
 	ASSERT(arena != NULL, "Cannot free NULL arena");
     
     os_mem_release(arena, arena->size);

@@ -18,8 +18,6 @@ typedef struct {
 arena_t* arena_create(u64 size);
 void*    arena_alloc(arena_t* arena, u64 size);
 void     arena_pop(arena_t* arena, u64 size);
-void     arena_free(arena_t* arena);
-
-// TODO: array macros (might not be in this file)
+void     arena_destroy(arena_t* arena);
 
 #endif // BASE_MEM_H

@@ -25,7 +25,7 @@ void os_main_init(int argc, char** argv) {
     }
 }
 void os_main_quit() {
-    arena_free(w32_arena);
+    arena_destroy(w32_arena);
     timeEndPeriod(1);
 }
 string8_list_t os_get_cmd_args() {
