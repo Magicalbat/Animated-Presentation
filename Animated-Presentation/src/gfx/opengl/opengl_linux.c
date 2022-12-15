@@ -8,6 +8,8 @@
     #include "opengl_xlist.h"
 #undef X
 
+// TODO: Fix unnamed window
+
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
 static bool isExtensionSupported(const char *extList, const char *extension);

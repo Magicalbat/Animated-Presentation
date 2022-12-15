@@ -23,13 +23,13 @@ typedef struct {
         u32 index_buffer;
     } gl;
     #endif
-} draw_rect_batch_t;
+} draw_rectb_t;
 
-draw_rect_batch_t* draw_rect_batch_create(arena_t* arena, u64 capacity);
-void               draw_rect_batch_destroy(draw_rect_batch_t* batch);
+draw_rectb_t* draw_rectb_create(arena_t* arena, u64 capacity);
+void          draw_rectb_destroy(draw_rectb_t* batch);
 
 // These will draw rects to the screen
-void draw_rect_batch_push(draw_rect_batch_t* batch, rect_t rect);
-void draw_rect_batch_flush(draw_rect_batch_t* batch);
+void draw_rectb_push(draw_rectb_t* batch, rect_t rect);
+void draw_rectb_flush(draw_rectb_t* batch);
 
 #endif // DRAW_RECT_BATCH_H

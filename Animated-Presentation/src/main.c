@@ -14,7 +14,7 @@ void opengl_message_callback( GLenum source, GLenum type, GLuint id, GLenum seve
              type, severity, message);
 }
 
-#define WIN_SCALE 2
+#define WIN_SCALE 1
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
 
-    draw_rect_batch_t* batch = draw_rect_batch_create(perm_arena, 128);
+    draw_rectb_t* batch = draw_rectb_create(perm_arena, 128);
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
         vec2_t offset = { sinf(theta) * 0.1f, cosf(theta) * 0.1f };
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 9; y++) {
-                draw_rect_batch_push(batch, (rect_t){
+                draw_rectb_push(batch, (rect_t){
                     (f32)x / 8.0f - 1.0f + offset.x,
                     (f32)y / 4.5f - 1.0f + offset.y,
                     0.1f, 0.1f
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
             }
         }
         
-        draw_rect_batch_flush(batch);
+        draw_rectb_flush(batch);
 
         gfx_win_swap_buffers(win);
 
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
         time_prev = time_now;
     }
 
-    draw_rect_batch_destroy(batch);
+    draw_rectb_destroy(batch);
 
     gfx_win_destroy(win);
 
