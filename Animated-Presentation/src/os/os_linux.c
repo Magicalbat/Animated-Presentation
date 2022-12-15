@@ -3,7 +3,9 @@
 #include <stddef.h>
 
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <time.h>
 
 #include "os.h"
@@ -51,6 +53,52 @@ u64 os_now_microseconds() {
 }
 void os_sleep_milliseconds(u32 t) {
     usleep(t * 1000);
+}
+
+string8_t os_file_read(arena_t* arena, string8_t path) {
+    string8_t out = { 0 };
+    
+    u8* path_cstr = (u8*)arena_alloc(arena, sizeof(u8) * (path.size + 1));
+    memcpy(path_cstr, path.str, path.size);
+    path_cstr[path.size] = '\0';
+    
+    struct stat file_stats;
+    stat((char*)path_cstr, &file_stats);
+    
+    
+    if (S_ISREG(file_stats.st_mode)) {
+        int fd = open(path_cstr, O_RDONLY);
+        arena_pop(arena, sizeof(u8) * (path.size + 1));
+
+        out.size = file_stats.st_size;
+        out.str = (u8*)arena_alloc(arena, file_stats.st_size);
+
+        int ret = read(fd, out.str, file_stats.st_size);
+        // TODO: error checking
+
+        close(fd);
+    } else {
+        arena_pop(arena, sizeof(u8) * (path.size + 1));
+    }
+
+    return out;
+}
+void os_file_write(string8_t path, string8_list_t str_list) { }
+file_stats_t os_file_get_stats(string8_t path) {
+    u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
+    memcpy(path_cstr, path.str, path.size);
+    path_cstr[path.size] = '\0';
+
+    struct stat file_stats;
+    stat((char*)path_cstr, &file_stats);
+
+    arena_pop(lnx_arena, sizeof(u8) * (path.size + 1));
+
+    return (file_stats_t){
+        .size = file_stats.st_size,
+        .flags = S_ISDIR(file_stats.st_mode)
+        // TODO: above line is dumb
+    };
 }
 
 #endif 
