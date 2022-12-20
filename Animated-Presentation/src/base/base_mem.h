@@ -6,7 +6,7 @@
 
 #include "base_defs.h"
 
-// TODO: Temp/scratch arenas
+// TODO: scratch arenas
 
 typedef struct {
 	u64 size;

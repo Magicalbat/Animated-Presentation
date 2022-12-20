@@ -12,3 +12,6 @@ Makefile
 X11
 *.vim
 build.bat
+compile_commands
+compile_commands.json
+.cache
