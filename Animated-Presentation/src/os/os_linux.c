@@ -17,7 +17,7 @@ void os_main_init(int argc, char** argv) {
     lnx_arena = arena_create(KB(4));
 
     for (i32 i = 0; i < argc; i++) {
-        string8_t str = str8_from_cstr(argv[i]);
+        string8_t str = str8_from_cstr((u8*)argv[i]);
         str8_list_push(lnx_arena, &lnx_cmd_args, str);
     }
 }
@@ -29,7 +29,7 @@ string8_list_t os_get_cmd_args() {
 }
 
 void* os_mem_reserve(u64 size) {
-	void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+	void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 	return out;
 }
 void os_mem_commit(void* ptr, u64 size) {
@@ -37,6 +37,7 @@ void os_mem_commit(void* ptr, u64 size) {
 }
 void os_mem_decommit(void* ptr, u64 size) {
     mprotect(ptr, size, PROT_NONE);
+    madvise(ptr, size, MADV_DONTNEED);
 }
 void os_mem_release(void* ptr, u64 size) {
     munmap(ptr, size);
@@ -63,27 +64,49 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
     path_cstr[path.size] = '\0';
     
     struct stat file_stats;
-    stat((char*)path_cstr, &file_stats);
-    
+
+    int fd = open((char*)path_cstr, O_RDONLY);
+    fstat(fd, &file_stats);
+
+    arena_pop(arena, sizeof(u8) * (path.size + 1));
     
     if (S_ISREG(file_stats.st_mode)) {
-        int fd = open(path_cstr, O_RDONLY);
-        arena_pop(arena, sizeof(u8) * (path.size + 1));
-
         out.size = file_stats.st_size;
         out.str = (u8*)arena_alloc(arena, file_stats.st_size);
 
         int ret = read(fd, out.str, file_stats.st_size);
         // TODO: error checking
-
-        close(fd);
-    } else {
-        arena_pop(arena, sizeof(u8) * (path.size + 1));
     }
+    close(fd);
 
     return out;
 }
-void os_file_write(string8_t path, string8_list_t str_list) { }
+#include <stdio.h>
+void os_file_write(string8_t path, string8_list_t str_list) {
+    u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
+    memcpy(path_cstr, path.str, path.size);
+    path_cstr[path.size] = '\0';
+
+    int fd = open((char*)path_cstr, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    if (fd == -1) {
+        char err[256];
+        strerror_r(errno, &err[0], 256);
+        printf("Could not open file: %s\n", err);
+    }
+
+    u64 offset = 0;
+    for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
+        printf("%.*s\n", (int)node->str.size, node->str.str);
+        int written = pwrite(fd, node->str.str, node->str.size, offset);
+
+        if (written == -1) {
+            ASSERT(false, "You forgot to do error handling here :(");
+        }
+
+        offset += written;
+    }
+    close(fd);
+}
 file_stats_t os_file_get_stats(string8_t path) {
     u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
