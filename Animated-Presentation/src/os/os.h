@@ -30,7 +30,7 @@ void os_sleep_milliseconds(u32 t);
 
 string8_t    os_file_read(arena_t* arena, string8_t path);
 void         os_file_write(string8_t path, string8_list_t str_list);
-file_stats_t os_file_get_stats(string8_t path)
+file_stats_t os_file_get_stats(string8_t path);
 
 // TODO
 // Load file
