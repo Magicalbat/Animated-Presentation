@@ -1,6 +1,6 @@
 #ifdef AP_PLATFORM_WINDOWS
 
-#include <Windows.h>
+#include <windows.h>
 
 #include "base/base.h"
 #include "os.h"
@@ -11,13 +11,13 @@ static arena_t*       w32_arena;
 static string8_list_t w32_cmd_args;
 
 void os_main_init(int argc, char** argv) {
+    w32_arena = arena_create(KB(4));
+
     LARGE_INTEGER perf_freq;
     if (QueryPerformanceFrequency(&perf_freq)) {
         w32_ticks_per_second = ((u64)perf_freq.HighPart << 32) | perf_freq.LowPart;
     }
     timeBeginPeriod(1);
-
-    w32_arena = arena_create(KB(4));
 
     for (i32 i = 0; i < argc; i++) {
         string8_t str = str8_from_cstr((u8*)argv[i]);
@@ -33,8 +33,8 @@ string8_list_t os_get_cmd_args() {
 }
 
 void* os_mem_reserve(u64 size) {
-	void* out = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
-	return out;
+    void* out = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
+    return out;
 }
 void os_mem_commit(void* ptr, u64 size) {
 	VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
@@ -143,7 +143,7 @@ file_stats_t os_file_get_stats(string8_t path) {
 
     string16_t path16 = str16_from_str8(w32_arena, path);
 
-    WIN32_FILE_ATTRIBUTE_DATA attribs;
+    WIN32_FILE_ATTRIBUTE_DATA attribs = { 0 };
     if (GetFileAttributesEx((LPCSTR)path16.str, GetFileExInfoStandard, &attribs) != FALSE) {
         stats.size = ((u64)attribs.nFileSizeHigh << 32) | attribs.nFileSizeLow;
         if (attribs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {

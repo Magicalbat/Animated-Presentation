@@ -8,7 +8,7 @@
 
 arena_t* arena_create(u64 size) {
 	arena_t* arena = os_mem_reserve(size);
-    u64 init_commit = COMMIT_SIZE;
+    u64 init_commit = MIN(size, COMMIT_SIZE);
     
     os_mem_commit(arena, init_commit);
     
