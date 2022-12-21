@@ -2,7 +2,7 @@
 
 #include "os/os.h"
 
-#define COMMIT_PAGES 1
+#define COMMIT_PAGES 4
 
 #define COMMIT_SIZE (os_mem_pagesize() * COMMIT_PAGES)
 

@@ -1,5 +1,6 @@
 #ifdef AP_PLATFORM_LINUX
 
+#include <stdio.h>
 #include <stddef.h>
 
 #include <sys/mman.h>
@@ -81,7 +82,7 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
 
     return out;
 }
-#include <stdio.h>
+
 void os_file_write(string8_t path, string8_list_t str_list) {
     u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
@@ -96,7 +97,6 @@ void os_file_write(string8_t path, string8_list_t str_list) {
 
     u64 offset = 0;
     for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
-        printf("%.*s\n", (int)node->str.size, node->str.str);
         int written = pwrite(fd, node->str.str, node->str.size, offset);
 
         if (written == -1) {

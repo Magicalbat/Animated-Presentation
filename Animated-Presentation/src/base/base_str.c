@@ -192,6 +192,31 @@ string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
     return out;
 }
 
+string8_t str8_pushf(arena_t* arena, char* fmt, ...) {
+    va_list args;
+    
+    va_start(args, fmt);
+
+    u64 init_size = 1024;
+    u8* buffer = CREATE_ARRAY(arena, u8, init_size);
+    u64 size = vsnprintf((char*)buffer, init_size, fmt, args);
+
+    string8_t out = { 0 };
+    if (size < init_size) {
+        arena_pop(arena, init_size - size - 1);
+        out = (string8_t){ buffer, size };
+    } else {
+        arena_pop(arena, init_size);
+        u8* fixed_buff = CREATE_ARRAY(arena, u8, size + 1);
+        u64 final_size = vsnprintf((char*)fixed_buff, size + 1, fmt, args);
+        out = (string8_t){ fixed_buff, final_size };
+    }
+    
+    va_end(args);
+
+    return out;
+}
+
 // https://github.com/skeeto/branchless-utf8/blob/master/utf8.h
 // https://github.com/Mr-4th-Programming/mr4th/blob/main/src/base/base_string.cpp
 string_decode_t str_decode_utf8(u8* str, u32 cap) {
