@@ -1,27 +1,7 @@
 #ifdef AP_OPENGL
 
 #if 0
-
 #include "gl_impl.h"
-
-/*
-pos_pattern = {
-    -1,  1,
-     1,  1,
-    -1, -1,
-     
-}
-
-layout (location = 0) in vec2 v_pos_pattern;
-layout (location = 1) int vec4 v_quad;
-
-void main() {
-    vec2 center = (v_quad.xy + v_quad.zw) * 0.5;
-    vec2 half_dim = (v_quad.xy - v_quad.zw) * 0.5;
-    vec2 pos = center + half_dim * v_pos_patter;
-    gl_Position = vec4(pos, 0, 1);
-}
-*/
 
 draw_rectb_t* draw_rectb_create(arena_t* arena, u64 capacity) { 
     draw_rectb_t* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb_t);

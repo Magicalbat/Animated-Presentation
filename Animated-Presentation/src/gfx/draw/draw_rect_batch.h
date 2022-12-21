@@ -10,7 +10,7 @@ typedef struct {
 } draw_rect_t;
 
 typedef struct {
-    draw_rect_t* data;
+    rect_t* data;
     u64 capacity;
     u64 size;
 
@@ -20,7 +20,8 @@ typedef struct {
 
         u32 vertex_array;
         u32 vertex_buffer;
-        u32 index_buffer;
+        u32 pos_pattern_buffer;
+        //u32 index_buffer;
     } gl;
     #endif
 } draw_rectb_t;

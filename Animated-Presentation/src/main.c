@@ -8,7 +8,7 @@
 // TODO: Figure out my prefered error handling method
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
-void opengl_message_callback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam ) {
+void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
             (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
              type, severity, message);
@@ -18,7 +18,7 @@ void opengl_message_callback( GLenum source, GLenum type, GLuint id, GLenum seve
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
-
+    
     arena_t* perm_arena = arena_create(KB(64));
 
     gfx_window_t* win = gfx_win_create(perm_arena, 320, 180, str8_lit("Test window"));
@@ -55,19 +55,30 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        /*for (u32 x = 0; x < 5; x++) {
+            for (u32 y = 0; y < 5; y++) {
+                draw_rectb_push(batch, (rect_t){
+                    (f32)x / 2.5f - 1.0f,
+                    (f32)y / 2.5f - 1.0f,
+                    0.2f, 0.2f
+                });
+            }
+        }*/
+
         for (int y = 0; y < num_hund_rects; y++) {
             for (int x = 0; x < 100; x++) {
                 draw_rectb_push(batch, (rect_t){
-                    (f32)x / 50.0f - 1.0f,
-                    1.0f - (f32)y / (num_hund_rects * 0.5),
-                    0.01f, 0.01f
+                    0.0, 0.0,
+                    //(f32)x / 50.0f - 1.0f,
+                    //1.0f - (f32)y / (num_hund_rects * 0.5),
+                    0.1f, 0.1f
                 });
             }
         }
 
         num_frames++;
         avg_delta += delta;
-        if (num_frames > 120) {
+        if (num_frames >= 120) {
             avg_delta /= 120;
 
             if (num_hund_rects) {
@@ -75,11 +86,12 @@ int main(int argc, char** argv) {
                 str8_list_push(perm_arena, &out_list, line);
             }
             
-            num_hund_rects += 10;
-            if (num_hund_rects % 500 == 0)
+            num_hund_rects += 1;
+            if (num_hund_rects % 10 == 0)
                 printf("%u\n", num_hund_rects);
             avg_delta = 0;
         }
+        
         //vec2_t offset = { sinf(theta) * 0.1f, cosf(theta) * 0.1f };
         //for (int x = 0; x < 16; x++) {
         //    for (int y = 0; y < 9; y++) {
