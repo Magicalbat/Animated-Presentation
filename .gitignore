@@ -10,8 +10,9 @@ bin-int
 .ccls-cache
 Makefile
 X11
-*.vim
+**.vim
 build.bat
+run_premake.bat
 compile_commands
 compile_commands.json
 .cache
