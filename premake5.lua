@@ -44,7 +44,7 @@ project "Animated-Presentation"
         "AP_PLATFORM_LINUX"
       }
 
-    --[[filter "system:windows"
+    filter "system:windows"
         cdialect "C17"
         staticruntime "On"
         systemversion "latest"
@@ -57,7 +57,7 @@ project "Animated-Presentation"
         links 
         {
             "winmm", "opengl32"
-        }]]
+        }
 
     filter "configurations:Debug"
         symbols "On"
