@@ -35,4 +35,8 @@ X(void, glDeleteProgram, (GLuint program))
 X(void, glGetProgramiv, (GLuint program, GLenum pname, GLint *params))
 X(void, glGetProgramInfoLog, (GLuint program, GLsizei bufSize, GLsizei *length, GLchar *infoLog))
 
+X(GLint, glGetUniformLocation, (GLuint program, const GLchar *name))
+X(void, glGetUniformfv, (GLuint program, GLint location, GLfloat *params))
+X(void, glUniformMatrix2fv, (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value))
+
 X(void, glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
