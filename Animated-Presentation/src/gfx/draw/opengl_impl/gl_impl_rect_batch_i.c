@@ -1,5 +1,6 @@
 #ifdef AP_OPENGL
 
+#if 0
 #include "gl_impl.h"
 
 /*
@@ -22,10 +23,8 @@ void main() {
     gl_Position = vec4(pos, 0, 1);
 }
 */
-static arena_t* temp_arena;
 
 draw_rectb_t* draw_rectb_create(arena_t* arena, u64 capacity) { 
-    temp_arena = arena;
     draw_rectb_t* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb_t);
 
     batch->data = CREATE_ARRAY(arena, rect_t, capacity);
@@ -106,4 +105,5 @@ void draw_rectb_flush(draw_rectb_t* batch) {
     batch->size = 0;
 }
 
+#endif // 0
 #endif // AP_OPENGL

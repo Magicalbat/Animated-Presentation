@@ -1,6 +1,6 @@
 #ifdef AP_OPENGL
 
-#if 0
+#if 1
 #include "gl_impl.h"
 
 draw_rectb_t* draw_rectb_create(arena_t* arena, u64 capacity) { 

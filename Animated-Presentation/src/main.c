@@ -19,7 +19,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
     
-    arena_t* perm_arena = arena_create(KB(64));
+    arena_t* perm_arena = arena_create(MB(4));
 
     gfx_window_t* win = gfx_win_create(perm_arena, 320, 180, str8_lit("Test window"));
     gfx_win_make_current(win);
@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
 
-    while (!win->info.should_close && num_hund_rects <= 100) {
+    while (!win->info.should_close && num_hund_rects <= 10000) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
@@ -68,10 +68,9 @@ int main(int argc, char** argv) {
         for (int y = 0; y < num_hund_rects; y++) {
             for (int x = 0; x < 100; x++) {
                 draw_rectb_push(batch, (rect_t){
-                    0.0, 0.0,
-                    //(f32)x / 50.0f - 1.0f,
-                    //1.0f - (f32)y / (num_hund_rects * 0.5),
-                    0.1f, 0.1f
+                    (f32)x / 50.0f - 1.0f,
+                    1.0f - (f32)y / (num_hund_rects * 0.5),
+                    0.01f, 0.01f
                 });
             }
         }
@@ -87,8 +86,6 @@ int main(int argc, char** argv) {
             }
             
             num_hund_rects += 1;
-            if (num_hund_rects % 10 == 0)
-                printf("%u\n", num_hund_rects);
             avg_delta = 0;
         }
         
@@ -112,7 +109,7 @@ int main(int argc, char** argv) {
         time_prev = time_now;
     }
 
-    os_file_write(str8_lit("batching.csv"), out_list);
+    os_file_write(str8_lit("output.csv"), out_list);
 
     draw_rectb_destroy(batch);
 
