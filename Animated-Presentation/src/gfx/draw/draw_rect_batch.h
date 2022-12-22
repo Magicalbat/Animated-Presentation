@@ -1,6 +1,8 @@
 #ifndef DRAW_RECT_BATCH_H
 #define DRAW_RECT_BATCH_H
 
+#include "base/base.h"
+
 typedef struct {
     rect_t rect;
     vec3_t col;

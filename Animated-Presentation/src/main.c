@@ -19,7 +19,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
     
-    arena_t* perm_arena = arena_create(KB(64));
+    arena_t* perm_arena = arena_create(MB(4));
 
     gfx_window_t* win = gfx_win_create(perm_arena, 320, 180, str8_lit("Test window"));
     gfx_win_make_current(win);
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
                 });
             }
         }
-        
+
         draw_rectb_flush(batch);
 
         gfx_win_swap_buffers(win);
