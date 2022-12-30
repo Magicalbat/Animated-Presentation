@@ -29,7 +29,7 @@ typedef struct {
             Atom del_window;
         } glx;
     #elif defined(AP_PLATFORM_WINDOWS)
-		struct { 
+        struct { 
             HINSTANCE h_instance;
             WNDCLASS window_class;
             HWND window;

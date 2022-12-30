@@ -55,8 +55,8 @@ typedef double   f64;
 #define CREATE_STRUCT(arena, type) \
     (type*)(arena_alloc(arena, sizeof(type)))
 #define CREATE_ZERO_STRUCT(arena, var, type)   \
-	(type*)(arena_alloc(arena, sizeof(type))); \
-	memset(var, 0, sizeof(type))
+    (type*)(arena_alloc(arena, sizeof(type))); \
+    memset(var, 0, sizeof(type))
 
 #define CREATE_ARRAY(arena, type, size) \
     (type*)(arena_alloc(arena, sizeof(type) * (size)))

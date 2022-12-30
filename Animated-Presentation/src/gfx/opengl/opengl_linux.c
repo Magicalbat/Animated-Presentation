@@ -43,7 +43,7 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     i32 fbcount;
     GLXFBConfig* fbc = glXChooseFBConfig(win->glx.display, DefaultScreen(win->glx.display), glx_attribs, &fbcount);
     if (fbc == 0) {
-    	XCloseDisplay(win->glx.display);
+        XCloseDisplay(win->glx.display);
         ASSERT(false, "Failed to retrieve framebuffer.");
     }
 
@@ -103,24 +103,24 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     
     XFree(visual);
 
-	const char *glx_exts = glXQueryExtensionsString(win->glx.display, DefaultScreen(win->glx.display));
+    const char *glx_exts = glXQueryExtensionsString(win->glx.display, DefaultScreen(win->glx.display));
     
     glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
     glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc) glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
 
     i32 context_attribs[] = {
-		GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
-		GLX_CONTEXT_MINOR_VERSION_ARB, 4,
-		GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-		None
-	};
+        GLX_CONTEXT_MAJOR_VERSION_ARB, 4,
+        GLX_CONTEXT_MINOR_VERSION_ARB, 4,
+        GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+        None
+    };
 
     //win->glx.context = 0;
-	if (!isExtensionSupported( glx_exts, "GLX_ARB_create_context")) {
-		win->glx.context = glXCreateNewContext(win->glx.display, win->glx.fb_config, GLX_RGBA_TYPE, 0, true);
-	} else {
-		win->glx.context = glXCreateContextAttribsARB(win->glx.display, win->glx.fb_config, 0, true, context_attribs);
-	}
+    if (!isExtensionSupported( glx_exts, "GLX_ARB_create_context")) {
+        win->glx.context = glXCreateNewContext(win->glx.display, win->glx.fb_config, GLX_RGBA_TYPE, 0, true);
+    } else {
+        win->glx.context = glXCreateContextAttribsARB(win->glx.display, win->glx.fb_config, 0, true, context_attribs);
+    }
 
     XSync(win->glx.display, false);
 
@@ -203,36 +203,36 @@ void opengl_load_functions(gfx_window_t* win) {
 // Helper to check for extension string presence.  Adapted from:
 //   http://www.opengl.org/resources/features/OGLextensions/
 static bool isExtensionSupported(const char *extList, const char *extension) {
-	const char *start;
-	const char *where, *terminator;
+    const char *start;
+    const char *where, *terminator;
 
-	/* Extension names should not have spaces. */
-	where = strchr(extension, ' ');
-	if (where || *extension == '\0')
-	return false;
+    /* Extension names should not have spaces. */
+    where = strchr(extension, ' ');
+    if (where || *extension == '\0')
+    return false;
 
-	/* It takes a bit of care to be fool-proof about parsing the
-	 OpenGL extensions string. Don't be fooled by sub-strings,
-	 etc. */
-	for (start=extList;;) {
-	where = strstr(start, extension);
+    /* It takes a bit of care to be fool-proof about parsing the
+     OpenGL extensions string. Don't be fooled by sub-strings,
+     etc. */
+    for (start=extList;;) {
+    where = strstr(start, extension);
 
-	if (!where) {
-	 	break;
-	}
+    if (!where) {
+         break;
+    }
 
-	terminator = where + strlen(extension);
+    terminator = where + strlen(extension);
 
-	if ( where == start || *(where - 1) == ' ' ) {
-		if ( *terminator == ' ' || *terminator == '\0' ) {
-			return true;
-		}
-	}	
+    if ( where == start || *(where - 1) == ' ' ) {
+        if ( *terminator == ' ' || *terminator == '\0' ) {
+            return true;
+        }
+    }    
 
-	start = terminator;
-	}
+    start = terminator;
+    }
 
-	return false;
+    return false;
 }
 
 #endif // AP_OPENGL && AP_PLATFORM_LINUX

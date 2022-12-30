@@ -22,20 +22,6 @@ int main(int argc, char** argv) {
     
     arena_t* perm_arena = arena_create(MB(4));
 
-    string8_t path = str8_lit("test.txt");
-    file_stats_t file_stats = os_file_get_stats(path);
-    printf("size: %llu is_dir: %d\n", file_stats.size, file_stats.flags);
-    string8_t file = os_file_read(perm_arena, path);
-    printf("file = \"%.*s\"\n", (int)file.size, file.str);
-
-    string8_list_t list = { 0 };
-    str8_list_push(perm_arena, &list, str8_lit("First line\n"));
-    str8_list_push(perm_arena, &list, str8_lit("Second line"));
-    str8_list_push(perm_arena, &list, str8_lit(" third line (wait)\n"));
-    os_file_write(str8_lit("out.txt"), list);
-
-    return 0;
-
     gfx_window_t* win = gfx_win_create(perm_arena, 320, 180, str8_lit("Test window"));
     gfx_win_make_current(win);
     opengl_load_functions(win);

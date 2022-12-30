@@ -9,8 +9,8 @@
 // TODO: scratch arenas
 
 typedef struct {
-	u64 size;
-	u64 cur;
+    u64 size;
+    u64 cur;
     u64 cur_commit;
     // Data is stored in the memory following the struct
 } arena_t;

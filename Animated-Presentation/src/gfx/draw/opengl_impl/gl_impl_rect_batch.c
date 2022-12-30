@@ -30,14 +30,14 @@ draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity)
     batch->capacity = capacity;
     batch->size = 0;
 
-	const char* vertex_source = ""
-		"#version 330 core\n"
-		"layout (location = 0) in vec2 a_pos_pattern;"
-		"layout (location = 1) in vec4 a_quad;"
-		"layout (location = 2) in vec3 a_col;"
+    const char* vertex_source = ""
+        "#version 330 core\n"
+        "layout (location = 0) in vec2 a_pos_pattern;"
+        "layout (location = 1) in vec4 a_quad;"
+        "layout (location = 2) in vec3 a_col;"
         "uniform mat2 u_win_mat;"
         "out vec4 col;"
-		"void main() {"
+        "void main() {"
         "    col = vec4(a_col, 1);"
         "    vec2 pos = a_quad.xy + (0.5 * a_quad.zw) * (vec2(1) + a_pos_pattern);"
         "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"

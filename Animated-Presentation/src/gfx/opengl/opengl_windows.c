@@ -28,13 +28,13 @@
 
 // https://www.khronos.org/opengl/wiki/Load_OpenGL_Functions#Windows_2
 static void* wgl_get_proc_address(const char* name) {
-	void* p = (void*)wglGetProcAddress(name);
-	if (p == 0 || (p == (void*)0x1) || (p == (void*)0x2) || (p == (void*)0x3) || (p == (void*)-1)) {
-		HMODULE module = LoadLibrary(L"opengl32.dll");
+    void* p = (void*)wglGetProcAddress(name);
+    if (p == 0 || (p == (void*)0x1) || (p == (void*)0x2) || (p == (void*)0x3) || (p == (void*)-1)) {
+        HMODULE module = LoadLibrary(L"opengl32.dll");
         ASSERT(module != 0, "Failed to load opengl32.dll");
-		p = (void*)GetProcAddress(module, name);
-	}
-	return p;
+        p = (void*)GetProcAddress(module, name);
+    }
+    return p;
 }
 
 static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -212,13 +212,13 @@ void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	switch (uMsg) {
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			return 0;
-	}
+    switch (uMsg) {
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+    }
 
-	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
 void opengl_load_functions(gfx_window_t* win) {

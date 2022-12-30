@@ -30,8 +30,8 @@ string8_list_t os_get_cmd_args() {
 }
 
 void* os_mem_reserve(u64 size) {
-	void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-	return out;
+    void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+    return out;
 }
 void os_mem_commit(void* ptr, u64 size) {
     mprotect(ptr, size, PROT_READ | PROT_WRITE);

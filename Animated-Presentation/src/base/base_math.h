@@ -29,11 +29,11 @@ inline f32    vec3_dot(vec3_t a, vec3_t b) { return a.x * b.x + a.y * b.y + a.z 
 inline f32    vec3_sql(vec3_t           v) { return v.x * v.x + v.y * v.y + v.z + v.z;            }
 inline f32    vec3_len(vec3_t           v) { return sqrtf(v.x * v.x + v.y * v.y + v.z + v.z);     }
 inline vec3_t vec3_crs(vec3_t a, vec3_t b) {
-	return (vec3_t) {
-		a.y * b.z - a.z * b.y,
-		a.z * b.x - a.x * b.z,
-		a.x * b.y - a.y * b.x
-	};
+    return (vec3_t) {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    };
 }
 vec3_t        vec3_nrm(vec3_t v);
 
