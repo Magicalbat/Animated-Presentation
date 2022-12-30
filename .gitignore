@@ -16,3 +16,4 @@ run_premake.bat
 compile_commands
 compile_commands.json
 .cache
+**.csv

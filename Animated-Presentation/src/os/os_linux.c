@@ -23,7 +23,7 @@ void os_main_init(int argc, char** argv) {
     }
 }
 void os_main_quit() {
-    arena_free(lnx_arena);
+    arena_destroy(lnx_arena);
 }
 string8_list_t os_get_cmd_args() {
     return lnx_cmd_args;

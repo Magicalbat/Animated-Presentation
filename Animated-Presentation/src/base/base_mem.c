@@ -2,13 +2,13 @@
 
 #include "os/os.h"
 
-#define COMMIT_PAGES 1
+#define COMMIT_PAGES 4
 
 #define COMMIT_SIZE (os_mem_pagesize() * COMMIT_PAGES)
 
 arena_t* arena_create(u64 size) {
 	arena_t* arena = os_mem_reserve(size);
-    u64 init_commit = COMMIT_SIZE;
+    u64 init_commit = MIN(size, COMMIT_SIZE);
     
     os_mem_commit(arena, init_commit);
     
@@ -49,7 +49,7 @@ void arena_pop(arena_t* arena, u64 size) {
 
     arena->cur = new_pos;
 }
-void arena_free(arena_t* arena) {
+void arena_destroy(arena_t* arena) {
 	ASSERT(arena != NULL, "Cannot free NULL arena");
     
     os_mem_release(arena, arena->size);

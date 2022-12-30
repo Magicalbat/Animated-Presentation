@@ -15,6 +15,8 @@
 #define GFX_NUM_KEYS          256
 #define GFX_NUM_MOUSE_BUTTONS 5
 
+// TODO: Make this more simlar to draw layer structs
+
 typedef struct gfx_window_info {
     vec2_t mouse_pos;
 

@@ -45,7 +45,6 @@ project "Animated-Presentation"
       }
 
     filter "system:windows"
-        cdialect "C17"
         staticruntime "On"
         systemversion "latest"
         
@@ -56,8 +55,14 @@ project "Animated-Presentation"
 
         links 
         {
-            "winmm", "opengl32"
+            "gdi32.lib", "kernel32", "user32", "winmm", "opengl32"
         }
+
+    filter { "system:windows", "action:vs2022" }
+        cdialect "C17"
+
+    filter { "system:windows", "action:gmake or gmake2 or win_gmake" }
+        toolset "clang"
 
     filter "configurations:Debug"
         symbols "On"

@@ -2,6 +2,8 @@
 #define BASE_STR_H
 
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "base_defs.h"
 #include "base_mem.h"
@@ -74,6 +76,8 @@ string8_list_t str8_split_char(arena_t* arena, string8_t orig, u8 split_char);
 
 string8_t str8_concat(arena_t* arena, string8_list_t list);
 string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join);
+
+string8_t str8_pushf(arena_t* arena, char* fmt, ...);
 
 string_decode_t str_decode_utf8(u8* str, u32 cap);
 u32             str_encode_utf8(u8* dst, u32 code_point);

@@ -5,6 +5,8 @@
 
 #include <math.h>
 
+typedef struct { f32 x, y, w, h; } rect_t;
+
 typedef struct { f32 x, y;       } vec2_t;
 typedef struct { f32 x, y, z;    } vec3_t;
 typedef struct { f32 x, y, z, w; } vec4_t;

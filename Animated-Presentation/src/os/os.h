@@ -33,8 +33,6 @@ void         os_file_write(string8_t path, string8_list_t str_list);
 file_stats_t os_file_get_stats(string8_t path);
 
 // TODO
-// Load file
-// Write to file
 // Append to file?
 // Load module
 // Get datetime
