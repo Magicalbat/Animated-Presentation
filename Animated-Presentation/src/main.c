@@ -6,6 +6,7 @@
 #include "gfx/draw/draw.h"
 
 // TODO: Figure out my prefered error handling method
+// TODO: Fix all tabs/spaces issues
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
