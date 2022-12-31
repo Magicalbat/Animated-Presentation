@@ -7,6 +7,11 @@
     #include "X11/Xlib.h"
     #include "X11/Xutil.h"
 #elif defined(AP_PLATFORM_WINDOWS)
+    #if !defined(UNICODE)
+        #define UNICODE
+    #endif
+    #define WIN32_LEAN_AND_MEAN
+
     #include <Windows.h>
 #else
     #error cannot find valid platform
@@ -17,7 +22,7 @@
 
 // TODO: Make this more simlar to draw layer structs
 
-typedef struct gfx_window_info {
+typedef struct {
     vec2_t mouse_pos;
 
     b8* new_mouse_buttons;
@@ -32,11 +37,28 @@ typedef struct gfx_window_info {
     string8_t title;
 
     b8 should_close;
-} gfx_window_info_t;
 
-#ifdef AP_OPENGL
-    #include "opengl/opengl.h"
-#endif
+    #if defined(AP_OPENGL)
+        #if defined(AP_PLATFORM_LINUX)
+            struct {
+                Display* display;
+                i32 screen;
+                GLXFBConfig fb_config;
+                Window window;
+                GLXContext context;
+                Atom del_window;
+            } glx;
+        #elif defined(AP_PLATFORM_WINDOWS)
+            struct { 
+                HINSTANCE h_instance;
+                WNDCLASS window_class;
+                HWND window;
+                HDC device_context;
+                HGLRC context;
+            } wgl;
+        #endif
+    #endif
+} gfx_window_t;
 
 gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title);
 void          gfx_win_make_current(gfx_window_t* win);

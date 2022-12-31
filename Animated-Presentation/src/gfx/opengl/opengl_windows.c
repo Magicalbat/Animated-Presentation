@@ -147,17 +147,15 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
     win->wgl.context = wglCreateContexAttribsARB(win->wgl.device_context, NULL, gl_attribs);
 
-    win->info = (gfx_window_info_t){
-        .mouse_pos = (vec2_t){ 0, 0 },
-        .new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
-        .old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
-        .new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
-        .old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
-        .width = width,
-        .height = height,
-        .title = title,
-        .should_close = false
-    };
+    win->mouse_pos = (vec2_t){ 0, 0 };
+    win->new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
+    win->old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
+    win->new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
+    win->old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
+    win->width = width;
+    win->height = height;
+    win->title = title;
+    win->should_close = false;
 
     return win;
 }
@@ -182,7 +180,7 @@ void gfx_win_process_events(gfx_window_t* win) {
     MSG msg;
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT) {
-            win->info.should_close = true;
+            win->should_close = true;
         } else {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
@@ -191,8 +189,8 @@ void gfx_win_process_events(gfx_window_t* win) {
 }
 
 void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
-    win->info.width = width;
-    win->info.height = height;
+    win->width = width;
+    win->height = height;
 
     RECT rect = (RECT){ 0, 0, width, height };
     i32 out = AdjustWindowRect(&rect, GetWindowLong(win->wgl.window, GWL_STYLE), false);
@@ -202,7 +200,7 @@ void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
             SWP_NOMOVE | SWP_DRAWFRAME);// | WS_VISIBLE);
 }
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
-    win->info.title = title;
+    win->title = title;
 
     string16_t title16 = str16_from_str8(arena, title);
 

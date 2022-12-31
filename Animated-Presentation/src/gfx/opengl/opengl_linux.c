@@ -132,17 +132,15 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     XStoreName(win->glx.display, win->glx.window, title.str);
     arena_pop(arena, title.size + 1);
     
-    win->info = (gfx_window_info_t){
-        .mouse_pos = (vec2_t){ 0, 0 },
-        .new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
-        .old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS),
-        .new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
-        .old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS),
-        .width = width,
-        .height = height,
-        .title = title,
-        .should_close = false
-    };
+    win->mouse_pos = (vec2_t){ 0, 0 };
+    win->new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
+    win->old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
+    win->new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
+    win->old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
+    win->width = width;
+    win->height = height;
+    win->title = title;
+    win->should_close = false;
 
     return win;
 }
@@ -169,7 +167,7 @@ void gfx_win_process_events(gfx_window_t* win) {
                 break;
             case ClientMessage:
                 if (e.xclient.data.l[0] == win->glx.del_window) {
-                    win->info.should_close = true;
+                    win->should_close = true;
                 }
                 break;
             default:
@@ -179,12 +177,12 @@ void gfx_win_process_events(gfx_window_t* win) {
 }
 
 void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
-    win->info.width = width;
-    win->info.height = height;
+    win->width = width;
+    win->height = height;
     XResizeWindow(win->glx.display, win->glx.window, width, height);
 }
 void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
-    win->info.title = title;
+    win->title = title;
     u8* title_cstr = (u8*)arena_alloc(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
     title_cstr[title.size] = '\0';

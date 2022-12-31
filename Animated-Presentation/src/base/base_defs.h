@@ -36,7 +36,11 @@ typedef double   f64;
 #endif
 
 #ifdef AP_ASSERT
-# define ASSERT(a, b) do { if(!(a)) { fprintf(stderr, "\033[35mAssert Failed: %s\033[m\n", b); BREAK_DEBUGGER(); } } while(0)
+# define ASSERT(a, b) do { \
+    if(!(a)) { \
+        fprintf(stderr, "\033[35mAssert Failed: " b "\033[m\n");\
+        BREAK_DEBUGGER();\
+    } } while(0)
 #else
 # define ASSERT(a, b)
 #endif

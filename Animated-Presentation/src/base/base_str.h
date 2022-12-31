@@ -50,6 +50,8 @@ typedef struct {
     u32 size;
 } string_decode_t;
 
+#define STR8_LIT(s) ((string8_t){ (u8*)(s), sizeof(s)-1 })
+
 string8_t str8_create(u8* str, u64 size);
 string8_t str8_from_range(u8* start, u8* end);
 string8_t str8_from_cstr(u8* cstr);
@@ -60,8 +62,6 @@ b8 str8_contains(string8_t a, string8_t b);
 
 u64 str8_find_first(string8_t a, string8_t b);
 u64 str8_find_last(string8_t a, string8_t b);
-
-#define str8_lit(s) ((string8_t){ (u8*)(s), sizeof(s)-1 })
 
 string8_t str8_prefix(string8_t str, u64 size);
 string8_t str8_postfix(string8_t str, u64 size);

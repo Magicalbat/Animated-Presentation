@@ -102,6 +102,14 @@ void os_file_write(string8_t path, string8_list_t str_list) {
     }
     close(fd);
 }
+fil_flags_t lnx_get_flags(mode_t mode) {
+    file_flags_t flags;
+
+    if (S_ISDIR(mode))
+        flags |= FILE_IS_DIR;
+
+    return flags;
+}
 file_stats_t os_file_get_stats(string8_t path) {
     u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
@@ -114,8 +122,7 @@ file_stats_t os_file_get_stats(string8_t path) {
 
     return (file_stats_t){
         .size = file_stats.st_size,
-        .flags = S_ISDIR(file_stats.st_mode)
-        // TODO: above line is dumb
+        .flags = lnx_get_flags(file_stats.st_mode)
     };
 }
 

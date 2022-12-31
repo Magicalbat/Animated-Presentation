@@ -6,7 +6,6 @@
 #include "gfx/draw/draw.h"
 
 // TODO: Figure out my prefered error handling method
-// TODO: Fix all tabs/spaces issues
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -15,14 +14,18 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
              type, severity, message);
 }
 
-#define WIN_SCALE 1
+#define WIN_SCALE 2
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
     arena_t* perm_arena = arena_create(MiB(4));
 
-    gfx_window_t* win = gfx_win_create(perm_arena, 320, 180, str8_lit("Test window"));
+    gfx_window_t* win = gfx_win_create(
+        perm_arena,
+        320 * WIN_SCALE, 180 * WIN_SCALE,
+        STR8_LIT("Test window")
+    );
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
@@ -42,7 +45,7 @@ int main(int argc, char** argv) {
     
     f32 theta = 0;
 
-    while (!win->info.should_close) {
+    while (!win->should_close) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 

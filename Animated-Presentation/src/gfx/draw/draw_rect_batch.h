@@ -28,9 +28,8 @@ typedef struct {
 draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity);
 void          draw_rectb_destroy(draw_rectb_t* batch);
 
-// These will draw rects to the screen
+// These functions will draw rects to the screen
 void draw_rectb_push(draw_rectb_t* batch, rect_t draw_rect, vec3_t col);
-
 void draw_rectb_flush(draw_rectb_t* batch);
 
 #endif // DRAW_RECT_BATCH_H
