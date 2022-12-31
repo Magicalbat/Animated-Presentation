@@ -1,7 +1,5 @@
 #ifdef AP_PLATFORM_WINDOWS
 
-#include <windows.h>
-
 #include "base/base.h"
 #include "os.h"
 
@@ -11,7 +9,7 @@ static arena_t*       w32_arena;
 static string8_list_t w32_cmd_args;
 
 void os_main_init(int argc, char** argv) {
-    w32_arena = arena_create(KB(4));
+    w32_arena = arena_create(KiB(4));
 
     LARGE_INTEGER perf_freq;
     if (QueryPerformanceFrequency(&perf_freq)) {
@@ -72,7 +70,7 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
     string16_t path16 = str16_from_str8(w32_arena, path);
 
     HANDLE file_handle = CreateFile(
-        (LPCSTR)path16.str,
+        (LPCWSTR)path16.str,
         GENERIC_READ,
         FILE_SHARE_READ,
         NULL,
@@ -92,7 +90,7 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
         printf("%llu\n", size_to_read);
         u8* buffer = arena_alloc(arena, sizeof(u8) * size_to_read);
         DWORD size_read = 0;
-        if (ReadFile(file_handle, buffer, size_to_read, &size_read, NULL) != FALSE) {
+        if (ReadFile(file_handle, buffer, (DWORD)size_to_read, &size_read, NULL) != FALSE) {
             u64 to_free = size_to_read - size_read;
             if (to_free > 0) { 
                 arena_pop(arena, to_free);
@@ -114,7 +112,7 @@ void os_file_write(string8_t path, string8_list_t str_list) {
     string16_t path16 = str16_from_str8(w32_arena, path);
 
     HANDLE file_handle = CreateFile(
-        (LPCSTR)path16.str,
+        (LPCWSTR)path16.str,
         GENERIC_WRITE,
         0,
         NULL,
@@ -127,7 +125,7 @@ void os_file_write(string8_t path, string8_list_t str_list) {
 
     if (file_handle != INVALID_HANDLE_VALUE) {
         for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
-            DWORD to_write = node->str.size;
+            DWORD to_write = (DWORD)node->str.size;
             // TODO: range checking, i guess
 
             DWORD written = 0;
@@ -144,7 +142,7 @@ file_stats_t os_file_get_stats(string8_t path) {
     string16_t path16 = str16_from_str8(w32_arena, path);
 
     WIN32_FILE_ATTRIBUTE_DATA attribs = { 0 };
-    if (GetFileAttributesEx((LPCSTR)path16.str, GetFileExInfoStandard, &attribs) != FALSE) {
+    if (GetFileAttributesEx((LPCWSTR)path16.str, GetFileExInfoStandard, &attribs) != FALSE) {
         stats.size = ((u64)attribs.nFileSizeHigh << 32) | attribs.nFileSizeLow;
         if (attribs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             stats.flags |= FILE_IS_DIR;

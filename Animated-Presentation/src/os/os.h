@@ -1,8 +1,22 @@
 #ifndef OS_H
 #define OS_H
 
-#include "base/base_defs.h"
-#include "base/base_str.h"
+#include "base/base.h"
+
+#if defined(AP_PLATFORM_WINDOWS)
+    #if !defined(UNICODE)
+        #define UNICODE
+    #endif
+    #define WIN32_LEAN_AND_MEAN
+    #include <Windows.h>
+    #include <timeapi.h>
+#elif defined(AP_PLATFORM_LINUX)
+    #include <sys/mman.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <time.h>
+#endif
 
 typedef enum {
     FILE_IS_DIR = (1 << 0)

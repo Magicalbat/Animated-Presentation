@@ -2,6 +2,7 @@
 #define DRAW_RECT_BATCH_H
 
 #include "base/base.h"
+#include "gfx/gfx.h"
 
 typedef struct {
     rect_t rect;
@@ -11,7 +12,7 @@ typedef struct {
 typedef struct {
     draw_rect_t* data;
     u64 capacity;
-    u64 size;
+    u32 size;
 
     #ifdef AP_OPENGL
     struct {

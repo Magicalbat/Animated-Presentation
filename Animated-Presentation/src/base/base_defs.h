@@ -36,7 +36,7 @@ typedef double   f64;
 #endif
 
 #ifdef AP_ASSERT
-# define ASSERT(a, b) do { if(!(a)) { fprintf(stderr, "%c[35mAssert Failed: %s\n", 0x1b, b); BREAK_DEBUGGER(); } } while(0)
+# define ASSERT(a, b) do { if(!(a)) { fprintf(stderr, "\033[35mAssert Failed: %s\033[m\n", b); BREAK_DEBUGGER(); } } while(0)
 #else
 # define ASSERT(a, b)
 #endif
@@ -48,9 +48,13 @@ typedef double   f64;
 #define ALIGN_UP_POW2(x,p)   (((x) + (p) - 1)&~((p) - 1))
 #define ALIGN_DOWN_POW2(x,p) ((x)&~((p) - 1))
 
-#define KB(x) ((x) << 10)
-#define MB(x) ((x) << 20)
-#define GB(x) ((x) << 30) 
+#define KB(x) ((x) * 1000)
+#define MB(x) ((x) * 1000000)
+#define GB(x) ((x) * 1000000000)
+
+#define KiB(x) ((x) << 10)
+#define MiB(x) ((x) << 20)
+#define GiB(x) ((x) << 30) 
 
 #define CREATE_STRUCT(arena, type) \
     (type*)(arena_alloc(arena, sizeof(type)))

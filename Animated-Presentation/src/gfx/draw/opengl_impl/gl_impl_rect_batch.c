@@ -119,7 +119,7 @@ void draw_rectb_flush(draw_rectb_t* batch) {
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rect_t), batch->data);
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, batch->size);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)batch->size);
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

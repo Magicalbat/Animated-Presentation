@@ -3,19 +3,13 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <time.h>
-
 #include "os.h"
 
 arena_t*       lnx_arena;
 string8_list_t lnx_cmd_args;
 
 void os_main_init(int argc, char** argv) {
-    lnx_arena = arena_create(KB(4));
+    lnx_arena = arena_create(KiB(4));
 
     for (i32 i = 0; i < argc; i++) {
         string8_t str = str8_from_cstr((u8*)argv[i]);
