@@ -17,6 +17,19 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
 #define WIN_SCALE 2
 
 int main(int argc, char** argv) {
+    log_init((log_desc_t){ 0 });
+
+    log_info("logging info\n");
+    log_debug("logging debug\n");
+    log_warn("logging warn\n");
+    log_error("logging error\n");
+
+    log_infof("info format %d %d %d\n", 1, 2, 3);
+
+    log_quit();
+
+    return 0;
+
     os_main_init(argc, argv);
 
     arena_t* perm_arena = arena_create(MiB(4));

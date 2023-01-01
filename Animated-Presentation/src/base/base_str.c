@@ -192,10 +192,9 @@ string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
     return out;
 }
 
-string8_t str8_pushf(arena_t* arena, char* fmt, ...) {
-    va_list args;
-    
-    va_start(args, fmt);
+string8_t str8_pushfv(arena_t* arena, const char* fmt, va_list args) {
+    va_list args2;
+    va_copy(args2, args);
 
     u64 init_size = 1024;
     u8* buffer = CREATE_ARRAY(arena, u8, init_size);
@@ -206,12 +205,24 @@ string8_t str8_pushf(arena_t* arena, char* fmt, ...) {
         arena_pop(arena, init_size - size - 1);
         out = (string8_t){ buffer, size };
     } else {
+        // NOTE: This path may not work
         arena_pop(arena, init_size);
         u8* fixed_buff = CREATE_ARRAY(arena, u8, size + 1);
         u64 final_size = vsnprintf((char*)fixed_buff, size + 1, fmt, args);
         out = (string8_t){ fixed_buff, final_size };
     }
+
+    va_end(args2);
+
+    return out;
+}
+
+string8_t str8_pushf(arena_t* arena, const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
     
+    string8_t out = str8_pushfv(arena, fmt, args);
+
     va_end(args);
 
     return out;

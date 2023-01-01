@@ -49,6 +49,10 @@ void arena_pop(arena_t* arena, u64 size) {
 
     arena->cur = new_pos;
 }
+void arena_pop_to(arena_t* arena, u64 pos) {
+    ASSERT(pos > arena->cur, "Arena cannot pop to that pos");
+    arena_pop(arena, arena->cur - pos);
+}
 void arena_destroy(arena_t* arena) {
     ASSERT(arena != NULL, "Cannot free NULL arena");
     

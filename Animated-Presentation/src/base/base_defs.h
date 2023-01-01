@@ -18,7 +18,8 @@ typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
 
-typedef u8       b8;
+typedef i8       b8 ;
+typedef i32      b32;
 
 typedef float    f32;
 typedef double   f64;
@@ -70,7 +71,7 @@ typedef double   f64;
     (type*)(arena_alloc(arena, sizeof(type) * (size)))
 #define CREATE_ZERO_ARRAY(arena, var, type, size)     \
     (type*)(arena_alloc(arena, sizeof(type) * (size))); \
-    memset(var, 0, sizeof(type) * size)
+    memset(var, 0, sizeof(type) * (size))
 
 #define FOR_SLL(type, f, var)    for(type* var = f; var != NULL; var=var->next)
 
