@@ -19,9 +19,16 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
-    log_init((log_desc_t){ 0 });
+    log_init((log_desc_t){ 
+        .log_file = { 0, 0, LOG_NO, LOG_NO }
+    });
 
     arena_t* perm_arena = arena_create(MiB(4));
+
+    log_quit();
+    os_main_quit();
+
+    return 0;
 
     gfx_window_t* win = gfx_win_create(
         perm_arena,

@@ -9,7 +9,7 @@ static arena_t*       w32_arena;
 static string8_list_t w32_cmd_args;
 
 void os_main_init(int argc, char** argv) {
-    w32_arena = arena_create(KiB(4));
+    w32_arena = arena_create(KiB(16));
 
     LARGE_INTEGER perf_freq;
     if (QueryPerformanceFrequency(&perf_freq)) {
@@ -63,6 +63,40 @@ void os_sleep_milliseconds(u32 t) {
     Sleep(t);
 }
 
+string8_t win32_error_string() {
+    DWORD err = GetLastError();
+    if (err == 0) {
+        return (string8_t){ 0 };
+    }
+
+    LPSTR msg_buf = NULL;
+    DWORD msg_size = FormatMessageA(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
+        (LPSTR)&msg_buf, // Very intuitive win32
+        0, NULL
+    );
+
+    string8_t out;
+    out.size = (u64)msg_size - 3;
+    out.str = CREATE_ARRAY(w32_arena, u8, (u64)msg_size - 3);
+
+    memcpy(out.str, msg_buf, msg_size);
+
+    LocalFree(msg_buf);
+
+    return out;
+}
+
+#define log_w32_error(msg) do { \
+        string8_t err = win32_error_string(); \
+		log_errorf(msg ", Win32 Error: %.*s", (int)err.size, err.str); \
+	} while (0)
+#define log_w32_errorf(fmt, ...) do { \
+        string8_t err = win32_error_string(); \
+		log_errorf(fmt ", Win32 Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
+	} while (0)
+
 string8_t os_file_read(arena_t* arena, string8_t path) {
     arena_temp_t temp = arena_temp_begin(w32_arena);
 
@@ -81,7 +115,8 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
     arena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
-        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to open file \"%.*s\", Win32 Error: %u",
+            (int)path.size, (char*)path.str, GetLastError());
 
         return (string8_t){ 0 };
     }
@@ -104,7 +139,8 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
 
         DWORD bytes_read = 0;
         if (ReadFile(file_handle, buffer + total_read, to_read, &bytes_read, 0) == FALSE) {
-            log_errorf("Failed to read to file \"%.*s\"", (int)path.size, (char*)path.str);
+            log_w32_errorf("Failed to read to file \"%.*s\", Win32 Error: %u",
+                (int)path.size, (char*)path.str, GetLastError());
             arena_pop_to(arena, arena_start_pos);
 
             return (string8_t){ 0 };
@@ -159,7 +195,8 @@ b32 os_file_write(string8_t path, string8_list_t str_list) {
     arena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
-        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to open file \"%.*s\", Win32 Error: %u",
+            (int)path.size, (char*)path.str, GetLastError());
 
         return false;
     }
@@ -167,7 +204,8 @@ b32 os_file_write(string8_t path, string8_list_t str_list) {
     b32 out = true;
 
     if (!os_file_write_impl(file_handle, str_list)) {
-        log_errorf("Failed to write to file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to write to file \"%.*s\", Win32 Error: %u", 
+            (int)path.size, (char*)path.str, GetLastError());
 
         out = false;
     }
@@ -194,7 +232,8 @@ b32 os_file_append(string8_t path, string8_list_t str_list) {
     arena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
-        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to open file \"%.*s\", Win32 Error: %u",
+            (int)path.size, (char*)path.str, GetLastError());
 
         return false;
     }
@@ -202,7 +241,8 @@ b32 os_file_append(string8_t path, string8_list_t str_list) {
     b32 out = true;
 
     if (!os_file_write_impl(file_handle, str_list)) {
-        log_errorf("Failed to append to file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to append to file \"%.*s\", Win32 Error: %u",
+            (int)path.size, (char*)path.str, GetLastError());
 
         out = false;
     }
@@ -224,7 +264,8 @@ file_stats_t os_file_get_stats(string8_t path) {
             stats.flags |= FILE_IS_DIR;
         }
     } else {
-        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to open file \"%.*s\", Win32 Error: %u", 
+            (int)path.size, (char*)path.str, GetLastError());
     }
 
     arena_temp_end(temp);
@@ -267,7 +308,8 @@ file_handle_t os_file_open(string8_t path, file_open_flags_t open_flags) {
     arena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
-        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+        log_w32_errorf("Failed to open file \"%.*s\", Win32 Error: %u",
+            (int)path.size, (char*)path.str, GetLastError());
 
         return (file_handle_t) { 0 };
     }
@@ -286,7 +328,7 @@ b32 os_file_write_open(file_handle_t file, string8_t str) {
 
         DWORD written = 0;
         if (WriteFile(file.file_handle, str.str + total_written, to_write, &written, 0) == FALSE) {
-            log_error("Failed to write to open file");
+            log_w32_error("Failed to write to open file");
 
             return false;
         }

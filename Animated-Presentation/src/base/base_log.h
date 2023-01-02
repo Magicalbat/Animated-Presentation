@@ -5,6 +5,10 @@
 #include "base_str.h"
 #include "base_mem.h"
 
+// This is to make the log_desc work (see log_init)
+#define LOG_NO  1
+#define LOG_YES 2
+
 typedef enum {
     LOG_INFO,
     LOG_DEBUG,
@@ -20,14 +24,15 @@ typedef struct {
 } log_msg_t;
 
 typedef struct {
-    b8 log_stdout;
-    b8 log_file;
     b8 new_file;
     b8 log_time;
 
-    string8_t log_file_path;
+    string8_t file_path;
 
     u32 max_stored;
+
+    b8 log_stdout[LOG_LEVEL_COUNT];
+    b8 log_file[LOG_LEVEL_COUNT];
 
     u32 colors[LOG_LEVEL_COUNT];
 } log_desc_t;
