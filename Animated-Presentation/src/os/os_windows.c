@@ -63,83 +63,159 @@ void os_sleep_milliseconds(u32 t) {
     Sleep(t);
 }
 
-// TODO: make sure memory is working correctly for path names
 string8_t os_file_read(arena_t* arena, string8_t path) {
-    string8_t out = { 0 };
+    arena_temp_t temp = arena_temp_begin(w32_arena);
 
-    string16_t path16 = str16_from_str8(w32_arena, path);
+    string16_t path16 = str16_from_str8(temp.arena, path);
 
     HANDLE file_handle = CreateFile(
         (LPCWSTR)path16.str,
         GENERIC_READ,
-        FILE_SHARE_READ,
+        0,
         NULL,
         OPEN_EXISTING,
-        FILE_ATTRIBUTE_NORMAL,// | FILE_FLAG_OVERLAPPED,
+        FILE_ATTRIBUTE_NORMAL,
         NULL
     );
 
-    arena_pop(w32_arena, sizeof(u16) * path16.size);
+    arena_temp_end(temp);
 
-    // TODO: is a loop necessary?
-    if (file_handle != INVALID_HANDLE_VALUE) {
-        DWORD high_size = 0;
-        DWORD low_size = GetFileSize(file_handle, &high_size);
-        u64 size_to_read = ((u64)high_size << 32) | low_size;
+    if (file_handle == INVALID_HANDLE_VALUE) {
+        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
 
-        printf("%llu\n", size_to_read);
-        u8* buffer = arena_alloc(arena, sizeof(u8) * size_to_read);
-        DWORD size_read = 0;
-        if (ReadFile(file_handle, buffer, (DWORD)size_to_read, &size_read, NULL) != FALSE) {
-            u64 to_free = size_to_read - size_read;
-            if (to_free > 0) { 
-                arena_pop(arena, to_free);
-                printf("testing\n");
-            }
-
-            out.str = buffer;
-            out.size = size_read;
-        } else {
-            arena_pop(arena, sizeof(u8) * size_to_read);
-            // TODO: error stuff here
-        }
+        return (string8_t){ 0 };
     }
+
+    string8_t out = { 0 };
+
+    DWORD high_size = 0;
+    DWORD low_size = GetFileSize(file_handle, &high_size);
+    u64 total_size = ((u64)high_size << 32) | low_size;
+
+    u64 arena_start_pos = arena->cur;
+    b32 success = true;
+
+    u8* buffer = CREATE_ARRAY(arena, u8, total_size);
+
+    u64 total_read = 0;
+    while (total_read < total_size) {
+        u64 to_read64 = total_size - total_read;
+        DWORD to_read = to_read64 > ~(DWORD)(0) ? ~(DWORD)(0) : (DWORD)to_read64;
+
+        DWORD bytes_read = 0;
+        if (ReadFile(file_handle, buffer + total_read, to_read, &bytes_read, 0) == FALSE) {
+            log_errorf("Failed to read to file \"%.*s\"", (int)path.size, (char*)path.str);
+            arena_pop_to(arena, arena_start_pos);
+
+            return (string8_t){ 0 };
+        }
+
+        total_read += bytes_read;
+    }
+
+    out.size = total_size;
+    out.str = buffer;
 
     CloseHandle(file_handle);
     return out;
 }
-void os_file_write(string8_t path, string8_list_t str_list) {
-    string16_t path16 = str16_from_str8(w32_arena, path);
+
+b32 os_file_write_impl(HANDLE file_handle, string8_list_t str_list) {
+    for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
+        u64 total_to_write = node->str.size;
+        u64 total_written = 0;
+
+        while (total_written < total_to_write) {
+            u64 to_write64 = total_to_write - total_written;
+            DWORD to_write = to_write64 > ~(DWORD)(0) ? ~(DWORD)(0) : (DWORD)to_write64;
+
+            DWORD written = 0;
+            if (WriteFile(file_handle, node->str.str + total_written, to_write, &written, 0) == FALSE) {
+                return false;
+            }
+
+            total_written += written;
+        }
+    }
+
+    return true;
+}
+
+b32 os_file_write(string8_t path, string8_list_t str_list) {
+    arena_temp_t temp = arena_temp_begin(w32_arena);
+
+    string16_t path16 = str16_from_str8(temp.arena, path);
 
     HANDLE file_handle = CreateFile(
         (LPCWSTR)path16.str,
         GENERIC_WRITE,
         0,
         NULL,
-        CREATE_NEW,
+        CREATE_ALWAYS,
         FILE_ATTRIBUTE_NORMAL,
         NULL
     );
 
-    arena_pop(w32_arena, sizeof(u16) * path16.size);
+    arena_temp_end(temp);
 
-    if (file_handle != INVALID_HANDLE_VALUE) {
-        for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
-            DWORD to_write = (DWORD)node->str.size;
-            // TODO: range checking, i guess
+    if (file_handle == INVALID_HANDLE_VALUE) {
+        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
 
-            DWORD written = 0;
-            if (WriteFile(file_handle, node->str.str, to_write, &written, 0) == FALSE) {
-                // TODO: error checking
-            }
-        }
+        return false;
     }
+
+    b32 out = true;
+
+    if (!os_file_write_impl(file_handle, str_list)) {
+        log_errorf("Failed to write to file \"%.*s\"", (int)path.size, (char*)path.str);
+
+        out = false;
+    }
+
     CloseHandle(file_handle);
+
+    return out;
+}
+b32 os_file_append(string8_t path, string8_list_t str_list) {
+    arena_temp_t temp = arena_temp_begin(w32_arena);
+
+    string16_t path16 = str16_from_str8(temp.arena, path);
+
+    HANDLE file_handle = CreateFile(
+        (LPCWSTR)path16.str,
+        FILE_APPEND_DATA,
+        0,
+        NULL,
+        OPEN_ALWAYS,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+
+    arena_temp_end(temp);
+
+    if (file_handle == INVALID_HANDLE_VALUE) {
+        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+
+        return false;
+    }
+
+    b32 out = true;
+
+    if (!os_file_write_impl(file_handle, str_list)) {
+        log_errorf("Failed to append to file \"%.*s\"", (int)path.size, (char*)path.str);
+
+        out = false;
+    }
+
+    CloseHandle(file_handle);
+    return out;
 }
 file_stats_t os_file_get_stats(string8_t path) {
     file_stats_t stats = { 0 };
 
-    string16_t path16 = str16_from_str8(w32_arena, path);
+    arena_temp_t temp = arena_temp_begin(w32_arena);
+
+    string16_t path16 = str16_from_str8(temp.arena, path);
 
     WIN32_FILE_ATTRIBUTE_DATA attribs = { 0 };
     if (GetFileAttributesEx((LPCWSTR)path16.str, GetFileExInfoStandard, &attribs) != FALSE) {
@@ -147,11 +223,81 @@ file_stats_t os_file_get_stats(string8_t path) {
         if (attribs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             stats.flags |= FILE_IS_DIR;
         }
+    } else {
+        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
     }
 
-    arena_pop(w32_arena, sizeof(u16) * path16.size);
+    arena_temp_end(temp);
 
     return stats;
+}
+
+
+file_handle_t os_file_open(string8_t path, file_open_flags_t open_flags) {
+    arena_temp_t temp = arena_temp_begin(w32_arena);
+
+    string16_t path16 = str16_from_str8(temp.arena, path);
+
+    DWORD read_write = 0;
+    switch (open_flags) {
+        case FOPEN_READ:   read_write = GENERIC_READ;     break;
+        case FOPEN_WRITE:  read_write = GENERIC_WRITE;    break;
+        case FOPEN_APPEND: read_write = FILE_APPEND_DATA; break;
+        default: break;
+    }
+
+    DWORD create = 0;
+    switch (open_flags){
+        case FOPEN_APPEND:
+        case FOPEN_READ:  create = OPEN_ALWAYS;   break;
+        case FOPEN_WRITE: create = CREATE_ALWAYS; break;
+        default: break;
+    }
+
+    HANDLE file_handle = CreateFile(
+        (LPCWSTR)path16.str,
+        read_write,
+        0,
+        NULL,
+        create,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+
+    arena_temp_end(temp);
+
+    if (file_handle == INVALID_HANDLE_VALUE) {
+        log_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+
+        return (file_handle_t) { 0 };
+    }
+
+    return (file_handle_t){
+        .file_handle = file_handle
+    };
+}
+b32 os_file_write_open(file_handle_t file, string8_t str) {
+    u64 total_to_write = str.size;
+    u64 total_written = 0;
+
+    while (total_written < total_to_write) {
+        u64 to_write64 = total_to_write - total_written;
+        DWORD to_write = to_write64 > ~(DWORD)(0) ? ~(DWORD)(0) : (DWORD)to_write64;
+
+        DWORD written = 0;
+        if (WriteFile(file.file_handle, str.str + total_written, to_write, &written, 0) == FALSE) {
+            log_error("Failed to write to open file");
+
+            return false;
+        }
+
+        total_written += written;
+    }
+
+    return true;
+}
+void os_file_close(file_handle_t file) {
+    CloseHandle(file.file_handle);
 }
 
 #endif

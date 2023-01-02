@@ -50,7 +50,8 @@ void arena_pop(arena_t* arena, u64 size) {
     arena->cur = new_pos;
 }
 void arena_pop_to(arena_t* arena, u64 pos) {
-    ASSERT(pos > arena->cur, "Arena cannot pop to that pos");
+    ASSERT(pos <= arena->cur, "Arena cannot pop to that pos");
+
     arena_pop(arena, arena->cur - pos);
 }
 void arena_destroy(arena_t* arena) {
@@ -58,3 +59,13 @@ void arena_destroy(arena_t* arena) {
     
     os_mem_release(arena, arena->size);
 } 
+
+arena_temp_t arena_temp_begin(arena_t* arena) {
+    return (arena_temp_t){
+        .start_pos = arena->cur,
+        .arena = arena
+    };
+}
+void arena_temp_end(arena_temp_t temp) {
+    arena_pop_to(temp.arena, temp.start_pos);
+}

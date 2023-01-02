@@ -28,6 +28,20 @@ typedef struct {
     file_flags_t flags;
 } file_stats_t;
 
+typedef enum {
+    FOPEN_READ,
+    FOPEN_WRITE,
+    FOPEN_APPEND
+} file_open_flags_t;
+
+typedef struct {
+    #if defined(AP_PLATFORM_WINDOWS)
+        HANDLE file_handle;
+    #elif defined(AP_PLATFORM_LINUX)
+        int fd;
+    #endif
+} file_handle_t;
+
 void           os_main_init(int argc, char** argv);
 void           os_main_quit();
 string8_list_t os_get_cmd_args();
@@ -43,11 +57,16 @@ u64  os_now_microseconds();
 void os_sleep_milliseconds(u32 t);
 
 string8_t    os_file_read(arena_t* arena, string8_t path);
-void         os_file_write(string8_t path, string8_list_t str_list);
+b32          os_file_write(string8_t path, string8_list_t str_list);
+b32          os_file_append(string8_t path, string8_list_t str_lit);
 file_stats_t os_file_get_stats(string8_t path);
 
+// TODO: Profile this vs. os_file_append
+file_handle_t os_file_open(string8_t path, file_open_flags_t open_flags);
+b32           os_file_write_open(file_handle_t file, string8_t str_list);
+void          os_file_close(file_handle_t file);
+
 // TODO
-// Append to file?
 // Load module
 // Get datetime
 

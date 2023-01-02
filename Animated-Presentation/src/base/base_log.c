@@ -5,6 +5,13 @@
 
 // TODO: log time, log to file
 
+static const char* log_names[LOG_LEVEL_COUNT] = {
+    "Info",
+    "Debug",
+    "Warn",
+    "Error"
+};
+
 static arena_t* log_arena;
 static u64 log_arena_start_pos;
 
@@ -24,7 +31,7 @@ void log_init(log_desc_t desc) {
     TRY_PROP(colors[LOG_INFO],  ANSI_FG_B_BLACK);
     TRY_PROP(colors[LOG_DEBUG], ANSI_FG_CYAN);
     TRY_PROP(colors[LOG_WARN],  ANSI_FG_YELLOW);
-    TRY_PROP(colors[LOG_ERROR], ANSI_FG_B_RED);
+    TRY_PROP(colors[LOG_ERROR], ANSI_FG_RED);
 
     log_arena = arena_create(log_desc.max_stored * 256 + KiB(4));
 
@@ -51,9 +58,9 @@ void log_msg(log_level_t level, const char* msg) {
     last_logs[level]  = log_msg;
 
     if (log_desc.log_stdout) {
-        fprintf(stdout, "\033[%um", log_desc.colors[level]);
+        fprintf(stdout, "\033[%um%s: ", log_desc.colors[level], log_names[level]);
         fputs(msg, stdout);
-        fputs("\033[m", stdout);
+        fputs("\033[m\n", stdout);
     }
 }
 void log_quit() {
@@ -81,9 +88,9 @@ void log_msgf(log_level_t level, const char* fmt, ...) {
     last_logs[level]  = log_msg;
 
     if (log_desc.log_stdout) {
-        fprintf(stdout, "\033[%um", log_desc.colors[level]);
+        fprintf(stdout, "\033[%um%s: ", log_desc.colors[level], log_names[level]);
         fprintf(stdout, "%.*s", (int)msg_str.size, (char*)msg_str.str);
-        fputs("\033[m", stdout);
+        fputs("\033[m\n", stdout);
     }
 }
 log_msg_t log_get_last(log_level_t level) { 

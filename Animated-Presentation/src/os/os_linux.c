@@ -102,7 +102,7 @@ void os_file_write(string8_t path, string8_list_t str_list) {
     }
     close(fd);
 }
-fil_flags_t lnx_get_flags(mode_t mode) {
+file_flags_t lnx_get_flags(mode_t mode) {
     file_flags_t flags;
 
     if (S_ISDIR(mode))

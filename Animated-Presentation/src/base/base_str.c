@@ -382,7 +382,7 @@ string8_t str8_from_str32(arena_t* arena, string32_t str) {
     return (string8_t){ .str = buff, .size = string_count };
 }
 string16_t str16_from_str8(arena_t* arena, string8_t str) {
-    u16* buff = CREATE_ARRAY(arena, u16, str.size * 2 + 1);//(u16*)arena_alloc(arena, sizeof(u16) * str.size * 2 + 1);
+    u16* buff = CREATE_ARRAY(arena, u16, str.size * 2 + 1);
 
     u16* ptr_out = buff;
     u8* ptr = str.str;

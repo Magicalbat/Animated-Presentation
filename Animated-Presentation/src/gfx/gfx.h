@@ -17,6 +17,17 @@
     #error cannot find valid platform
 #endif
 
+#if defined(AP_OPENGL)
+    #if defined(AP_PLATFORM_LINUX)
+        #include <GL/glx.h>
+        #include <GL/gl.h>
+    #elif defined (AP_PLATFORM_WINDOWS)
+        #include <GL/gl.h>
+        
+        #define OPENGL_CALLSTYLE __stdcall
+    #endif
+#endif
+
 #define GFX_NUM_KEYS          256
 #define GFX_NUM_MOUSE_BUTTONS 5
 
