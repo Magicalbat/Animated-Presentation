@@ -16,6 +16,8 @@
     #include <unistd.h>
     #include <fcntl.h>
     #include <time.h>
+    #include <string.h>
+    #include <errno.h>
 #endif
 
 typedef enum {
@@ -32,7 +34,7 @@ typedef enum {
     FOPEN_READ,
     FOPEN_WRITE,
     FOPEN_APPEND
-} file_open_flags_t;
+} file_mode_t;
 
 typedef struct {
     #if defined(AP_PLATFORM_WINDOWS)
@@ -61,9 +63,8 @@ b32          os_file_write(string8_t path, string8_list_t str_list);
 b32          os_file_append(string8_t path, string8_list_t str_lit);
 file_stats_t os_file_get_stats(string8_t path);
 
-// TODO: Profile this vs. os_file_append
-file_handle_t os_file_open(string8_t path, file_open_flags_t open_flags);
-b32           os_file_write_open(file_handle_t file, string8_t str_list);
+file_handle_t os_file_open(string8_t path, file_mode_t open_mode);
+b32           os_file_write_open(file_handle_t file, string8_t str);
 void          os_file_close(file_handle_t file);
 
 // TODO

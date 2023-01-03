@@ -5,11 +5,26 @@
 
 #include "os.h"
 
-arena_t*       lnx_arena;
-string8_list_t lnx_cmd_args;
+static arena_t*       lnx_arena;
+static string8_list_t lnx_cmd_args;
+
+static string8_t lnx_error_string() {
+    char* err_cstr = strerror(errno);
+    
+    return str8_from_cstr(err_cstr);
+}
+#define log_lnx_error(msg) do { \
+        string8_t err = lnx_error_string(); \
+        log_errorf(msg ", Linux Error: %.*s", (int)err.size, err.str); \
+    } while (0)
+#define log_lnx_errorf(fmt, ...) do { \
+        string8_t err = lnx_error_string(); \
+        log_errorf(fmt ", Linux Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
+    } while (0)
+
 
 void os_main_init(int argc, char** argv) {
-    lnx_arena = arena_create(KiB(4));
+    lnx_arena = arena_create(KiB(16));
 
     for (i32 i = 0; i < argc; i++) {
         string8_t str = str8_from_cstr((u8*)argv[i]);
@@ -51,58 +66,104 @@ void os_sleep_milliseconds(u32 t) {
     usleep(t * 1000);
 }
 
-// TODO: make sure memory is working correctly for path names
-string8_t os_file_read(arena_t* arena, string8_t path) {
-    string8_t out = { 0 };
-    
+int lnx_open_impl(string8_t path, int flags, mode_t mode) {
     u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
     path_cstr[path.size] = '\0';
     
-    struct stat file_stats;
+    int fd = open((char*)path_cstr, flags, mode);
+    arena_pop(lnx_arena, sizeof(u8) * (path.size + 1));
 
-    int fd = open((char*)path_cstr, O_RDONLY);
+    return fd;
+}
+
+// TODO: Use temp arenas
+string8_t os_file_read(arena_t* arena, string8_t path) {
+    int fd = lnx_open_impl(path, O_RDONLY, 0);
+    
+    if (fd == -1) {
+        log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, path.str);
+
+        return (string8_t){ 0 };
+    }
+    
+    struct stat file_stats;
     fstat(fd, &file_stats);
 
-    arena_pop(lnx_arena, sizeof(u8) * (path.size + 1));
-    
+    string8_t out = { 0 };
+
     if (S_ISREG(file_stats.st_mode)) {
         out.size = file_stats.st_size;
-        out.str = (u8*)arena_alloc(arena, file_stats.st_size);
+        out.str = (u8*)arena_alloc(arena, (u64)file_stats.st_size);
 
-        int ret = read(fd, out.str, file_stats.st_size);
-        // TODO: error checking
+        if (read(fd, out.str, file_stats.st_size) == -1) {
+            log_lnx_errorf("Failed to read file \"%.*s\"", (int)path.size, path.str);
+            
+            close(fd);
+            
+            return (string8_t){ 0 };
+        }
+    } else {
+        log_errorf("Failed to read file \"%.*s\", file is not regular", (int)path.size, path.str);
     }
     close(fd);
 
     return out;
 }
 
-void os_file_write(string8_t path, string8_list_t str_list) {
-    u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
-    memcpy(path_cstr, path.str, path.size);
-    path_cstr[path.size] = '\0';
+b32 os_file_write(string8_t path, string8_list_t str_list) {
+    int fd = lnx_open_impl(path, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 
-    int fd = open((char*)path_cstr, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
     if (fd == -1) {
-        char err[256];
-        strerror_r(errno, &err[0], 256);
-        printf("Could not open file: %s\n", err);
+        log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, path.str);
+
+        return false;
     }
 
-    u64 offset = 0;
+    b32 out = true;
+    
     for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
-        int written = pwrite(fd, node->str.str, node->str.size, offset);
+        ssize_t written = write(fd, node->str.str, node->str.size);
 
         if (written == -1) {
-            ASSERT(false, "You forgot to do error handling here :(");
-        }
+            log_lnx_errorf("Failed to write to file \"%.*s\"", (int)path.size, path.str);
 
-        offset += written;
+            out = false;
+            break;
+        }
     }
+        
     close(fd);
+
+    return out;
 }
-file_flags_t lnx_get_flags(mode_t mode) {
+b32 os_file_append(string8_t path, string8_list_t str_list) {
+    int fd = lnx_open_impl(path, O_APPEND | O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+
+    if (fd == -1) {
+        log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, path.str);
+
+        return false;
+    }
+    
+    b32 out = true;
+
+    for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
+        ssize_t written = write(fd, node->str.str, node->str.size);
+        
+        if (written == -1) {
+            log_lnx_errorf("Failed to append to file \"%.*s\"", (int)path.size, path.str);
+
+            out = false;
+            break;
+        }
+    }
+
+    close(fd);
+    
+    return out;
+}
+file_flags_t lnx_file_flags(mode_t mode) {
     file_flags_t flags;
 
     if (S_ISDIR(mode))
@@ -122,8 +183,45 @@ file_stats_t os_file_get_stats(string8_t path) {
 
     return (file_stats_t){
         .size = file_stats.st_size,
-        .flags = lnx_get_flags(file_stats.st_mode)
+        .flags = lnx_file_flags(file_stats.st_mode)
     };
+}
+
+file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
+    int fd = -1;
+
+    switch (open_mode) {
+        case FOPEN_READ:
+            fd = lnx_open_impl(path, O_RDONLY, 0);
+            break;
+        case FOPEN_WRITE:
+            fd = lnx_open_impl(path, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+            break;
+        case FOPEN_APPEND:
+            fd = lnx_open_impl(path, O_APPEND | O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+            break;
+        default: break;
+    }
+
+    if (fd == -1) {
+        log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
+    }
+    
+    return (file_handle_t) { .fd = fd };
+}
+b32 os_file_write_open(file_handle_t file, string8_t str) {
+    ssize_t written = write(file.fd, str.str, str.size);
+
+    if (written == -1) {
+        log_lnx_error("Failed to write to open file");
+        
+        return false;
+    }
+    
+    return true;
+}
+void os_file_close(file_handle_t file) {
+    close(file.fd);
 }
 
 #endif 

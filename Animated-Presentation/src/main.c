@@ -25,6 +25,18 @@ int main(int argc, char** argv) {
 
     arena_t* perm_arena = arena_create(MiB(4));
 
+    string8_list_t list = { 0 };
+    str8_list_push(perm_arena, &list, STR8_LIT("testing 1\n"));
+    str8_list_push(perm_arena, &list, STR8_LIT("testing 2\n"));
+    str8_list_push(perm_arena, &list, STR8_LIT("testing 3\n"));
+    str8_list_push(perm_arena, &list, STR8_LIT("testing 4\n"));
+    str8_list_push(perm_arena, &list, STR8_LIT("testing 5\n"));
+    str8_list_push(perm_arena, &list, STR8_LIT("testing 6\n"));
+
+    os_file_write(STR8_LIT("output.txt"), list);
+    os_file_append(STR8_LIT("output.txt"), list);
+
+
     log_quit();
     os_main_quit();
 
