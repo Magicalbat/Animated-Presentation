@@ -5,8 +5,6 @@
 #include "gfx/opengl/opengl.h"
 #include "gfx/draw/draw.h"
 
-// TODO: Figure out my prefered error handling method
-
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
@@ -25,18 +23,11 @@ int main(int argc, char** argv) {
 
     arena_t* perm_arena = arena_create(MiB(4));
 
-    string8_list_t list = { 0 };
-    str8_list_push(perm_arena, &list, STR8_LIT("testing 1\n"));
-    str8_list_push(perm_arena, &list, STR8_LIT("testing 2\n"));
-    str8_list_push(perm_arena, &list, STR8_LIT("testing 3\n"));
-    str8_list_push(perm_arena, &list, STR8_LIT("testing 4\n"));
-    str8_list_push(perm_arena, &list, STR8_LIT("testing 5\n"));
-    str8_list_push(perm_arena, &list, STR8_LIT("testing 6\n"));
-
-    os_file_write(STR8_LIT("output.txt"), list);
-    os_file_append(STR8_LIT("output.txt"), list);
-
-
+    log_info("Info");
+    log_debugf("debugf %03d", 14);
+    log_warn("warn");
+    log_errorf("errorf %.3f", 3.14159);
+    
     log_quit();
     os_main_quit();
 

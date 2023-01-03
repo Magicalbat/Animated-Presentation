@@ -55,6 +55,8 @@ void  os_mem_release(void* ptr, u64 size);
 
 u64 os_mem_pagesize();
 
+datetime_t os_now_localtime();
+
 u64  os_now_microseconds();
 void os_sleep_milliseconds(u32 t);
 

@@ -18,14 +18,14 @@ typedef enum {
 } log_level_t;
 
 typedef struct {
-    string8_t msg;
+    string8_t str;
     log_level_t level;
     // TODO: error codes?
 } log_msg_t;
 
 typedef struct {
-    b8 new_file;
     b8 log_time;
+    b8 new_file;
 
     string8_t file_path;
 
@@ -37,6 +37,8 @@ typedef struct {
     u32 colors[LOG_LEVEL_COUNT];
 } log_desc_t;
 
+// log_desc_t should be made with designated initializers
+// the functions checks for zero values to apply defaults
 void log_init(log_desc_t desc);
 void log_quit();
 void log_msg(log_level_t level, const char* msg);

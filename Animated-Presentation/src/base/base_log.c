@@ -5,8 +5,6 @@
 
 #include "os/os.h"
 
-// TODO: log time, log to file
-
 static string8_t log_names[LOG_LEVEL_COUNT] = {
     { (u8*)"Info",  4 },
     { (u8*)"Debug", 5 },
@@ -26,9 +24,12 @@ static u32 log_index;
 static log_msg_t last_logs[LOG_LEVEL_COUNT];
 
 #define TRY_PROP(prop, val) log_desc.prop = desc.prop ? desc.prop : val;
+
 void log_init(log_desc_t desc) {
     log_desc = desc;
 
+    TRY_PROP(log_time, LOG_YES);
+    TRY_PROP(new_file, LOG_YES);
     TRY_PROP(max_stored, 256);
 
     TRY_PROP(colors[LOG_INFO],  ANSI_FG_B_BLACK);
@@ -59,7 +60,8 @@ void log_init(log_desc_t desc) {
         }
     }
     if (make_file) {
-        file = os_file_open(log_desc.file_path, FOPEN_WRITE);
+        file_mode_t open_mode = log_desc.new_file == LOG_YES ? FOPEN_WRITE : FOPEN_APPEND;
+        file = os_file_open(log_desc.file_path, open_mode);
     }
 
     log_arena = arena_create(log_desc.max_stored * 256 + KiB(4));
@@ -74,11 +76,33 @@ void log_init(log_desc_t desc) {
     log_arena_start_pos = log_arena->cur;
 }
 
-void log_to_file(log_level_t level, log_msg_t log_msg) {
-    os_file_write_open(file, log_names[level]);
-    os_file_write_open(file, STR8_LIT(": "));
-    os_file_write_open(file, log_msg.msg);
-    os_file_write_open(file, STR8_LIT("\n"));
+void log_impl(log_msg_t log_msg) {
+    logs[log_index++] = log_msg;
+    last_logs[log_msg.level]  = log_msg;
+
+    datetime_t datetime = os_now_localtime();
+    
+    if (log_desc.log_stdout[log_msg.level] == LOG_YES) {
+        if (log_desc.log_time == LOG_YES) {
+            fprintf(stdout, "(%02d:%02d:%02d) ", datetime.hour, datetime.min, datetime.sec);
+        }
+        fprintf(stdout, "\033[%um%s", log_desc.colors[log_msg.level], log_names[log_msg.level].str);
+        fprintf(stdout, ": %.*s\033[m\n", (int)log_msg.str.size, log_msg.str.str);
+    }
+    if (log_desc.log_file[log_msg.level] == LOG_YES) {
+        if (log_desc.log_time == LOG_YES) {
+            arena_temp_t temp = arena_temp_begin(log_arena);
+            
+            string8_t time_str = str8_pushf(temp.arena, "(%02d:%02d:%02d) ", datetime.hour, datetime.min, datetime.sec);
+            os_file_write_open(file, time_str);
+            
+            arena_temp_end(temp);
+        }
+        os_file_write_open(file, log_names[log_msg.level]);
+        os_file_write_open(file, STR8_LIT(": "));
+        os_file_write_open(file, log_msg.str);
+        os_file_write_open(file, STR8_LIT("\n"));
+    }
 }
 
 void log_msg(log_level_t level, const char* msg) {
@@ -88,20 +112,11 @@ void log_msg(log_level_t level, const char* msg) {
     }
 
     log_msg_t log_msg = (log_msg_t){
-        .msg = str8_from_cstr((u8*)msg),
+        .str = str8_from_cstr((u8*)msg),
         .level = level
     };
-    logs[log_index++] = log_msg;
-    last_logs[level]  = log_msg;
 
-    if (log_desc.log_stdout[level] == LOG_YES) {
-        fprintf(stdout, "\033[%um%s: ", log_desc.colors[level], log_names[level].str);
-        fputs(msg, stdout);
-        fputs("\033[m\n", stdout);
-    }
-    if (log_desc.log_file[level] == LOG_YES) {
-        log_to_file(level, log_msg);
-    }
+    log_impl(log_msg);
 }
 void log_quit() {
     arena_destroy(log_arena);
@@ -124,21 +139,11 @@ void log_msgf(log_level_t level, const char* fmt, ...) {
     va_end(args);
 
     log_msg_t log_msg = (log_msg_t){
-        .msg = msg_str,
+        .str = msg_str,
         .level = level
     };
 
-    logs[log_index++] = log_msg;
-    last_logs[level]  = log_msg;
-
-    if (log_desc.log_stdout[level] == LOG_YES) {
-        fprintf(stdout, "\033[%um%s: ", log_desc.colors[level], log_names[level].str);
-        fprintf(stdout, "%.*s", (int)msg_str.size, (char*)msg_str.str);
-        fputs("\033[m\n", stdout);
-    }
-    if (log_desc.log_file[level] == LOG_YES) {
-        log_to_file(level, log_msg);
-    }
+    log_impl(log_msg);
 }
 log_msg_t log_get_last(log_level_t level) { 
     return last_logs[level];

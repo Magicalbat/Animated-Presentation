@@ -24,6 +24,15 @@ typedef i32      b32;
 typedef float    f32;
 typedef double   f64;
 
+typedef struct {
+    u8 sec;
+    u8 min;
+    u8 hour;
+    u8 day;
+    u8 month;
+    i32 year;
+} datetime_t;
+
 #define STRINGIFY_NX(a) #a
 #define STRINGIFY(a) STRINGIFY_NX(a)
 

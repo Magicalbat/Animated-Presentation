@@ -57,6 +57,20 @@ uint64_t os_mem_pagesize() {
     return sysconf(_SC_PAGE_SIZE);
 }
 
+datetime_t os_now_localtime() {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    return (datetime_t){
+        .sec = tm.tm_sec,
+        .min = tm.tm_min,
+        .hour = tm.tm_hour,
+        .day = tm.tm_mday,
+        .month = tm.tm_mon + 1,
+        .year = tm.tm_year + 1900
+    };
+}
+
 u64 os_now_microseconds() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -112,7 +126,7 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
 }
 
 b32 os_file_write(string8_t path, string8_list_t str_list) {
-    int fd = lnx_open_impl(path, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    int fd = lnx_open_impl(path, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
 
     if (fd == -1) {
         log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, path.str);
@@ -195,7 +209,7 @@ file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
             fd = lnx_open_impl(path, O_RDONLY, 0);
             break;
         case FOPEN_WRITE:
-            fd = lnx_open_impl(path, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+            fd = lnx_open_impl(path, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
             break;
         case FOPEN_APPEND:
             fd = lnx_open_impl(path, O_APPEND | O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
