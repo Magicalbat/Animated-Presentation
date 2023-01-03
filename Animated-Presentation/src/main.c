@@ -7,31 +7,38 @@
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-            (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-             type, severity, message);
+    log_level_t level = LOG_DEBUG;
+    switch (severity) {
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+            level = LOG_DEBUG;
+            break;
+        case GL_DEBUG_SEVERITY_LOW:
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            level = LOG_WARN;
+            break;
+        case GL_DEBUG_SEVERITY_HIGH:
+            level = LOG_ERROR;
+            break;
+        default: break;
+    }
+    log_msgf(level, "GL CALLBACK - type = 0x%x, severity = 0x%x, message = %s",
+        type, severity, message);
+    //fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+    //        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
+    //         type, severity, message);
 }
 
-#define WIN_SCALE 2
+#define WIN_SCALE 1
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
     log_init((log_desc_t){ 
+        .log_time = LOG_NO,
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
 
     arena_t* perm_arena = arena_create(MiB(4));
-
-    log_info("Info");
-    log_debugf("debugf %03d", 14);
-    log_warn("warn");
-    log_errorf("errorf %.3f", 3.14159);
-    
-    log_quit();
-    os_main_quit();
-
-    return 0;
 
     gfx_window_t* win = gfx_win_create(
         perm_arena,

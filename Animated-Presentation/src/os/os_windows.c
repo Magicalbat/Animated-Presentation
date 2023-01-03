@@ -18,7 +18,7 @@ static string8_t win32_error_string() {
     DWORD msg_size = FormatMessageA(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
-        (LPSTR)&msg_buf, // Very intuitive win32
+        (LPTSTR)&msg_buf, // Very intuitive win32
         0, NULL
     );
 

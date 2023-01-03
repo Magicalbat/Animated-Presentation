@@ -13,7 +13,7 @@ u32 gl_impl_create_shader_program(const char* vertex_source, const char* fragmen
     if(success == GL_FALSE) {
         char info_log[512];
         glGetShaderInfoLog(vertex_shader, 512, NULL, info_log);
-        printf("Failed to compile vertex shader: %s", info_log);
+        log_errorf("Failed to compile vertex shader: %s", info_log);
     }
     
     u32 fragment_shader;
@@ -25,7 +25,7 @@ u32 gl_impl_create_shader_program(const char* vertex_source, const char* fragmen
     if(!success) {
         char info_log[512];
         glGetShaderInfoLog(fragment_shader, 512, NULL, info_log);
-        printf("Failed to compile fragment shader: %s", info_log);
+        log_errorf("Failed to compile fragment shader: %s", info_log);
     }
 
     u32 shader_program;
@@ -38,7 +38,7 @@ u32 gl_impl_create_shader_program(const char* vertex_source, const char* fragmen
     if(!success) {
         char info_log[512];
         glGetProgramInfoLog(shader_program, 512, NULL, info_log);
-        printf("Failed to link shader: %s", info_log);
+        log_errorf("Failed to link shader: %s", info_log);
     }
     
     glDeleteShader(vertex_shader);
