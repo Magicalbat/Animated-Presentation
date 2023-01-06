@@ -5,6 +5,8 @@
 #include "gfx/opengl/opengl.h"
 #include "gfx/draw/draw.h"
 
+#include "parse/parse.h"
+
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     log_level_t level = LOG_DEBUG;
@@ -23,9 +25,6 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
     }
     log_msgf(level, "GL CALLBACK - type = 0x%x, severity = 0x%x, message = %s",
         type, severity, message);
-    //fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-    //        (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""),
-    //         type, severity, message);
 }
 
 #define WIN_SCALE 1
@@ -39,6 +38,16 @@ int main(int argc, char** argv) {
     });
 
     arena_t* perm_arena = arena_create(MiB(4));
+
+    string8_t gz = os_file_read(perm_arena, STR8_LIT("test.txt.gz"));
+    gzip_t gzip = parse_gzip(perm_arena, gz);
+    log_infof("gz valid: %d, name: %.*s",
+        gzip.valid, gzip.name.size, gzip.name.str);
+
+    log_quit();
+    os_main_quit();
+
+    return 0;
 
     gfx_window_t* win = gfx_win_create(
         perm_arena,

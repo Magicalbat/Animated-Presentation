@@ -17,3 +17,6 @@ compile_commands
 compile_commands.json
 .cache
 **.csv
+infgen
+infgen.c
+**.gz
