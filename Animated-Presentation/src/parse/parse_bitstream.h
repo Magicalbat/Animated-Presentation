@@ -9,7 +9,6 @@ typedef struct {
     u64 num_bytes;
 } bitstream_t;
 
-
 extern u32 bit_masks[];
 
 inline u32 bs_peek_bits(bitstream_t* bs, u32 bits) {

@@ -39,15 +39,32 @@ int main(int argc, char** argv) {
 
     arena_t* perm_arena = arena_create(MiB(4));
 
-    string8_t gz = os_file_read(perm_arena, STR8_LIT("test.txt.gz"));
+    //string8_t bytes = os_file_read(perm_arena, STR8_LIT("bytes.dat"));
+    //for (u64 i = 0; i < bytes.size; i++) {
+    //    log_debugf("%u", bytes.str[i]);
+    //}
+
+    //u8 data[25] = { 0 };
+    //for (u32 i = 0; i < 25; i++) {
+    //    data[i] = 150 + i;
+    //}
+    //string8_list_t list = { 0 };
+    //str8_list_push(perm_arena, &list, (string8_t){data, 25});
+    //os_file_write(STR8_LIT("bytes.dat"), list);
+
+    string8_t gz = os_file_read(perm_arena, STR8_LIT("bytes.dat.gz"));
     if (gz.size) {
         u64 t = 0;
         gzip_t gzip;
         TIME_REGION(t) {
             gzip = parse_gzip(perm_arena, gz);
         }
-        log_infof("time: %llu gz valid: %d, name: %.*s",
-          t, gzip.valid, gzip.name.size, gzip.name.str);
+        log_infof("time: %llu, gz valid: %d, name: \"%.*s\",\n\ttext: \"%.*s\"",
+            t, gzip.valid, gzip.name.size, gzip.name.str,
+            gzip.size, gzip.data);
+        for (u32 i = 0; i < gzip.size; i++) {
+            log_infof("%u", gzip.data[i]);
+        }
     }
 
     log_quit();
