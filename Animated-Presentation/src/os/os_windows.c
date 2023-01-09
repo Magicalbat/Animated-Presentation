@@ -18,7 +18,7 @@ static string8_t win32_error_string() {
     DWORD msg_size = FormatMessageA(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), 
-        (LPTSTR)&msg_buf, // Very intuitive win32
+        (LPSTR)&msg_buf, // Very intuitive win32
         0, NULL
     );
 
@@ -83,6 +83,19 @@ u64 os_mem_pagesize() {
     SYSTEM_INFO si;
     GetSystemInfo(&si);
     return si.dwPageSize;
+}
+
+datetime_t os_now_localtime() {
+    SYSTEMTIME t;
+    GetLocalTime(&t);
+    return (datetime_t){
+        .sec   = (u8 )t.wSecond,
+        .min   = (u8 )t.wMinute,
+        .hour  = (u8 )t.wHour,
+        .day   = (u8 )t.wDay,
+        .month = (u8 )t.wMonth,
+        .year  = (i32)t.wYear + 1601
+    };
 }
 
 u64 os_now_microseconds() {
@@ -304,7 +317,7 @@ file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
 
-        return (file_handle_t) { -1 };
+        return (file_handle_t) { NULL };
     }
 
     return (file_handle_t){

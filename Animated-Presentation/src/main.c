@@ -40,9 +40,15 @@ int main(int argc, char** argv) {
     arena_t* perm_arena = arena_create(MiB(4));
 
     string8_t gz = os_file_read(perm_arena, STR8_LIT("test.txt.gz"));
-    gzip_t gzip = parse_gzip(perm_arena, gz);
-    log_infof("gz valid: %d, name: %.*s",
-        gzip.valid, gzip.name.size, gzip.name.str);
+    if (gz.size) {
+        u64 t = 0;
+        gzip_t gzip;
+        TIME_REGION(t) {
+            gzip = parse_gzip(perm_arena, gz);
+        }
+        log_infof("time: %llu gz valid: %d, name: %.*s",
+          t, gzip.valid, gzip.name.size, gzip.name.str);
+    }
 
     log_quit();
     os_main_quit();

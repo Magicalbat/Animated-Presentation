@@ -70,6 +70,8 @@ typedef struct {
 #define MiB(x) ((x) << 20)
 #define GiB(x) ((x) << 30) 
 
+#define STATIC_ARR_LEN(arr) ( sizeof(arr) / sizeof(arr[0]) )
+
 #define CREATE_STRUCT(arena, type) \
     (type*)(arena_alloc(arena, sizeof(type)))
 #define CREATE_ZERO_STRUCT(arena, var, type)   \
