@@ -12,5 +12,5 @@ typedef struct {
 u32 bs_peek_bits(bitstream_t* bs, u32 bits);
 u32 bs_get_bits(bitstream_t* bs, u32 bits);
 u8* bs_get_ptr(bitstream_t* bs);
-
+    
 #endif // PARSE_BITSTREAM_H

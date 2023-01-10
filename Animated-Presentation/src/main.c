@@ -59,9 +59,9 @@ int main(int argc, char** argv) {
         TIME_REGION(t) {
             gzip = parse_gzip(perm_arena, gz);
         }
-        //printf("time: %llu, gz valid: %d, name: \"%.*s\",\n\ttext: \"%.*s\"",
-        //    t, gzip.valid, gzip.name.size, gzip.name.str,
-        //    gzip.size, gzip.data);
+        printf("time: %llu, gz valid: %d, name: \"%.*s\",\n\ttext: \"%.*s\"",
+            t, gzip.valid, gzip.name.size, gzip.name.str,
+            gzip.size, gzip.data);
     }
 
     log_quit();

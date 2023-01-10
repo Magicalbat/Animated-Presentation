@@ -195,7 +195,7 @@ static void parse_codes(dstate_t* state, dhuffman_t* len_huff, dhuffman_t* dist_
             
             u32 dist_sym = dhuffman_decode(state, dist_huff);
             u32 dist = dists_base[dist_sym] + BITS(dists_extra[dist_sym]);
-
+            
             while (len--) {
                 state->out[state->out_pos] = state->out[state->out_pos - dist];
                 state->out_pos++;
