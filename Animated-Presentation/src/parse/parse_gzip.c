@@ -51,6 +51,11 @@ gzip_t parse_gzip(arena_t* arena, string8_t file) {
     out.data = CREATE_ARRAY(arena, u8, out.size);
 
     parse_deflate(&bs, out.data, out.size);
+    
+    bs.bit_pos += 8 - (bs.bit_pos & 7);
+
+    u32 crc = BITS(16) | (BITS(16) << 16);
+    u32 isize2 = BITS(16) | (BITS(16) << 16);
 
     return out;
 

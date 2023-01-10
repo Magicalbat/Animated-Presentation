@@ -108,7 +108,22 @@ static void dhuffman_build(dhuffman_t* out, u8arr_t code_lens) {
 #define BITS(n)  (bs_get_bits (state->bs, (n)))
 
 static void parse_stored(dstate_t* state) {
-    log_error("TODO: stored block");
+    state->bs->bit_pos += 8 - (state->bs->bit_pos & 7);
+    u16 len = BITS(16);
+    u16 len_compl = BITS(16);
+    if (len_compl & 0xffff != ~len) {
+        log_error("Invalid stored block");
+        return;
+    }
+    log_debugf("%u", len);
+
+    u8* out_ptr = state->out;
+    u8* bs_ptr = bs_get_ptr(state->bs) + 1;
+    while (len--) {
+        *out_ptr++ = *bs_ptr++;
+    }
+    state->out_pos += len;
+    state->bs->bit_pos += (u64)len << 3;
 }
 
 static u32 dhuffman_decode(dstate_t* state, dhuffman_t* huff) {
@@ -155,7 +170,7 @@ static const u16 lens_base[29] = {
     3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
     35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258
 };
-static const u16 lens_ext[29] = {
+static const u16 lens_extra[29] = {
     0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
     3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0
 };
@@ -170,8 +185,26 @@ static const u16 dists_extra[30] = {
     12, 12, 13, 13
 };
 
-static void parse_codes(dstate_t* state, dhuffman_t len_huff, dhuffman_t dist_huff) {
+static void parse_codes(dstate_t* state, dhuffman_t* len_huff, dhuffman_t* dist_huff) {
+    while (1) {
+        u32 sym = dhuffman_decode(state, len_huff);
+        if (sym < 256) {
+            state->out[state->out_pos++] = (u8)sym;
+        } else if (sym != 256) {
+            u32 len = lens_base[sym - 257] + BITS(lens_extra[sym - 257]);
+            
+            u32 dist_sym = dhuffman_decode(state, dist_huff);
+            u32 dist = dists_base[dist_sym] + BITS(dists_extra[dist_sym]);
 
+            while (len--) {
+                state->out[state->out_pos] = state->out[state->out_pos - dist];
+                state->out_pos++;
+            }
+        } else {
+            // End of Block
+            break;
+        }
+    }
 }
 
 static u8 fixed_len_lens[NUM_SYMS] = {
@@ -190,24 +223,68 @@ static u8 fixed_dist_lens[32] = {
 };
 
 static void parse_fixed(dstate_t* state) {
-    log_debug("fixed");
+    dhuffman_t len_huff = { 0 };
+    dhuffman_t dist_huff = { 0 };
+    dhuffman_build(&len_huff,
+        (u8arr_t){ fixed_len_lens, STATIC_ARR_LEN(fixed_len_lens) });
+    dhuffman_build(&dist_huff,
+        (u8arr_t){ fixed_dist_lens, STATIC_ARR_LEN(fixed_dist_lens) });
+
+    parse_codes(state, &len_huff, &dist_huff);
+}
+
+static u8 cl_order[19] = {
+    16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
+};
+
+static void parse_dynamic(dstate_t* state) {
+    u32 hlit  = BITS(5) + 257;
+    u32 hdist = BITS(5) + 1;
+    u32 hclen = BITS(4) + 4;
+
+    u8 cl_lens[19] = { 0 };
+
+    for (u32 i = 0; i < hclen; i++) {
+        cl_lens[cl_order[i]] = BITS(3);
+    }
+
+    dhuffman_t cl_huff = { 0 };
+    dhuffman_build(&cl_huff, 
+        (u8arr_t){ cl_lens, STATIC_ARR_LEN(cl_lens) });
+
+    u8 lens[288 + 32] = { 0 };
+    u8arr_t len_lens  = { .data = lens, .size = hlit };
+    u8arr_t dist_lens = { .data = lens + hlit, .size = hdist };
+    
+    for (u32 i = 0; i < hlit + hdist;) {
+        u32 code_len = dhuffman_decode(state, &cl_huff);
+        if (code_len < 16) {
+            lens[i++] = (u8)code_len;
+        } else {
+            u32 repeat_num = 0;
+            u32 repeat_sym = 0;
+            switch(code_len) {
+                case 16:
+                    repeat_num = 3 + BITS(2);
+                    repeat_sym = lens[i - 1];
+                    break;
+                case 17: repeat_num = 3 + BITS(3); break;
+                case 18: repeat_num = 11 + BITS(7); break;
+                default: break;
+            }
+
+            while (repeat_num--) {
+                lens[i++] = repeat_sym;
+            }
+        }
+    }
 
     dhuffman_t len_huff = { 0 };
     dhuffman_t dist_huff = { 0 };
-    dhuffman_build(&len_huff, (u8arr_t){ fixed_len_lens, STATIC_ARR_LEN(fixed_len_lens) });
-    dhuffman_build(&dist_huff, (u8arr_t){ fixed_dist_lens, STATIC_ARR_LEN(fixed_dist_lens) });
+    dhuffman_build(&len_huff, len_lens);
+    dhuffman_build(&dist_huff, dist_lens);
 
-    while (1) {
-        u32 sym = dhuffman_decode(state, &len_huff);
-        log_debugf("%u %c", sym, (char)sym);
-        if (sym == 256) {
-            log_debug("End of block");
-            break;
-        }
-    }
-}
-static void parse_dynamic(dstate_t* state) {
-    log_error("TODO: dynamic block");
+    parse_codes(state, &len_huff, &dist_huff);
 }
 
 void parse_deflate(bitstream_t* bs, u8* out, u64 out_size) {
@@ -218,6 +295,7 @@ void parse_deflate(bitstream_t* bs, u8* out, u64 out_size) {
     u32 last_block = bs_get_bits(state.bs, 1);
 
     do {
+        log_debug("test");
         u32 block_type = bs_get_bits(state.bs, 2);
         switch (block_type) {
             case 0: parse_stored (&state); break;
@@ -225,5 +303,7 @@ void parse_deflate(bitstream_t* bs, u8* out, u64 out_size) {
             case 2: parse_dynamic(&state); break;
             default: log_errorf("Inalid deflate block %u", block_type); break;
         }
+        if (!last_block)
+            last_block = bs_get_bits(state.bs, 1);
     } while (last_block != 1);
 }
