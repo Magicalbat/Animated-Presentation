@@ -108,7 +108,7 @@ static void dhuffman_build(dhuffman_t* out, u8arr_t code_lens) {
 #define BITS(n)  (bs_get_bits (state->bs, (n)))
 
 static void parse_stored(dstate_t* state) {
-    state->bs->bit_pos += 8 - (state->bs->bit_pos & 7);
+    BS_FLUSH_BYTE(state->bs);
     u16 len = BITS(16);
     u16 len_compl = BITS(16);
     if (len_compl & 0xffff != ~len) {

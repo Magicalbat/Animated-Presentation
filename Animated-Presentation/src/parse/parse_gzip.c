@@ -20,13 +20,15 @@ gzip_t parse_gzip(arena_t* arena, string8_t file) {
     
     if (BITS(8) != 31 || BITS(8) != 139) {
         log_error("File does not have valid gzip identifier");
-        goto fail;
+        out.valid = false;
+        return out;
     }
 
     u32 cm = BITS(8);
     if (cm != 8) {
         log_errorf("Unsupported compression type %d, must be 8", cm);
-        goto fail;
+        out.valid = false;
+        return out;
     }
     u32 flg = BITS(8);
     // timestamp
@@ -52,14 +54,11 @@ gzip_t parse_gzip(arena_t* arena, string8_t file) {
 
     parse_deflate(&bs, out.data, out.size);
     
-    bs.bit_pos += 8 - (bs.bit_pos & 7);
+    BS_FLUSH_BYTE(&bs);
 
-    u32 crc = BITS(16) | (BITS(16) << 16);
-    u32 isize2 = BITS(16) | (BITS(16) << 16);
+    u32 crc = BS_U32(&bs);
+    u32 isize2 = BS_U32(&bs);
+    log_debugf("%u %u", isize, isize2);
 
-    return out;
-
-    fail:
-    out.valid = false;
     return out;
 }
