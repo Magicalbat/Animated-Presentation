@@ -292,10 +292,10 @@ void parse_deflate(bitstream_t* bs, u8* out, u64 out_size) {
         bs, out, out_size, 0
     };
     
-    u32 last_block = bs_get_bits(state.bs, 1);
+    u32 last_block = 0;
 
     do {
-        log_debug("test");
+        last_block = bs_get_bits(state.bs, 1);
         u32 block_type = bs_get_bits(state.bs, 2);
         switch (block_type) {
             case 0: parse_stored (&state); break;
@@ -303,7 +303,5 @@ void parse_deflate(bitstream_t* bs, u8* out, u64 out_size) {
             case 2: parse_dynamic(&state); break;
             default: log_errorf("Inalid deflate block %u", block_type); break;
         }
-        if (!last_block)
-            last_block = bs_get_bits(state.bs, 1);
     } while (last_block != 1);
 }

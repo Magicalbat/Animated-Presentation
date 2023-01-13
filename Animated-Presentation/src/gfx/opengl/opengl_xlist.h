@@ -40,3 +40,5 @@ X(void, glGetUniformfv, (GLuint program, GLint location, GLfloat *params))
 X(void, glUniformMatrix2fv, (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value))
 
 X(void, glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
+
+X(void, glGenerateMipmap, (GLenum target))

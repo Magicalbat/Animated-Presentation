@@ -57,8 +57,16 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 
 #define GL_TRIANGLES                      0x0004
 
+#define GL_UNSIGNED_BYTE                  0x1401
 #define GL_UNSIGNED_INT                   0x1405
 #define GL_FLOAT                          0x1406
+
+#define GL_RED                            0x1903
+#define GL_GREEN                          0x1904
+#define GL_BLUE                           0x1905
+#define GL_ALPHA                          0x1906
+#define GL_RGB                            0x1907
+#define GL_RGBA                           0x1908
 
 #define GL_ARRAY_BUFFER                   0x8892
 #define GL_ELEMENT_ARRAY_BUFFER           0x8893

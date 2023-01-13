@@ -16,6 +16,24 @@ typedef enum {
     PNG_COLOR_A = 6
 } pcolor_t;
 
+typedef enum {
+    PNG_NONE  = 0,
+    PNG_SUB   = 1,
+    PNG_UP    = 2,
+    PNG_AVG   = 3,
+    PNG_PAETH = 4
+} pfilter_t;
+
+static u32 bytes_per_pixel[] = {
+    1, 0, 3, 3, 2, 0, 4
+};
+
+typedef struct idat_node {
+    u8* data;
+    u32 size;
+    struct idat_node* next;
+} idat_node_t;
+
 typedef struct {
     u8* data;
     u64 pos;
@@ -25,9 +43,23 @@ typedef struct {
     u32 bit_depth;
     pcolor_t color_type;
 
+    idat_node_t* idat_first; 
+    idat_node_t* idat_last; 
+    u64 idat_total_size;
+
+    arena_temp_t temp_arena;
+
     png_t png;
+
+    u8* out;
+    u64 out_size;
     u64 out_pos;
 } pstate_t;
+
+typedef struct {
+    u8* data;
+    u64 size;
+} u8arr_t;
 
 static inline u8 ppeek_byte(pstate_t* state) {
     return state->data[state->pos];
@@ -39,7 +71,7 @@ static inline u8 pget_byte(pstate_t* state) {
 
 #define PBYTE() (ppeek_byte(state))
 #define BYTE()  (pget_byte(state))
-#define U32() (BYTE() << 24 | BYTE() << 16 | BYTE() << 8 | BYTE())
+#define U32()   (BYTE() << 24 | BYTE() << 16 | BYTE() << 8 | BYTE())
 
 static const string8_t file_header = STR8_LIT(
     "\x89" "PNG" "\r\n" "\x1A" "\n"
@@ -47,7 +79,7 @@ static const string8_t file_header = STR8_LIT(
 
 #define PNG_CHUNK_ID(a, b, c, d) ((u32)(a) << 24 | (u32)(b) << 16 | (u32)(c) << 8 | (u32)(d))
 
-void parse_png_ihdr(arena_t* arena, pstate_t* state) {
+static void parse_png_ihdr(arena_t* arena, pstate_t* state) {
     state->png.width = U32();
     state->png.height = U32();
 
@@ -57,8 +89,6 @@ void parse_png_ihdr(arena_t* arena, pstate_t* state) {
     u32 filter_method = BYTE();
     u32 interlace_method = BYTE();
 
-    log_debugf("%u %u", state->bit_depth, state->color_type);
-    
     if (compression_method != 0) {
         log_errorf("Invalid compression method %d", compression_method);
         state->png.valid = false;
@@ -74,23 +104,122 @@ void parse_png_ihdr(arena_t* arena, pstate_t* state) {
         state->png.valid = false;
         return;
     }
+
+    state->out = CREATE_ZERO_ARRAY(arena, state->out, u8, state->png.width * state->png.height * bytes_per_pixel[state->color_type]);
+    state->temp_arena = arena_temp_begin(arena);
 }
 
-void parse_png_chunk(arena_t* arena, pstate_t* state) {
+static u8arr_t png_decompress(arena_t* arena, pstate_t* state) {
+    u8arr_t out = {
+        .size = state->png.width * state->png.height * bytes_per_pixel[state->color_type] + state->png.height
+    };
+    out.data = CREATE_ARRAY(arena, u8, out.size),
+    memset(out.data, 0, out.size);
+
+    bitstream_t bs = {
+        .data = CREATE_ARRAY(arena, u8, state->idat_total_size),
+        .bit_pos = 16,
+        .num_bytes = state->idat_total_size - 1
+    };
+    u64 pos = 0;
+    for (idat_node_t* node = state->idat_first; node != NULL; node = node->next) {
+        memcpy(bs.data + pos, node->data, node->size);
+        pos += node->size;
+    }
+
+    parse_deflate(&bs, out.data, out.size);
+
+    return out;
+}
+// https://www.w3.org/TR/png/#9Filter-type-4-Paeth
+static i32 paeth_predictor(i32 a, i32 b, i32 c) {
+    i32 p = a + b - c;
+    i32 pa = abs(p-a);
+    i32 pb = abs(p-b);
+    i32 pc = abs(p-c);
+    
+    if (pa <= pb && pa <= pc) return a;
+    if (pb <= pc) return b;
+    
+    return c;
+}
+
+#define DF_A() (j <  4 ? 0 : state->out[state->out_pos - 3])
+#define DF_B() (i == 0 ? 0 : state->out[state->out_pos - byte_width + 1])
+#define DF_C() (i == 0 ? 0 : (j < 4 ? 0 : state->out[state->out_pos - byte_width - 2]))
+static void png_defilter(pstate_t* state, u8arr_t data) {
+    pfilter_t filter_type = PNG_NONE;
+    u64 byte_height = state->png.height;// * bytes_per_pixel[state->color_type];
+    u64 byte_width = 1 + state->png.width * bytes_per_pixel[state->color_type];
+    for (u32 i = 0; i < byte_height; i++) {
+        filter_type = data.data[i * byte_width];
+
+        switch (filter_type) {
+            case PNG_NONE:
+                for (u32 j = 1; j < byte_width; j++) {
+                    state->out[state->out_pos++] = data.data[j + i * byte_width];
+                }
+                break;
+            case PNG_SUB:
+                for (u32 j = 1; j < byte_width; j++) {
+                    state->out[state->out_pos] = data.data[j + i * byte_width] + DF_A();
+                    state->out_pos++;
+                }
+                break;
+            case PNG_UP:
+                for (u32 j = 1; j < byte_width; j++) {
+                    state->out[state->out_pos] = data.data[j + i * byte_width] + DF_B();
+                    state->out_pos++;
+                }
+                break;
+            case PNG_AVG:
+                for (u32 j = 1; j < byte_width; j++) {
+                    state->out[state->out_pos] = data.data[j + i * byte_width] + (
+                        (DF_A() + DF_B()) / 2);
+                    state->out_pos++;
+                }
+                break;
+            case PNG_PAETH:
+                for (u32 j = 1; j < byte_width; j++) {
+                    state->out[state->out_pos] = data.data[j + i * byte_width] + 
+                        paeth_predictor(DF_A(), DF_B(), DF_C());
+                    state->out_pos++;
+                }
+                break;
+            default:
+                log_errorf("Invalid filter type %u, expected 0 - 4", filter_type);
+                return;
+                break;
+        }
+    }
+}
+
+static void parse_png_chunk(arena_t* arena, pstate_t* state) {
     state->chunk_size = U32();
-    log_debugf("%u", state->chunk_size);
     u32 chunk_id = U32();
     switch (chunk_id) {
         case PNG_CHUNK_ID('I', 'H', 'D', 'R'):
             log_info("ihdr");
             state->chunk = PNG_IHDR;
+            
             parse_png_ihdr(arena, state);
             state->pos += 4;
+            
             break;
         case PNG_CHUNK_ID('I', 'D', 'A', 'T'):
-            log_error("TODO: IDAT");
+            log_info("idat");
             state->chunk = PNG_IDAT;
+            
+            idat_node_t* node = CREATE_STRUCT(arena, idat_node_t);
+            *node = (idat_node_t){
+                .data = state->data + state->pos,
+                .size = state->chunk_size
+            };
+            SLL_PUSH_BACK(state->idat_first, state->idat_last, node);
+            
+            state->idat_total_size += state->chunk_size;
             state->pos += state->chunk_size + 4;
+            
             break;
         case PNG_CHUNK_ID('P', 'L', 'T', 'E'):
             log_error("TODO: PLTE");
@@ -98,8 +227,12 @@ void parse_png_chunk(arena_t* arena, pstate_t* state) {
             state->pos += state->chunk_size + 4;
             break;
         case PNG_CHUNK_ID('I', 'E', 'N', 'D'):
-            log_error("TODO: IEND");
+            log_info("iend");
             state->chunk = PNG_IEND;
+
+            u8arr_t png_data = png_decompress(arena, state);
+            png_defilter(state, png_data);
+            
             state->pos += state->chunk_size + 4;
             break;
         default:
@@ -123,8 +256,11 @@ png_t parse_png(arena_t* arena, string8_t file) {
 
     while (state.chunk != PNG_IEND) {
         parse_png_chunk(arena, &state);
-        //break;
     }
 
+    if (state.temp_arena.start_pos)
+        arena_temp_end(state.temp_arena);
+    
+    state.png.data = state.out;
     return state.png;
 }
