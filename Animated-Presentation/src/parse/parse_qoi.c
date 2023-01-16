@@ -47,15 +47,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
     qpixel_t arr[64] = { 0 };
     qpixel_t pixel = { .a = 255 };
 
-    enum {
-        QOI_RGB,
-        QOI_RGBA,
-        QOI_INDEX,
-        QOI_DIFF,
-        QOI_LUMA,
-        QOI_RUN
-    } prev_chunk = 0;
-
     while (out_pos < out_size) {
         switch (PBYTE()) {
             case 0b11111110:
@@ -67,7 +58,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                 arr[PIXEL_INDEX(pixel)] = pixel;
                 WRITE_PIXEL(pixel);
 
-                prev_chunk = QOI_RGB;
                 break;
             case 0b11111111:
                 pos++;
@@ -79,7 +69,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                 arr[PIXEL_INDEX(pixel)] = pixel;
                 WRITE_PIXEL(pixel);
 
-                prev_chunk = QOI_RGBA;
                 break;
             default:
                 switch ((PBYTE() & 0b11000000) >> 6) {
@@ -88,7 +77,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                         pixel = arr[index];
                         WRITE_PIXEL(pixel);
 
-                        prev_chunk = QOI_INDEX;
                         break;
                     case 0b01:
                         u8 dr = ((PBYTE() & 0b00110000) >> 4) - 2;
@@ -102,7 +90,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                         arr[PIXEL_INDEX(pixel)] = pixel;
                         WRITE_PIXEL(pixel);
 
-                        prev_chunk = QOI_DIFF;
                         break;
                     case 0b10:
                         u8 diff_g = (BYTE() & 0b00111111) - 32;
@@ -116,7 +103,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                         arr[PIXEL_INDEX(pixel)] = pixel;
                         WRITE_PIXEL(pixel);
  
-                        prev_chunk = QOI_LUMA;
                         break;
                     case 0b11:
                         u8 length = BYTE() & 0b00111111;
@@ -125,7 +111,6 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                             WRITE_PIXEL(pixel);
                         } while (length--);
 
-                        prev_chunk = QOI_RUN;
                         break;
                 }
                 break;
