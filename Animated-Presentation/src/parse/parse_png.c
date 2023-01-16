@@ -49,7 +49,7 @@ typedef struct {
 
     arena_temp_t temp_arena;
 
-    png_t png;
+    image_t png;
 
     u8* out;
     u64 out_size;
@@ -73,9 +73,7 @@ static inline u8 pget_byte(pstate_t* state) {
 #define BYTE()  (pget_byte(state))
 #define U32()   (BYTE() << 24 | BYTE() << 16 | BYTE() << 8 | BYTE())
 
-static const string8_t file_header = STR8_LIT(
-    "\x89" "PNG" "\r\n" "\x1A" "\n"
-);
+static const char* file_header = "\x89" "PNG" "\r\n" "\x1A" "\n";
 
 #define PNG_CHUNK_ID(a, b, c, d) ((u32)(a) << 24 | (u32)(b) << 16 | (u32)(c) << 8 | (u32)(d))
 
@@ -85,6 +83,8 @@ static void parse_png_ihdr(arena_t* arena, pstate_t* state) {
 
     state->bit_depth = BYTE();
     state->color_type = BYTE();
+    state->png.channels = bytes_per_pixel[state->color_type];
+
     u32 compression_method = BYTE();
     u32 filter_method = BYTE();
     u32 interlace_method = BYTE();
@@ -144,20 +144,86 @@ static i32 paeth_predictor(i32 a, i32 b, i32 c) {
     return c;
 }
 
-#define DF_A() (j <  4 ? 0 : state->out[state->out_pos - 3])
-#define DF_B() (i == 0 ? 0 : state->out[state->out_pos - byte_width + 1])
-#define DF_C() (i == 0 ? 0 : (j < 4 ? 0 : state->out[state->out_pos - byte_width - 2]))
+#define DF_CORE_SWITCH(loop_start, loop_end, A, B, C, index) \
+    switch(filter_type) { \
+        case PNG_NONE: \
+            loop_start \
+                state->out[state->out_pos] = data.data[index]; \
+                state->out_pos++; \
+            loop_end \
+            break; \
+        case PNG_SUB: \
+            loop_start \
+                state->out[state->out_pos] = data.data[index] + A; \
+                state->out_pos++; \
+            loop_end \
+            break; \
+        case PNG_UP: \
+            loop_start \
+                state->out[state->out_pos] = data.data[index] + B; \
+                state->out_pos++; \
+            loop_end \
+            break; \
+        case PNG_AVG: \
+            loop_start \
+                state->out[state->out_pos] = data.data[index] + ( \
+                    (A + B) / 2); \
+                state->out_pos++; \
+            loop_end \
+            break; \
+        case PNG_PAETH: \
+            loop_start \
+                state->out[state->out_pos] = data.data[index] + \
+                    paeth_predictor(A, B, C); \
+                state->out_pos++; \
+            loop_end \
+            break; \
+        default: \
+            log_errorf("Invalid filter type %u, expected 0 - 4", filter_type); \
+            return; \
+            break; \
+    }
+
+#define PIXEL_BYTES() bytes_per_pixel[state->color_type]
+
 static void png_defilter(pstate_t* state, u8arr_t data) {
-    pfilter_t filter_type = PNG_NONE;
+    pfilter_t filter_type = data.data[0];
     u64 byte_height = state->png.height;// * bytes_per_pixel[state->color_type];
     u64 byte_width = 1 + state->png.width * bytes_per_pixel[state->color_type];
-    for (u32 i = 0; i < byte_height; i++) {
+
+    DF_CORE_SWITCH(
+        for (u32 j = 1; j < 4; j++) {, },
+        0, 0, 0, j
+    );
+
+    DF_CORE_SWITCH(
+        for (u32 j = 4; j < byte_width; j++) {, },
+        state->out[state->out_pos - PIXEL_BYTES()],
+        0, 0, j
+    );
+
+    for (u32 i = 1; i < byte_height; i++) {
         filter_type = data.data[i * byte_width];
 
-        switch (filter_type) {
+        DF_CORE_SWITCH(
+            for (u32 j = 1; j < 4; j++) {, },
+            0, state->out[state->out_pos - byte_width + 1], 0,
+            j + i * byte_width
+        );
+
+        DF_CORE_SWITCH(
+            for (u32 j = 4; j < byte_width; j++) {, },
+            state->out[state->out_pos - PIXEL_BYTES()],
+            state->out[state->out_pos - byte_width + 1],
+            state->out[state->out_pos - byte_width + 1 - PIXEL_BYTES()],
+            j + i * byte_width
+        );
+
+        /*switch (filter_type) {
             case PNG_NONE:
                 for (u32 j = 1; j < byte_width; j++) {
-                    state->out[state->out_pos++] = data.data[j + i * byte_width];
+                    state->out[state->out_pos] = data.data[j + i * byte_width];
+                    state->out_pos++;
                 }
                 break;
             case PNG_SUB:
@@ -190,7 +256,7 @@ static void png_defilter(pstate_t* state, u8arr_t data) {
                 log_errorf("Invalid filter type %u, expected 0 - 4", filter_type);
                 return;
                 break;
-        }
+        }*/
     }
 }
 
@@ -199,7 +265,6 @@ static void parse_png_chunk(arena_t* arena, pstate_t* state) {
     u32 chunk_id = U32();
     switch (chunk_id) {
         case PNG_CHUNK_ID('I', 'H', 'D', 'R'):
-            log_info("ihdr");
             state->chunk = PNG_IHDR;
             
             parse_png_ihdr(arena, state);
@@ -207,7 +272,6 @@ static void parse_png_chunk(arena_t* arena, pstate_t* state) {
             
             break;
         case PNG_CHUNK_ID('I', 'D', 'A', 'T'):
-            log_info("idat");
             state->chunk = PNG_IDAT;
             
             idat_node_t* node = CREATE_STRUCT(arena, idat_node_t);
@@ -227,7 +291,6 @@ static void parse_png_chunk(arena_t* arena, pstate_t* state) {
             state->pos += state->chunk_size + 4;
             break;
         case PNG_CHUNK_ID('I', 'E', 'N', 'D'):
-            log_info("iend");
             state->chunk = PNG_IEND;
 
             u8arr_t png_data = png_decompress(arena, state);
@@ -236,22 +299,22 @@ static void parse_png_chunk(arena_t* arena, pstate_t* state) {
             state->pos += state->chunk_size + 4;
             break;
         default:
-            log_warnf("Unhandled PNG chunk %.*s", 4, state->data + state->pos - 4);
+            //log_warnf("Unhandled PNG chunk %.*s", 4, state->data + state->pos - 4);
             state->pos += state->chunk_size + 4;
             break;
     }
 }
 
-png_t parse_png(arena_t* arena, string8_t file) {
-    if (!str8_equals(file_header, str8_substr(file, 0, 8))) {
+image_t parse_png(arena_t* arena, string8_t file) {
+    if (!str8_equals(str8_from_cstr((u8*)file_header), str8_substr(file, 0, 8))) {
         log_error("Invalid PNG header, not a PNG file");
-        return (png_t){ .valid = true };
+        return (image_t){ .valid = true };
     }
 
     pstate_t state = {
         .data = file.str + 8,
         .chunk = PNG_NULL,
-        .png = (png_t){ .valid = true }
+        .png = (image_t){ .valid = true }
     };
 
     while (state.chunk != PNG_IEND) {

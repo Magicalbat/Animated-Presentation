@@ -111,7 +111,7 @@ static void parse_stored(dstate_t* state) {
     BS_FLUSH_BYTE(state->bs);
     u16 len = BITS(16);
     u16 len_compl = BITS(16);
-    if (len_compl & 0xffff != ~len) {
+    if ((len_compl & 0xffff) != ~len) {
         log_error("Invalid stored block");
         return;
     }

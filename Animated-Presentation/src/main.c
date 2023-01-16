@@ -28,7 +28,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
         type, severity, message);
 }
 
-#define WIN_SCALE 1.5
+#define WIN_SCALE 2
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -38,26 +38,19 @@ int main(int argc, char** argv) {
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
 
-    arena_t* perm_arena = arena_create(MiB(4));
-
-    string8_t png_file = os_file_read(perm_arena, STR8_LIT("monkey 1.png"));
-    png_t png = { 0 };
-    if (png_file.size) {
-        png = parse_png(perm_arena, png_file);
-    }
-    printf("\n\n");
+    arena_t* perm_arena = arena_create(MiB(16));
 
     gfx_window_t* win = gfx_win_create(
         perm_arena,
-        320 * WIN_SCALE, 180 * WIN_SCALE,
+        320 * WIN_SCALE, 320 * WIN_SCALE,
         STR8_LIT("Test window")
     );
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
-    printf("GL Vender: %s\n",   glGetString(GL_VENDOR));
-    printf("GL Renderer: %s\n", glGetString(GL_RENDERER));
-    printf("GL Version: %s\n",  glGetString(GL_VERSION));
+    //log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
+    //log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
+    //log_infof("GL Version: %s",  glGetString(GL_VERSION));
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
@@ -82,7 +75,7 @@ int main(int argc, char** argv) {
         "    gl_FragColor = texture(texture1, uv);"
         "}";
 
-    u32 shader_program  = gl_impl_create_shader_program(vertex_shader, frag_shader);
+    u32 shader_program = gl_impl_create_shader_program(vertex_shader, frag_shader);
     
     f32 vertices[] = {
         // positions         // texture coords
@@ -118,7 +111,15 @@ int main(int argc, char** argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, png.width, png.height, 0, GL_RGB, GL_UNSIGNED_BYTE, png.data);
+    string8_t img_file = os_file_read(perm_arena,
+        STR8_LIT("Animated-Presentation/res/qoi_test_images/wikipedia_008.qoi"));
+    image_t img = { 0 };
+    if (img_file.size) {
+        img = parse_qoi(perm_arena, img_file);
+    }
+
+    u32 color_type = img.channels == 3 ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, color_type, img.width, img.height, 0, color_type, GL_UNSIGNED_BYTE, img.data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     // TODO: Better frame independence

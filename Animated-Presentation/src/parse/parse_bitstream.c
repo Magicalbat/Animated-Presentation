@@ -22,4 +22,4 @@ u32 bs_get_bits(bitstream_t* bs, u32 bits) {
 }
 u8* bs_get_ptr(bitstream_t* bs) {
     return bs->data + ((bs->bit_pos >> 3) & ~1); 
-    }
+}
