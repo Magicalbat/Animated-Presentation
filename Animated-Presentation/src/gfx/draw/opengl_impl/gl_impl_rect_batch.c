@@ -25,7 +25,7 @@ draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity)
         "#version 330 core\n"
         "in vec4 col;"
         "void main() {\n"
-        "    gl_FragColor = col;//vec4(0.2f, 0.8f, 0.5f, 1.0f);\n"
+        "    gl_FragColor = col;\n"
         "}";
     batch->gl.shader_program = gl_impl_create_shader_program(vertex_source, fragment_source);
 

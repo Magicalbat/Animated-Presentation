@@ -21,4 +21,5 @@ infgen
 infgen.c
 **.gz
 **.png
+**.qoi
 Animated-Presentation/res

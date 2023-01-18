@@ -218,45 +218,6 @@ static void png_defilter(pstate_t* state, u8arr_t data) {
             state->out[state->out_pos - byte_width + 1 - PIXEL_BYTES()],
             j + i * byte_width
         );
-
-        /*switch (filter_type) {
-            case PNG_NONE:
-                for (u32 j = 1; j < byte_width; j++) {
-                    state->out[state->out_pos] = data.data[j + i * byte_width];
-                    state->out_pos++;
-                }
-                break;
-            case PNG_SUB:
-                for (u32 j = 1; j < byte_width; j++) {
-                    state->out[state->out_pos] = data.data[j + i * byte_width] + DF_A();
-                    state->out_pos++;
-                }
-                break;
-            case PNG_UP:
-                for (u32 j = 1; j < byte_width; j++) {
-                    state->out[state->out_pos] = data.data[j + i * byte_width] + DF_B();
-                    state->out_pos++;
-                }
-                break;
-            case PNG_AVG:
-                for (u32 j = 1; j < byte_width; j++) {
-                    state->out[state->out_pos] = data.data[j + i * byte_width] + (
-                        (DF_A() + DF_B()) / 2);
-                    state->out_pos++;
-                }
-                break;
-            case PNG_PAETH:
-                for (u32 j = 1; j < byte_width; j++) {
-                    state->out[state->out_pos] = data.data[j + i * byte_width] + 
-                        paeth_predictor(DF_A(), DF_B(), DF_C());
-                    state->out_pos++;
-                }
-                break;
-            default:
-                log_errorf("Invalid filter type %u, expected 0 - 4", filter_type);
-                return;
-                break;
-        }*/
     }
 }
 

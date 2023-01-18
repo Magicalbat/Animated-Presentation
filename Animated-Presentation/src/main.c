@@ -28,7 +28,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
         type, severity, message);
 }
 
-#define WIN_SCALE 2
+#define WIN_SCALE 1
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -111,8 +111,7 @@ int main(int argc, char** argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    string8_t img_file = os_file_read(perm_arena,
-        STR8_LIT("Animated-Presentation/res/qoi_test_images/wikipedia_008.qoi"));
+    string8_t img_file = os_file_read(perm_arena, STR8_LIT("kodim23.qoi"));
     image_t img = { 0 };
     if (img_file.size) {
         img = parse_qoi(perm_arena, img_file);

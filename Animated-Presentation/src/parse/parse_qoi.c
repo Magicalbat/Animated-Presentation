@@ -72,13 +72,13 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                 break;
             default:
                 switch ((PBYTE() & 0b11000000) >> 6) {
-                    case 0b00:
+                    case 0b00: ;
                         u8 index = BYTE() & 0b00111111;
                         pixel = arr[index];
                         WRITE_PIXEL(pixel);
 
                         break;
-                    case 0b01:
+                    case 0b01: ;
                         u8 dr = ((PBYTE() & 0b00110000) >> 4) - 2;
                         u8 dg = ((PBYTE() & 0b00001100) >> 2) - 2;
                         u8 db = (( BYTE() & 0b00000011) >> 0) - 2;
@@ -91,7 +91,7 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                         WRITE_PIXEL(pixel);
 
                         break;
-                    case 0b10:
+                    case 0b10: ;
                         u8 diff_g = (BYTE() & 0b00111111) - 32;
                         u8 diff_r = (((PBYTE() & 0b11110000) >> 4) - 8) + diff_g;
                         u8 diff_b = ((BYTE() & 0b00001111) - 8) + diff_g;
@@ -104,7 +104,7 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
                         WRITE_PIXEL(pixel);
  
                         break;
-                    case 0b11:
+                    case 0b11: ;
                         u8 length = BYTE() & 0b00111111;
 
                         do {
