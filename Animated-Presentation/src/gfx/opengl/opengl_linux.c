@@ -1,4 +1,4 @@
-#if defined(AP_OPENGL) && defined(AP_PLATFORM_LINUX)
+#if defined(AP_OPENGL) && defined(__linux__)
 
 #include "base/base.h"
 #include "gfx/gfx.h"
@@ -233,4 +233,4 @@ static bool isExtensionSupported(const char *extList, const char *extension) {
     return false;
 }
 
-#endif // AP_OPENGL && AP_PLATFORM_LINUX
+#endif // AP_OPENGL && __linux__

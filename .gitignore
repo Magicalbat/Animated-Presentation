@@ -22,4 +22,6 @@ infgen.c
 **.gz
 **.png
 **.qoi
+**.so
+test_lib.c
 Animated-Presentation/res

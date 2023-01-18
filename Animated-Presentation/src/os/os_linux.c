@@ -1,4 +1,4 @@
-#ifdef AP_PLATFORM_LINUX
+#ifdef __linux__
 
 #include <stdio.h>
 #include <stddef.h>
@@ -80,18 +80,21 @@ void os_sleep_milliseconds(u32 t) {
     usleep(t * 1000);
 }
 
+// TODO: str8_to_cstr function
 int lnx_open_impl(string8_t path, int flags, mode_t mode) {
-    u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
+    arena_temp_t temp = arena_temp_begin(lnx_arena);
+    
+    u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
     path_cstr[path.size] = '\0';
     
     int fd = open((char*)path_cstr, flags, mode);
-    arena_pop(lnx_arena, sizeof(u8) * (path.size + 1));
+
+    arena_temp_end(temp);
 
     return fd;
 }
 
-// TODO: Use temp arenas
 string8_t os_file_read(arena_t* arena, string8_t path) {
     int fd = lnx_open_impl(path, O_RDONLY, 0);
     
@@ -186,14 +189,16 @@ file_flags_t lnx_file_flags(mode_t mode) {
     return flags;
 }
 file_stats_t os_file_get_stats(string8_t path) {
-    u8* path_cstr = (u8*)arena_alloc(lnx_arena, sizeof(u8) * (path.size + 1));
+    arena_temp_t temp = arena_temp_begin(lnx_arena);
+    
+    u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
     path_cstr[path.size] = '\0';
 
     struct stat file_stats;
     stat((char*)path_cstr, &file_stats);
 
-    arena_pop(lnx_arena, sizeof(u8) * (path.size + 1));
+    arena_temp_end(temp);
 
     return (file_stats_t){
         .size = file_stats.st_size,
@@ -201,7 +206,7 @@ file_stats_t os_file_get_stats(string8_t path) {
     };
 }
 
-file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
+os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
     int fd = -1;
 
     switch (open_mode) {
@@ -221,9 +226,9 @@ file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
         log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
     }
     
-    return (file_handle_t) { .fd = fd };
+    return (os_file_t) { .fd = fd };
 }
-b32 os_file_write_open(file_handle_t file, string8_t str) {
+b32 os_file_write_open(os_file_t file, string8_t str) {
     ssize_t written = write(file.fd, str.str, str.size);
 
     if (written == -1) {
@@ -234,8 +239,63 @@ b32 os_file_write_open(file_handle_t file, string8_t str) {
     
     return true;
 }
-void os_file_close(file_handle_t file) {
+void os_file_close(os_file_t file) {
     close(file.fd);
 }
 
-#endif 
+static string8_t dl_error_string() {
+    char* err_cstr = dlerror();
+    
+    return str8_from_cstr(err_cstr);
+}
+#define log_dl_error(msg) do { \
+        string8_t err = dl_error_string(); \
+        log_errorf(msg ", Linux DL Error: %.*s", (int)err.size, err.str); \
+    } while (0)
+#define log_dl_errorf(fmt, ...) do { \
+        string8_t err = dl_error_string(); \
+        log_errorf(fmt ", Linux DL Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
+    } while (0)
+
+os_library_t os_lib_load(string8_t path) {
+    arena_temp_t temp = arena_temp_begin(lnx_arena);
+    
+    u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
+    memcpy(path_cstr, path.str, path.size);
+    path_cstr[path.size] = '\0';
+    
+    void* handle = dlopen((char*)path_cstr, RTLD_LAZY);
+
+    arena_temp_end(temp);
+
+    if (handle == NULL) {
+        log_dl_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);
+    }
+
+    return (os_library_t){
+        .handle = handle
+    };
+
+}
+void_func_t os_lib_func(os_library_t lib, string8_t func_name) {
+    arena_temp_t temp = arena_temp_begin(lnx_arena);
+    
+    u8* func_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (func_name.size + 1));
+    memcpy(func_cstr, func_name.str, func_name.size);
+    func_cstr[func_name.size] = '\0';
+    
+    void_func_t func = (void_func_t)dlsym(lib.handle, (char*)func_cstr);
+
+    arena_temp_end(temp);
+    
+    if (func == NULL) {
+        log_dl_errorf("Failed to library function \"%.*s\"", (int)func_name.size, func_name.str);
+    }
+
+    return func;
+}
+void os_lib_release(os_library_t lib) {
+    dlclose(lib.handle);
+}
+
+#endif // __linux__

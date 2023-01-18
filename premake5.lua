@@ -36,23 +36,13 @@ project "Animated-Presentation"
     filter "system:linux"
       links
       {
-        "m", "X11", "GL", "GLX"
-      }
-
-      defines
-      {
-        "AP_PLATFORM_LINUX"
+        "m", "X11", "GL", "GLX", "dl"
       }
 
     filter "system:windows"
         staticruntime "On"
         systemversion "latest"
         
-        defines
-        {
-            "AP_PLATFORM_WINDOWS"
-        }
-
         links 
         {
             "gdi32.lib", "kernel32", "user32", "winmm", "opengl32"

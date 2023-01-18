@@ -16,7 +16,7 @@ static arena_t* log_arena;
 static u64 log_arena_start_pos;
 
 static b32 make_file;
-static file_handle_t file;
+static os_file_t file;
 
 static log_desc_t log_desc;
 static log_msg_t* logs;

@@ -3,14 +3,13 @@
 
 #include "base/base.h"
 
-#if defined(AP_PLATFORM_WINDOWS)
-    #if !defined(UNICODE)
-        #define UNICODE
-    #endif
+#if defined(_WIN32)
+    #define UNICODE
     #define WIN32_LEAN_AND_MEAN
+
     #include <Windows.h>
     #include <timeapi.h>
-#elif defined(AP_PLATFORM_LINUX)
+#elif defined(__linux__)
     #include <sys/mman.h>
     #include <sys/stat.h>
     #include <unistd.h>
@@ -18,6 +17,7 @@
     #include <time.h>
     #include <string.h>
     #include <errno.h>
+    #include <dlfcn.h>
 #endif
 
 typedef enum {
@@ -37,12 +37,21 @@ typedef enum {
 } file_mode_t;
 
 typedef struct {
-    #if defined(AP_PLATFORM_WINDOWS)
+    #if defined(_WIN32)
         HANDLE file_handle;
-    #elif defined(AP_PLATFORM_LINUX)
+    #elif defined(__linux__)
         int fd;
     #endif
-} file_handle_t;
+} os_file_t;
+
+typedef struct {
+    #if defined(_WIN32)
+    #elif defined(__linux__)
+        void* handle;
+    #endif
+} os_library_t;
+
+typedef void (*void_func_t)(void);
 
 void           os_main_init(int argc, char** argv);
 void           os_main_quit();
@@ -66,9 +75,13 @@ b32          os_file_write(string8_t path, string8_list_t str_list);
 b32          os_file_append(string8_t path, string8_list_t str_lit);
 file_stats_t os_file_get_stats(string8_t path);
 
-file_handle_t os_file_open(string8_t path, file_mode_t open_mode);
-b32           os_file_write_open(file_handle_t file, string8_t str);
-void          os_file_close(file_handle_t file);
+os_file_t os_file_open(string8_t path, file_mode_t open_mode);
+b32       os_file_write_open(os_file_t file, string8_t str);
+void      os_file_close(os_file_t file);
+
+os_library_t os_lib_load(string8_t path);
+void_func_t  os_lib_func(os_library_t lib, string8_t func_name);
+void         os_lib_release(os_library_t lib);
 
 // TODO
 // Load module

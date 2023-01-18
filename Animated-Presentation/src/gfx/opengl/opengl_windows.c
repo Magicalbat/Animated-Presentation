@@ -1,4 +1,4 @@
-#if defined(AP_OPENGL) && defined(AP_PLATFORM_WINDOWS)
+#if defined(AP_OPENGL) && defined(_WIN32)
 
 #include "gfx/gfx.h"
 #include "opengl.h"
@@ -25,6 +25,8 @@
 #define X(ret, name, args) gl_func_##name##_t name = NULL;
     #include "opengl_xlist.h"
 #undef X
+
+// TODO: Use os_lib_load
 
 // https://www.khronos.org/opengl/wiki/Load_OpenGL_Functions#Windows_2
 static void* wgl_get_proc_address(const char* name) {
@@ -225,4 +227,4 @@ void opengl_load_functions(gfx_window_t* win) {
     #undef X
 }
 
-#endif // AP_OPENGL && AP_PLATFORM_WINDOWS
+#endif // AP_OPENGL && _WIN32

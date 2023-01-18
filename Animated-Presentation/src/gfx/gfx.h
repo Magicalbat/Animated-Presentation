@@ -3,10 +3,10 @@
 
 #include "base/base.h"
 
-#if defined(AP_PLATFORM_LINUX)
+#if defined(__linux__)
     #include "X11/Xlib.h"
     #include "X11/Xutil.h"
-#elif defined(AP_PLATFORM_WINDOWS)
+#elif defined(_WIN32)
     #if !defined(UNICODE)
         #define UNICODE
     #endif
@@ -18,10 +18,10 @@
 #endif
 
 #if defined(AP_OPENGL)
-    #if defined(AP_PLATFORM_LINUX)
+    #if defined(__linux__)
         #include <GL/glx.h>
         #include <GL/gl.h>
-    #elif defined (AP_PLATFORM_WINDOWS)
+    #elif defined (_WIN32)
         #include <GL/gl.h>
         
         #define OPENGL_CALLSTYLE __stdcall
@@ -50,7 +50,7 @@ typedef struct {
     b8 should_close;
 
     #if defined(AP_OPENGL)
-        #if defined(AP_PLATFORM_LINUX)
+        #if defined(__linux__)
             struct {
                 Display* display;
                 i32 screen;
@@ -59,7 +59,7 @@ typedef struct {
                 GLXContext context;
                 Atom del_window;
             } glx;
-        #elif defined(AP_PLATFORM_WINDOWS)
+        #elif defined(_WIN32)
             struct { 
                 HINSTANCE h_instance;
                 WNDCLASS window_class;

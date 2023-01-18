@@ -1,4 +1,4 @@
-#ifdef AP_PLATFORM_WINDOWS
+#ifdef _WIN32
 
 #include "base/base.h"
 #include "os.h"
@@ -281,7 +281,7 @@ file_stats_t os_file_get_stats(string8_t path) {
 }
 
 
-file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
+os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
     DWORD read_write = 0;
     switch (open_mode) {
         case FOPEN_READ:   read_write = GENERIC_READ;     break;
@@ -317,14 +317,14 @@ file_handle_t os_file_open(string8_t path, file_mode_t open_mode) {
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
 
-        return (file_handle_t) { NULL };
+        return (os_file_t) { NULL };
     }
 
-    return (file_handle_t){
+    return (os_file_t){
         .file_handle = file_handle
     };
 }
-b32 os_file_write_open(file_handle_t file, string8_t str) {
+b32 os_file_write_open(os_file_t file, string8_t str) {
     u64 total_to_write = str.size;
     u64 total_written = 0;
 
@@ -344,8 +344,8 @@ b32 os_file_write_open(file_handle_t file, string8_t str) {
 
     return true;
 }
-void os_file_close(file_handle_t file) {
+void os_file_close(os_file_t file) {
     CloseHandle(file.file_handle);
 }
 
-#endif
+#endif // _WIN32

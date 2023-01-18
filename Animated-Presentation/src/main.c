@@ -8,6 +8,11 @@
 
 #include "parse/parse.h"
 
+#include <dlfcn.h>
+
+typedef int (*math_func)(int, int);
+typedef const char* (*vers_func)();
+
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     log_level_t level = LOG_DEBUG;
@@ -42,7 +47,7 @@ int main(int argc, char** argv) {
 
     gfx_window_t* win = gfx_win_create(
         perm_arena,
-        320 * WIN_SCALE, 320 * WIN_SCALE,
+        320 * WIN_SCALE, 180 * WIN_SCALE,
         STR8_LIT("Test window")
     );
     gfx_win_make_current(win);
@@ -54,6 +59,17 @@ int main(int argc, char** argv) {
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
+
+    os_library_t lib = os_lib_load(STR8_LIT("./test_lib.so"));
+
+    math_func testlib_add = (math_func)os_lib_func(lib, STR8_LIT("testlib_add"));
+    math_func testlib_sub = (math_func)os_lib_func(lib, STR8_LIT("testlib_sub"));
+    //vers_func testlib_version = (vers_func)dlsym(handle, "testlib_version");
+
+    log_debugf("%d %d", testlib_add(1, 2), testlib_sub(5, 3));
+    //log_debugf("%d %d %s", testlib_add(1, 2), testlib_sub(5, 3), testlib_version());
+
+    os_lib_release(lib);
 
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 

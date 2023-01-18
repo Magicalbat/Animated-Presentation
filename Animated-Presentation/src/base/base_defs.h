@@ -39,7 +39,7 @@ typedef struct {
 #define CONCAT_NX(a, b) a##b
 #define CONCAT(a, b) CONCAT_NX(a, b)
 
-#if AP_PLATFORM_WINDOWS 
+#if _WIN32 
 # define BREAK_DEBUGGER() __debugbreak()
 #else
 # define BREAK_DEBUGGER() (*(volatile int *)0 = 0)
