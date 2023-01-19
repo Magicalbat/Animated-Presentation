@@ -8,12 +8,12 @@
 
 #define BITS(n) (bs_get_bits(&bs, (n)))
 
-gzip_t parse_gzip(arena_t* arena, string8_t file) {
-    gzip_t out = { 
+gzip parse_gzip(arena* arena, string8 file) {
+    gzip out = { 
         .valid = true
     };
 
-    bitstream_t bs = {
+    bitstream bs = {
         .data = file.str,
         .num_bytes = file.size
     };
@@ -36,17 +36,17 @@ gzip_t parse_gzip(arena_t* arena, string8_t file) {
     // XFL + OS
     BITS(16);
 
-    if (flg & FLG_EXTRA) { log_error("TODO: extra"); }
+    if (flg & FLG_EXTRA) { log_error("todo: extra"); }
     if (flg & FLG_NAME) { 
         out.name = str8_from_cstr(bs_get_ptr(&bs));
         char c = (char)BITS(8);
         while (c != 0) { c = (char)BITS(8); }
     }
-    if (flg & FLG_COMMENT) { log_error("TODO: comment"); }
-    if (flg & FLG_HCRC) { log_error("TODO: hcrc"); }
+    if (flg & FLG_COMMENT) { log_error("todo: comment"); }
+    if (flg & FLG_HCRC) { log_error("todo: hcrc"); }
 
     u32 isize = *(u32*)(file.str + file.size - 4);
-    // TODO: the file could technically be more than 2^32 bytes
+    // NOTE: the file could technically be more than 2^32 bytes
     // but that would require more dynamic memory allocation
 
     out.size = isize;

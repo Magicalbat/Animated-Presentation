@@ -22,7 +22,7 @@
 #define WGL_FULL_ACCELERATION_ARB                 0x2027
 #define WGL_TYPE_RGBA_ARB                         0x202B
 
-#define X(ret, name, args) gl_func_##name##_t name = NULL;
+#define X(ret, name, args) gl_func_##name name = NULL;
     #include "opengl_xlist.h"
 #undef X
 
@@ -41,14 +41,14 @@ static void* wgl_get_proc_address(const char* name) {
 
 static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-typedef HGLRC WINAPI wglCreateContextAttribsARB_t(HDC hdc, HGLRC hShareContext, const int *attribList);
-typedef BOOL WINAPI wglChoosePixelFormatARB_t(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+typedef HGLRC WINAPI wglCreateContextAttribsARB_func(HDC hdc, HGLRC hShareContext, const int *attribList);
+typedef BOOL WINAPI wglChoosePixelFormatARB_func(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
 
-static wglCreateContextAttribsARB_t *wglCreateContexAttribsARB = NULL;
-static wglChoosePixelFormatARB_t    *wglChoosePixelFormatARB   = NULL;
+static wglCreateContextAttribsARB_func *wglCreateContexAttribsARB = NULL;
+static wglChoosePixelFormatARB_func    *wglChoosePixelFormatARB   = NULL;
 
-gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title) {
-    gfx_window_t* win = CREATE_ZERO_STRUCT(arena, win, gfx_window_t);
+gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
+    gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
 
     win->wgl.h_instance = GetModuleHandle(0);
 
@@ -88,8 +88,8 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
         HGLRC bootstrap_context = wglCreateContext(bootstrap_dc);
         wglMakeCurrent(bootstrap_dc, bootstrap_context);
 
-        wglCreateContexAttribsARB = (wglCreateContextAttribsARB_t*)wgl_get_proc_address("wglCreateContextAttribsARB");
-        wglChoosePixelFormatARB = (wglChoosePixelFormatARB_t*)wgl_get_proc_address("wglChoosePixelFormatARB");
+        wglCreateContexAttribsARB = (wglCreateContextAttribsARB_func*)wgl_get_proc_address("wglCreateContextAttribsARB");
+        wglChoosePixelFormatARB = (wglChoosePixelFormatARB_func*)wgl_get_proc_address("wglChoosePixelFormatARB");
 
         wglMakeCurrent(bootstrap_dc, NULL);
         wglDeleteContext(bootstrap_context);
@@ -105,7 +105,7 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     };
     ATOM atom = RegisterClass(&win->wgl.window_class);
 
-    string16_t title16 = str16_from_str8(arena, title);
+    string16 title16 = str16_from_str8(arena, title);
     
     win->wgl.window = CreateWindow(
         win->wgl.window_class.lpszClassName,
@@ -149,7 +149,7 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
     win->wgl.context = wglCreateContexAttribsARB(win->wgl.device_context, NULL, gl_attribs);
 
-    win->mouse_pos = (vec2_t){ 0, 0 };
+    win->mouse_pos = (vec2){ 0, 0 };
     win->new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
     win->old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
     win->new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
@@ -161,13 +161,13 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
     return win;
 }
-void gfx_win_make_current(gfx_window_t* win) {
+void gfx_win_make_current(gfx_window* win) {
     wglMakeCurrent(win->wgl.device_context, win->wgl.context);
 
     ShowWindow(win->wgl.window, SW_SHOW);
 }
 
-void gfx_win_destroy(gfx_window_t* win) {
+void gfx_win_destroy(gfx_window* win) {
     wglMakeCurrent(win->wgl.device_context, NULL);
     wglDeleteContext(win->wgl.context);
     ReleaseDC(win->wgl.window, win->wgl.device_context);
@@ -175,10 +175,10 @@ void gfx_win_destroy(gfx_window_t* win) {
     DestroyWindow(win->wgl.window);
 }
 
-void gfx_win_swap_buffers(gfx_window_t* win) {
+void gfx_win_swap_buffers(gfx_window* win) {
     SwapBuffers(win->wgl.device_context);
 }
-void gfx_win_process_events(gfx_window_t* win) {
+void gfx_win_process_events(gfx_window* win) {
     MSG msg;
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT) {
@@ -190,7 +190,7 @@ void gfx_win_process_events(gfx_window_t* win) {
     }
 }
 
-void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
+void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     win->width = width;
     win->height = height;
 
@@ -201,10 +201,10 @@ void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
             0, 0, (i32)width, (i32)height,
             SWP_NOMOVE | SWP_DRAWFRAME);// | WS_VISIBLE);
 }
-void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
+void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
     win->title = title;
 
-    string16_t title16 = str16_from_str8(arena, title);
+    string16 title16 = str16_from_str8(arena, title);
 
     SetWindowText(win->wgl.window, title16.str);
 
@@ -221,8 +221,8 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-void opengl_load_functions(gfx_window_t* win) {
-    #define X(ret, name, args) name = (gl_func_##name##_t)wgl_get_proc_address(#name);
+void opengl_load_functions(gfx_window* win) {
+    #define X(ret, name, args) name = (gl_func_##name)wgl_get_proc_address(#name);
         #include "opengl_xlist.h"
     #undef X
 }

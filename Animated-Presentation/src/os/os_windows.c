@@ -5,13 +5,13 @@
 
 static u64            w32_ticks_per_second;
 
-static arena_t*       w32_arena;
-static string8_list_t w32_cmd_args;
+static arena*       w32_arena;
+static string8_list w32_cmd_args;
 
-static string8_t win32_error_string() {
+static string8 win32_error_string() {
     DWORD err = GetLastError();
     if (err == 0) {
-        return (string8_t){ 0 };
+        return (string8){ 0 };
     }
 
     LPSTR msg_buf = NULL;
@@ -22,7 +22,7 @@ static string8_t win32_error_string() {
         0, NULL
     );
 
-    string8_t out;
+    string8 out;
     out.size = (u64)msg_size - 3;
     out.str = CREATE_ARRAY(w32_arena, u8, (u64)msg_size - 3);
 
@@ -34,11 +34,11 @@ static string8_t win32_error_string() {
 }
 
 #define log_w32_error(msg) do { \
-        string8_t err = win32_error_string(); \
+        string8 err = win32_error_string(); \
         log_errorf(msg ", Win32 Error: %.*s", (int)err.size, err.str); \
     } while (0)
 #define log_w32_errorf(fmt, ...) do { \
-        string8_t err = win32_error_string(); \
+        string8 err = win32_error_string(); \
         log_errorf(fmt ", Win32 Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
     } while (0)
 
@@ -53,7 +53,7 @@ void os_main_init(int argc, char** argv) {
     timeBeginPeriod(1);
 
     for (i32 i = 0; i < argc; i++) {
-        string8_t str = str8_from_cstr((u8*)argv[i]);
+        string8 str = str8_from_cstr((u8*)argv[i]);
         str8_list_push(w32_arena, &w32_cmd_args, str);
     }
 }
@@ -61,7 +61,7 @@ void os_main_quit() {
     arena_destroy(w32_arena);
     timeEndPeriod(1);
 }
-string8_list_t os_get_cmd_args() {
+string8_list os_get_cmd_args() {
     return w32_cmd_args;
 }
 
@@ -85,10 +85,10 @@ u64 os_mem_pagesize() {
     return si.dwPageSize;
 }
 
-datetime_t os_now_localtime() {
+datetime os_now_localtime() {
     SYSTEMTIME t;
     GetLocalTime(&t);
-    return (datetime_t){
+    return (datetime){
         .sec   = (u8 )t.wSecond,
         .min   = (u8 )t.wMinute,
         .hour  = (u8 )t.wHour,
@@ -111,10 +111,10 @@ void os_sleep_milliseconds(u32 t) {
     Sleep(t);
 }
 
-string8_t os_file_read(arena_t* arena, string8_t path) {
-    arena_temp_t temp = arena_temp_begin(w32_arena);
+string8 os_file_read(arena* arena, string8 path) {
+    arena_temp temp = arena_temp_begin(w32_arena);
 
-    string16_t path16 = str16_from_str8(temp.arena, path);
+    string16 path16 = str16_from_str8(temp.arena, path);
 
     HANDLE file_handle = CreateFile(
         (LPCWSTR)path16.str,
@@ -131,10 +131,10 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
 
-        return (string8_t){ 0 };
+        return (string8){ 0 };
     }
 
-    string8_t out = { 0 };
+    string8 out = { 0 };
 
     DWORD high_size = 0;
     DWORD low_size = GetFileSize(file_handle, &high_size);
@@ -155,7 +155,7 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
             log_w32_errorf("Failed to read to file \"%.*s\"", (int)path.size, (char*)path.str);
             arena_pop_to(arena, arena_start_pos);
 
-            return (string8_t){ 0 };
+            return (string8){ 0 };
         }
 
         total_read += bytes_read;
@@ -168,8 +168,8 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
     return out;
 }
 
-b32 os_file_write_impl(HANDLE file_handle, string8_list_t str_list) {
-    for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
+b32 os_file_write_impl(HANDLE file_handle, string8_list str_list) {
+    for (string8_node* node = str_list.first; node != NULL; node = node->next) {
         u64 total_to_write = node->str.size;
         u64 total_written = 0;
 
@@ -189,10 +189,10 @@ b32 os_file_write_impl(HANDLE file_handle, string8_list_t str_list) {
     return true;
 }
 
-b32 os_file_write(string8_t path, string8_list_t str_list) {
-    arena_temp_t temp = arena_temp_begin(w32_arena);
+b32 os_file_write(string8 path, string8_list str_list) {
+    arena_temp temp = arena_temp_begin(w32_arena);
 
-    string16_t path16 = str16_from_str8(temp.arena, path);
+    string16 path16 = str16_from_str8(temp.arena, path);
 
     HANDLE file_handle = CreateFile(
         (LPCWSTR)path16.str,
@@ -224,10 +224,10 @@ b32 os_file_write(string8_t path, string8_list_t str_list) {
 
     return out;
 }
-b32 os_file_append(string8_t path, string8_list_t str_list) {
-    arena_temp_t temp = arena_temp_begin(w32_arena);
+b32 os_file_append(string8 path, string8_list str_list) {
+    arena_temp temp = arena_temp_begin(w32_arena);
 
-    string16_t path16 = str16_from_str8(temp.arena, path);
+    string16 path16 = str16_from_str8(temp.arena, path);
 
     HANDLE file_handle = CreateFile(
         (LPCWSTR)path16.str,
@@ -258,12 +258,12 @@ b32 os_file_append(string8_t path, string8_list_t str_list) {
     CloseHandle(file_handle);
     return out;
 }
-file_stats_t os_file_get_stats(string8_t path) {
-    file_stats_t stats = { 0 };
+file_stats os_file_get_stats(string8 path) {
+    file_stats stats = { 0 };
 
-    arena_temp_t temp = arena_temp_begin(w32_arena);
+    arena_temp temp = arena_temp_begin(w32_arena);
 
-    string16_t path16 = str16_from_str8(temp.arena, path);
+    string16 path16 = str16_from_str8(temp.arena, path);
 
     WIN32_FILE_ATTRIBUTE_DATA attribs = { 0 };
     if (GetFileAttributesEx((LPCWSTR)path16.str, GetFileExInfoStandard, &attribs) != FALSE) {
@@ -281,7 +281,7 @@ file_stats_t os_file_get_stats(string8_t path) {
 }
 
 
-os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
+os_file os_file_open(string8 path, file_mode open_mode) {
     DWORD read_write = 0;
     switch (open_mode) {
         case FOPEN_READ:   read_write = GENERIC_READ;     break;
@@ -298,9 +298,9 @@ os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
         default: break;
     }
 
-    arena_temp_t temp = arena_temp_begin(w32_arena);
+    arena_temp temp = arena_temp_begin(w32_arena);
     
-    string16_t path16 = str16_from_str8(temp.arena, path);
+    string16 path16 = str16_from_str8(temp.arena, path);
     
     HANDLE file_handle = CreateFile(
         (LPCWSTR)path16.str,
@@ -317,14 +317,14 @@ os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
 
-        return (os_file_t) { NULL };
+        return (os_file) { NULL };
     }
 
-    return (os_file_t){
+    return (os_file){
         .file_handle = file_handle
     };
 }
-b32 os_file_write_open(os_file_t file, string8_t str) {
+b32 os_file_write_open(os_file file, string8 str) {
     u64 total_to_write = str.size;
     u64 total_written = 0;
 
@@ -344,14 +344,14 @@ b32 os_file_write_open(os_file_t file, string8_t str) {
 
     return true;
 }
-void os_file_close(os_file_t file) {
+void os_file_close(os_file file) {
     CloseHandle(file.file_handle);
 }
 
-os_library_t os_lib_load(string8_t path) {
-    arena_temp_t temp = arena_temp_begin(w32_arena);
+os_library os_lib_load(string8 path) {
+    arena_temp temp = arena_temp_begin(w32_arena);
 
-    string16_t path16 = str16_from_str8(temp.arena, path);
+    string16 path16 = str16_from_str8(temp.arena, path);
     HMODULE module = LoadLibraryW((LPCWSTR)path16.str);
 
     arena_temp_end(temp);
@@ -360,12 +360,12 @@ os_library_t os_lib_load(string8_t path) {
         log_w32_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);
     }
 
-    return (os_library_t){
+    return (os_library){
         .module = module
     };
 }
-void_func_t os_lib_func(os_library_t lib, const char* func_name) {
-    void_func_t func = (void_func_t)GetProcAddress(lib.module, func_name);
+void_func os_lib_func(os_library lib, const char* func_name) {
+    void_func func = (void_func)GetProcAddress(lib.module, func_name);
 
     if (func == NULL) {
         log_w32_errorf("Failed to load library function\"%s\"", func_name);
@@ -373,7 +373,7 @@ void_func_t os_lib_func(os_library_t lib, const char* func_name) {
 
     return func;
 }
-void os_lib_release(os_library_t lib) {
+void os_lib_release(os_library lib) {
     if (FreeLibrary(lib.module) == FALSE) {
         log_w32_error("Failed to free dynamic library");
     }

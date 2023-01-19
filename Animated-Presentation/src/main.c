@@ -11,9 +11,40 @@
 typedef int (*math_func)(int, int);
 typedef const char* (*vers_func)();
 
+/*
+typedef enum {
+    FIELD_I32,
+    FIELD_I64,
+    FIELD_F32,
+    FIELD_F64,
+    FIELD_VEC2,
+    FIELD_VEC3,
+    FIELD_VEC4,
+    FIELD_STR8
+} field_type;
+
+typedef void (draw_func)(gfx_window* win, void* obj);
+typedef void (update_func)(f32 delta, void* obj);
+
+#define MAX_FIELDS 32
+typedef struct {
+    string8 name;
+
+    string8 field_names[MAX_FIELDS];
+    field_type field_types[MAX_FIELDS];
+    u32 obj_size; // will allow for extra data
+
+    draw_func* draw_func;
+    update_func* update_func;
+} obj_desc;
+
+void register_obj(obj_desc* desc) { ... }
+void create_obj(arena* arena, string8 name) { ... }
+*/
+
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-    log_level_t level = LOG_DEBUG;
+    log_level level = LOG_DEBUG;
     switch (severity) {
         case GL_DEBUG_SEVERITY_NOTIFICATION:
             level = LOG_DEBUG;
@@ -36,14 +67,14 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
-    log_init((log_desc_t){ 
+    log_init((log_desc){ 
         .log_time = LOG_NO,
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
 
-    arena_t* perm_arena = arena_create(MiB(16));
+    arena* perm_arena = arena_create(MiB(16));
 
-    gfx_window_t* win = gfx_win_create(
+    gfx_window* win = gfx_win_create(
         perm_arena,
         320 * WIN_SCALE, 180 * WIN_SCALE,
         STR8_LIT("Test window")
@@ -58,20 +89,22 @@ int main(int argc, char** argv) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
 
-    os_library_t lib = os_lib_load(STR8_LIT("testlib.dll"));
+    os_library lib = os_lib_load(STR8_LIT("./test_lib.so"));
 
     math_func testlib_add = (math_func)os_lib_func(lib, "testlib_add");
-    math_func testlib_mul = (math_func)os_lib_func(lib, "testlib_mul");
-    //vers_func testlib_version = (vers_func)dlsym(handle, "testlib_version");
+    math_func testlib_sub = (math_func)os_lib_func(lib, "testlib_sub");
+    vers_func testlib_version = (vers_func)os_lib_func(lib, "testlib_version");
 
-    log_debugf("%d %d", testlib_add(1, 2), testlib_mul(5, 3));
-    //log_debugf("%d %d %s", testlib_add(1, 2), testlib_sub(5, 3), testlib_version());
+    //log_debugf("%d %d", testlib_add(1, 2), testlib_sub(5, 3));
+    log_debugf("%d %d %s", testlib_add(1, 2), testlib_sub(5, 3), testlib_version());
 
     os_lib_release(lib);
 
+    draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
+
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
-    const char* vertex_shader = ""
+    /*const char* vertex_shader = ""
         "#version 330 core\n"
         "layout(location = 0) in vec2 a_pos;"
         "layout(location = 1) in vec2 a_uv;"
@@ -125,15 +158,15 @@ int main(int argc, char** argv) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    string8_t img_file = os_file_read(perm_arena, STR8_LIT("kodim23.qoi"));
-    image_t img = { 0 };
+    string8 img_file = os_file_read(perm_arena, STR8_LIT("kodim23.qoi"));
+    image img = { 0 };
     if (img_file.size) {
         img = parse_qoi(perm_arena, img_file);
     }
 
     u32 color_type = img.channels == 3 ? GL_RGB : GL_RGBA;
     glTexImage2D(GL_TEXTURE_2D, 0, color_type, img.width, img.height, 0, color_type, GL_UNSIGNED_BYTE, img.data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap(GL_TEXTURE_2D);*/
 
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
@@ -146,18 +179,32 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader_program);
-        glBindVertexArray(vert_array);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        for (u32 x = 0; x < 50; x++) {
+            for (u32 y = 0; y < 50; y++) {
+                draw_rectb_push(rectb, (rect){
+                    x * 5, y * 5, 2, 2
+                }, (vec3){
+                    (f32)(x * 5) / 255.0f, (f32)(y * 5) / 255.0f, 0
+                });
+            }
+        }
+        
+        draw_rectb_flush(rectb);
+
+        //glUseProgram(shader_program);
+        //glBindVertexArray(vert_array);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         gfx_win_swap_buffers(win);
 
         time_prev = time_now;
     }
 
-    glDeleteVertexArrays(1, &vert_array);
-    glDeleteBuffers(1, &vert_buffer);
-    glDeleteBuffers(1, &index_buffer);
+    //glDeleteVertexArrays(1, &vert_array);
+    //glDeleteBuffers(1, &vert_buffer);
+    //glDeleteBuffers(1, &index_buffer);
+
+    draw_rectb_destroy(rectb);
 
     gfx_win_destroy(win);
 

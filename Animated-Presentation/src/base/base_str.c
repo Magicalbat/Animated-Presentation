@@ -1,18 +1,18 @@
 #include "base_str.h"
 
-string8_t str8_create(u8* str, u64 size) {
-    return (string8_t){ str, size };
+string8 str8_create(u8* str, u64 size) {
+    return (string8){ str, size };
 }
-string8_t str8_from_range(u8* start, u8* end) {
-    return (string8_t){ start, (u64)(end - start) };
+string8 str8_from_range(u8* start, u8* end) {
+    return (string8){ start, (u64)(end - start) };
 }
-string8_t str8_from_cstr(u8* cstr) {
+string8 str8_from_cstr(u8* cstr) {
     u8* ptr = cstr;
     for(; *ptr != 0; ptr += 1);
     return str8_from_range(cstr, ptr);
 }
-string8_t str8_copy(arena_t* arena, string8_t str) {
-    string8_t out = { 
+string8 str8_copy(arena* arena, string8 str) {
+    string8 out = { 
         .str = (u8*)arena_alloc(arena, str.size),
         .size = str.size
     };
@@ -22,7 +22,7 @@ string8_t str8_copy(arena_t* arena, string8_t str) {
     return out;
 }
 
-b8 str8_equals(string8_t a, string8_t b) {
+b8 str8_equals(string8 a, string8 b) {
     if (a.size != b.size)
         return false;
 
@@ -33,7 +33,7 @@ b8 str8_equals(string8_t a, string8_t b) {
     
     return true;
 }
-b8 str8_contains(string8_t a, string8_t b) {
+b8 str8_contains(string8 a, string8 b) {
     for (u64 i = 0; i < a.size - b.size + 1; i++) {
         b8 contains = true;
         for (u64 j = 0; j < b.size; j++) {
@@ -51,7 +51,7 @@ b8 str8_contains(string8_t a, string8_t b) {
     return false;
 }
 
-u64 str8_find_first(string8_t a, string8_t b) {
+u64 str8_find_first(string8 a, string8 b) {
     for (u64 i = 0; i < a.size - b.size + 1; i++) {
         b8 contains = true;
         for (u64 j = 0; j < b.size; j++) {
@@ -67,7 +67,7 @@ u64 str8_find_first(string8_t a, string8_t b) {
     }
     return (u64)(-1);
 }
-u64 str8_find_last(string8_t a, string8_t b) {
+u64 str8_find_last(string8 a, string8 b) {
     u64 out = (u64)(-1);
     for (u64 i = 0; i < a.size - b.size + 1; i++) {
         b8 contains = true;
@@ -85,36 +85,36 @@ u64 str8_find_last(string8_t a, string8_t b) {
     return out;
 }
 
-string8_t str8_prefix(string8_t str, u64 size) {
+string8 str8_prefix(string8 str, u64 size) {
     u64 clamped_size = MIN(size, str.size);
-    return (string8_t){ str.str, clamped_size };
+    return (string8){ str.str, clamped_size };
 }
-string8_t str8_postfix(string8_t str, u64 size) {
+string8 str8_postfix(string8 str, u64 size) {
     u64 clamped_size = MIN(str.size, size);
     u64 new_pos = str.size - clamped_size;
-    return (string8_t){ str.str + new_pos, clamped_size };
+    return (string8){ str.str + new_pos, clamped_size };
 }
-string8_t str8_substr(string8_t str, u64 start, u64 end) {
+string8 str8_substr(string8 str, u64 start, u64 end) {
     u64 end_clamped = MIN(str.size, end);
     u64 start_clamped = MIN(start, end_clamped);
-    return (string8_t){ str.str + start_clamped, end_clamped - start_clamped };
+    return (string8){ str.str + start_clamped, end_clamped - start_clamped };
 }
-string8_t str8_substr_size(string8_t str, u64 start, u64 size) {
+string8 str8_substr_size(string8 str, u64 start, u64 size) {
     return str8_substr(str, start, start + size);
 }
 
-void str8_list_push_existing(string8_list_t* list, string8_t str, string8_node_t* node) {
+void str8_list_push_existing(string8_list* list, string8 str, string8_node* node) {
     node->str = str;
     SLL_PUSH_BACK(list->first, list->last, node);
     list->node_count++;
     list->total_size += str.size;
 }
-void str8_list_push(arena_t* arena, string8_list_t* list, string8_t str) {
-    string8_node_t* node = CREATE_ZERO_STRUCT(arena, node, string8_node_t);
+void str8_list_push(arena* arena, string8_list* list, string8 str) {
+    string8_node* node = CREATE_ZERO_STRUCT(arena, node, string8_node);
     str8_list_push_existing(list, str, node);
 }
-string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
-    string8_list_t list_out = (string8_list_t){ .total_size = 0 };
+string8_list str8_split(arena* arena, string8 str, string8 split) {
+    string8_list list_out = (string8_list){ .total_size = 0 };
 
     u8* ptr = str.str;
     u8* word_first = ptr;
@@ -142,30 +142,30 @@ string8_list_t str8_split(arena_t* arena, string8_t str, string8_t split) {
 
     return list_out;
 }
-string8_list_t str8_split_char(arena_t* arena, string8_t str, u8 split_char) {
-    string8_t char_str = (string8_t){ .str=&split_char, .size=1 };
+string8_list str8_split_char(arena* arena, string8 str, u8 split_char) {
+    string8 char_str = (string8){ .str=&split_char, .size=1 };
     return str8_split(arena, str, char_str);
 }
 
-string8_t str8_concat(arena_t* arena, string8_list_t list) {
-    string8_t out = {
+string8 str8_concat(arena* arena, string8_list list) {
+    string8 out = {
         .str = (u8*)arena_alloc(arena, list.total_size),
         .size = list.total_size
     };
 
     u8* ptr = out.str;
 
-    for (string8_node_t* node = list.first; node != NULL; node = node->next) {
+    for (string8_node* node = list.first; node != NULL; node = node->next) {
         memcpy(ptr, node->str.str, node->str.size);
         ptr += node->str.size;
     }
 
     return out;
 }
-string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
+string8 str8_join(arena* arena, string8_list list, string8_join join) {
     u64 out_size = join.pre.size + join.inbetween.size * (list.node_count - 1) + list.total_size + join.post.size + 1;
     
-    string8_t out = {
+    string8 out = {
         .str = (u8*)arena_alloc(arena, out_size),
         .size = out_size
     };
@@ -174,7 +174,7 @@ string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
 
     u8* ptr = out.str + join.pre.size;
 
-    for (string8_node_t* node = list.first; node != NULL; node = node->next) {
+    for (string8_node* node = list.first; node != NULL; node = node->next) {
         if (node != list.first) {
             memcpy(ptr, join.inbetween.str, join.inbetween.size);
             ptr += join.inbetween.size;
@@ -192,7 +192,7 @@ string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join) {
     return out;
 }
 
-string8_t str8_pushfv(arena_t* arena, const char* fmt, va_list args) {
+string8 str8_pushfv(arena* arena, const char* fmt, va_list args) {
     va_list args2;
     va_copy(args2, args);
 
@@ -200,16 +200,16 @@ string8_t str8_pushfv(arena_t* arena, const char* fmt, va_list args) {
     u8* buffer = CREATE_ARRAY(arena, u8, init_size);
     u64 size = vsnprintf((char*)buffer, init_size, fmt, args);
 
-    string8_t out = { 0 };
+    string8 out = { 0 };
     if (size < init_size) {
         arena_pop(arena, init_size - size - 1);
-        out = (string8_t){ buffer, size };
+        out = (string8){ buffer, size };
     } else {
         // NOTE: This path may not work
         arena_pop(arena, init_size);
         u8* fixed_buff = CREATE_ARRAY(arena, u8, size + 1);
         u64 final_size = vsnprintf((char*)fixed_buff, size + 1, fmt, args);
-        out = (string8_t){ fixed_buff, final_size };
+        out = (string8){ fixed_buff, final_size };
     }
 
     va_end(args2);
@@ -217,11 +217,11 @@ string8_t str8_pushfv(arena_t* arena, const char* fmt, va_list args) {
     return out;
 }
 
-string8_t str8_pushf(arena_t* arena, const char* fmt, ...) {
+string8 str8_pushf(arena* arena, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     
-    string8_t out = str8_pushfv(arena, fmt, args);
+    string8 out = str8_pushfv(arena, fmt, args);
 
     va_end(args);
 
@@ -230,7 +230,7 @@ string8_t str8_pushf(arena_t* arena, const char* fmt, ...) {
 
 // https://github.com/skeeto/branchless-utf8/blob/master/utf8.h
 // https://github.com/Mr-4th-Programming/mr4th/blob/main/src/base/base_string.cpp
-string_decode_t str_decode_utf8(u8* str, u32 cap) {
+string_decode str_decode_utf8(u8* str, u32 cap) {
     static u8 lengths[] = {
         1, 1, 1, 1, // 000xx
         1, 1, 1, 1,
@@ -246,7 +246,7 @@ string_decode_t str_decode_utf8(u8* str, u32 cap) {
     static u8 first_byte_mask[] = { 0, 0x7F, 0x1F, 0x0F, 0x07 };
     static u8 final_shift[] = { 0, 18, 12, 6, 0 };
 
-    string_decode_t out = { .size=0 };
+    string_decode out = { .size=0 };
 
     if (cap > 0) {
         out.code_point = '#';
@@ -301,8 +301,8 @@ u32 str_encode_utf8(u8* dst, u32 code_point) {
 }
 
 // https://en.wikipedia.org/wiki/UTF-16
-string_decode_t str_decode_utf16(u16* str, u32 cap) {
-    string_decode_t out = { '#', 1 };
+string_decode str_decode_utf16(u16* str, u32 cap) {
+    string_decode out = { '#', 1 };
     u16 x = str[0];
 
     if (x < 0xd800 || x >= 0xdfff) {
@@ -335,14 +335,14 @@ u32 str_encode_utf16(u16* dst, u32 code_point) {
     return size;
 }
 
-string32_t str32_from_str8(arena_t* arena, string8_t str) {
+string32 str32_from_str8(arena* arena, string8 str) {
     u32* buff = CREATE_ARRAY(arena, u32, str.size + 1);//(u32*)arena_alloc(arena, sizeof(u32) * str.size + 1);
 
     u32* ptr_out = buff;
     u8* ptr = str.str;
     u8* ptr_end = str.str + str.size;
     for(;ptr < ptr_end;){
-        string_decode_t decode = str_decode_utf8(ptr, (u32)(ptr_end - ptr));
+        string_decode decode = str_decode_utf8(ptr, (u32)(ptr_end - ptr));
 
         *ptr_out = decode.code_point;
 
@@ -357,9 +357,9 @@ string32_t str32_from_str8(arena_t* arena, string8_t str) {
     u64 unused_count = alloc_count - string_count - 1;
     arena_pop(arena, unused_count * (sizeof(*buff)));
 
-    return (string32_t){ .str = buff, .size = string_count };
+    return (string32){ .str = buff, .size = string_count };
 }
-string8_t str8_from_str32(arena_t* arena, string32_t str) {
+string8 str8_from_str32(arena* arena, string32 str) {
     u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);//(u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
 
     u8* ptr_out = buff;
@@ -379,16 +379,16 @@ string8_t str8_from_str32(arena_t* arena, string32_t str) {
     u64 unused_count = alloc_count - string_count - 1;
     arena_pop(arena, unused_count * (sizeof(*buff)));
 
-    return (string8_t){ .str = buff, .size = string_count };
+    return (string8){ .str = buff, .size = string_count };
 }
-string16_t str16_from_str8(arena_t* arena, string8_t str) {
+string16 str16_from_str8(arena* arena, string8 str) {
     u16* buff = CREATE_ARRAY(arena, u16, str.size * 2 + 1);
 
     u16* ptr_out = buff;
     u8* ptr = str.str;
     u8* ptr_end = str.str + str.size;
     for(;ptr < ptr_end;){
-        string_decode_t decode = str_decode_utf8(ptr, (u32)(ptr_end - ptr));
+        string_decode decode = str_decode_utf8(ptr, (u32)(ptr_end - ptr));
         u32 encode_size = str_encode_utf16(ptr_out, decode.code_point);
 
         ptr += decode.size;
@@ -402,17 +402,17 @@ string16_t str16_from_str8(arena_t* arena, string8_t str) {
     u64 unused_count = alloc_count - string_count - 1;
     arena_pop(arena, unused_count * (sizeof(*buff)));
 
-    return (string16_t){ .str = buff, .size = string_count };
+    return (string16){ .str = buff, .size = string_count };
 
 }
-string8_t str8_from_str16(arena_t* arena, string16_t str) {
+string8 str8_from_str16(arena* arena, string16 str) {
     u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);//(u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
 
     u8* ptr_out = buff;
     u16* ptr = str.str;
     u16* ptr_end = str.str + str.size;
     for(;ptr < ptr_end;){
-        string_decode_t decode = str_decode_utf16(ptr, (u32)(ptr_end - ptr));
+        string_decode decode = str_decode_utf16(ptr, (u32)(ptr_end - ptr));
         u16 encode_size = str_encode_utf8(ptr_out, decode.code_point);
 
         ptr_out += encode_size;
@@ -426,5 +426,5 @@ string8_t str8_from_str16(arena_t* arena, string16_t str) {
     u64 unused_count = alloc_count - string_count - 1;
     arena_pop(arena, unused_count * (sizeof(*buff)));
 
-    return (string8_t){ .str = buff, .size = string_count };
+    return (string8){ .str = buff, .size = string_count };
 }

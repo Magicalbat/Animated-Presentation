@@ -5,20 +5,20 @@
 
 #include "os.h"
 
-static arena_t*       lnx_arena;
-static string8_list_t lnx_cmd_args;
+static arena*       lnx_arena;
+static string8_list lnx_cmd_args;
 
-static string8_t lnx_error_string() {
+static string8 lnx_error_string() {
     char* err_cstr = strerror(errno);
     
     return str8_from_cstr(err_cstr);
 }
 #define log_lnx_error(msg) do { \
-        string8_t err = lnx_error_string(); \
+        string8 err = lnx_error_string(); \
         log_errorf(msg ", Linux Error: %.*s", (int)err.size, err.str); \
     } while (0)
 #define log_lnx_errorf(fmt, ...) do { \
-        string8_t err = lnx_error_string(); \
+        string8 err = lnx_error_string(); \
         log_errorf(fmt ", Linux Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
     } while (0)
 
@@ -27,14 +27,14 @@ void os_main_init(int argc, char** argv) {
     lnx_arena = arena_create(KiB(16));
 
     for (i32 i = 0; i < argc; i++) {
-        string8_t str = str8_from_cstr((u8*)argv[i]);
+        string8 str = str8_from_cstr((u8*)argv[i]);
         str8_list_push(lnx_arena, &lnx_cmd_args, str);
     }
 }
 void os_main_quit() {
     arena_destroy(lnx_arena);
 }
-string8_list_t os_get_cmd_args() {
+string8_list os_get_cmd_args() {
     return lnx_cmd_args;
 }
 
@@ -53,15 +53,15 @@ void os_mem_release(void* ptr, u64 size) {
     munmap(ptr, size);
 }
 
-uint64_t os_mem_pagesize() {
+u64 os_mem_pagesize() {
     return sysconf(_SC_PAGE_SIZE);
 }
 
-datetime_t os_now_localtime() {
+datetime os_now_localtime() {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
-    return (datetime_t){
+    return (datetime){
         .sec = tm.tm_sec,
         .min = tm.tm_min,
         .hour = tm.tm_hour,
@@ -81,8 +81,8 @@ void os_sleep_milliseconds(u32 t) {
 }
 
 // TODO: str8_to_cstr function
-int lnx_open_impl(string8_t path, int flags, mode_t mode) {
-    arena_temp_t temp = arena_temp_begin(lnx_arena);
+int lnx_open_impl(string8 path, int flags, mode_t mode) {
+    arena_temp temp = arena_temp_begin(lnx_arena);
     
     u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
@@ -95,30 +95,30 @@ int lnx_open_impl(string8_t path, int flags, mode_t mode) {
     return fd;
 }
 
-string8_t os_file_read(arena_t* arena, string8_t path) {
+string8 os_file_read(arena* arena, string8 path) {
     int fd = lnx_open_impl(path, O_RDONLY, 0);
     
     if (fd == -1) {
         log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, path.str);
 
-        return (string8_t){ 0 };
+        return (string8){ 0 };
     }
     
-    struct stat file_stats;
-    fstat(fd, &file_stats);
+    struct stat file_stat;
+    fstat(fd, &file_stat);
 
-    string8_t out = { 0 };
+    string8 out = { 0 };
 
-    if (S_ISREG(file_stats.st_mode)) {
-        out.size = file_stats.st_size;
-        out.str = (u8*)arena_alloc(arena, (u64)file_stats.st_size);
+    if (S_ISREG(file_stat.st_mode)) {
+        out.size = file_stat.st_size;
+        out.str = (u8*)arena_alloc(arena, (u64)file_stat.st_size);
 
-        if (read(fd, out.str, file_stats.st_size) == -1) {
+        if (read(fd, out.str, file_stat.st_size) == -1) {
             log_lnx_errorf("Failed to read file \"%.*s\"", (int)path.size, path.str);
             
             close(fd);
             
-            return (string8_t){ 0 };
+            return (string8){ 0 };
         }
     } else {
         log_errorf("Failed to read file \"%.*s\", file is not regular", (int)path.size, path.str);
@@ -128,7 +128,7 @@ string8_t os_file_read(arena_t* arena, string8_t path) {
     return out;
 }
 
-b32 os_file_write(string8_t path, string8_list_t str_list) {
+b32 os_file_write(string8 path, string8_list str_list) {
     int fd = lnx_open_impl(path, O_CREAT | O_TRUNC | O_WRONLY, S_IRUSR | S_IWUSR);
 
     if (fd == -1) {
@@ -139,7 +139,7 @@ b32 os_file_write(string8_t path, string8_list_t str_list) {
 
     b32 out = true;
     
-    for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
+    for (string8_node* node = str_list.first; node != NULL; node = node->next) {
         ssize_t written = write(fd, node->str.str, node->str.size);
 
         if (written == -1) {
@@ -154,7 +154,7 @@ b32 os_file_write(string8_t path, string8_list_t str_list) {
 
     return out;
 }
-b32 os_file_append(string8_t path, string8_list_t str_list) {
+b32 os_file_append(string8 path, string8_list str_list) {
     int fd = lnx_open_impl(path, O_APPEND | O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 
     if (fd == -1) {
@@ -165,7 +165,7 @@ b32 os_file_append(string8_t path, string8_list_t str_list) {
     
     b32 out = true;
 
-    for (string8_node_t* node = str_list.first; node != NULL; node = node->next) {
+    for (string8_node* node = str_list.first; node != NULL; node = node->next) {
         ssize_t written = write(fd, node->str.str, node->str.size);
         
         if (written == -1) {
@@ -180,33 +180,33 @@ b32 os_file_append(string8_t path, string8_list_t str_list) {
     
     return out;
 }
-file_flags_t lnx_file_flags(mode_t mode) {
-    file_flags_t flags;
+file_flags lnx_file_flags(mode_t mode) {
+    file_flags flags;
 
     if (S_ISDIR(mode))
         flags |= FILE_IS_DIR;
 
     return flags;
 }
-file_stats_t os_file_get_stats(string8_t path) {
-    arena_temp_t temp = arena_temp_begin(lnx_arena);
+file_stats os_file_get_stats(string8 path) {
+    arena_temp temp = arena_temp_begin(lnx_arena);
     
     u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
     path_cstr[path.size] = '\0';
 
-    struct stat file_stats;
-    stat((char*)path_cstr, &file_stats);
+    struct stat file_stat;
+    stat((char*)path_cstr, &file_stat);
 
     arena_temp_end(temp);
 
-    return (file_stats_t){
-        .size = file_stats.st_size,
-        .flags = lnx_file_flags(file_stats.st_mode)
+    return (file_stats){
+        .size = file_stat.st_size,
+        .flags = lnx_file_flags(file_stat.st_mode)
     };
 }
 
-os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
+os_file os_file_open(string8 path, file_mode open_mode) {
     int fd = -1;
 
     switch (open_mode) {
@@ -226,9 +226,9 @@ os_file_t os_file_open(string8_t path, file_mode_t open_mode) {
         log_lnx_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
     }
     
-    return (os_file_t) { .fd = fd };
+    return (os_file) { .fd = fd };
 }
-b32 os_file_write_open(os_file_t file, string8_t str) {
+b32 os_file_write_open(os_file file, string8 str) {
     ssize_t written = write(file.fd, str.str, str.size);
 
     if (written == -1) {
@@ -239,26 +239,26 @@ b32 os_file_write_open(os_file_t file, string8_t str) {
     
     return true;
 }
-void os_file_close(os_file_t file) {
+void os_file_close(os_file file) {
     close(file.fd);
 }
 
-static string8_t dl_error_string() {
+static string8 dl_error_string() {
     char* err_cstr = dlerror();
     
     return str8_from_cstr(err_cstr);
 }
 #define log_dl_error(msg) do { \
-        string8_t err = dl_error_string(); \
+        string8 err = dl_error_string(); \
         log_errorf(msg ", Linux DL Error: %.*s", (int)err.size, err.str); \
     } while (0)
 #define log_dl_errorf(fmt, ...) do { \
-        string8_t err = dl_error_string(); \
+        string8 err = dl_error_string(); \
         log_errorf(fmt ", Linux DL Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
     } while (0)
 
-os_library_t os_lib_load(string8_t path) {
-    arena_temp_t temp = arena_temp_begin(lnx_arena);
+os_library os_lib_load(string8 path) {
+    arena_temp temp = arena_temp_begin(lnx_arena);
     
     u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
     memcpy(path_cstr, path.str, path.size);
@@ -272,13 +272,13 @@ os_library_t os_lib_load(string8_t path) {
         log_dl_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);
     }
 
-    return (os_library_t){
+    return (os_library){
         .handle = handle
     };
 
 }
-void_func_t os_lib_func(os_library_t lib, const char* func_name) {
-    void_func_t func = (void_func_t)dlsym(lib.handle, func_name);
+void_func os_lib_func(os_library lib, const char* func_name) {
+    void_func func = (void_func)dlsym(lib.handle, func_name);
     
     if (func == NULL) {
         log_dl_errorf("Failed to load library function \"%s\"", func_name);
@@ -286,7 +286,7 @@ void_func_t os_lib_func(os_library_t lib, const char* func_name) {
 
     return func;
 }
-void os_lib_release(os_library_t lib) {
+void os_lib_release(os_library lib) {
     dlclose(lib.handle);
 }
 

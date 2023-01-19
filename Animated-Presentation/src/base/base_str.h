@@ -15,80 +15,80 @@
 typedef struct {
     u8* str;
     u64 size;
-} string8_t;
+} string8;
 
 typedef struct {
     u16* str;
     u64 size;
-} string16_t;
+} string16;
 
 typedef struct {
     u32* str;
     u64 size;
-} string32_t;
+} string32;
 
 typedef struct string8_node {
     struct string8_node* next;
-    string8_t str;
-} string8_node_t;
+    string8 str;
+} string8_node;
 
 typedef struct {
-    string8_node_t* first;
-    string8_node_t* last;
+    string8_node* first;
+    string8_node* last;
     u64 node_count;
     u64 total_size;
-} string8_list_t; 
+} string8_list; 
 
 typedef struct {
-    string8_t pre;
-    string8_t inbetween;
-    string8_t post;
-} string8_join_t;
+    string8 pre;
+    string8 inbetween;
+    string8 post;
+} string8_join;
 
 typedef struct {
     u32 code_point;
     u32 size;
-} string_decode_t;
+} string_decode;
 
-#define STR8_LIT(s) ((string8_t){ (u8*)(s), sizeof(s)-1 })
+#define STR8_LIT(s) ((string8){ (u8*)(s), sizeof(s)-1 })
 
-string8_t str8_create(u8* str, u64 size);
-string8_t str8_from_range(u8* start, u8* end);
-string8_t str8_from_cstr(u8* cstr);
-string8_t str8_copy(arena_t* arena, string8_t str);
+string8 str8_create(u8* str, u64 size);
+string8 str8_from_range(u8* start, u8* end);
+string8 str8_from_cstr(u8* cstr);
+string8 str8_copy(arena* arena, string8 str);
 
-b8 str8_equals(string8_t a, string8_t b);
-b8 str8_contains(string8_t a, string8_t b);
+b8 str8_equals(string8 a, string8 b);
+b8 str8_contains(string8 a, string8 b);
 
-u64 str8_find_first(string8_t a, string8_t b);
-u64 str8_find_last(string8_t a, string8_t b);
+u64 str8_find_first(string8 a, string8 b);
+u64 str8_find_last(string8 a, string8 b);
 
-string8_t str8_prefix(string8_t str, u64 size);
-string8_t str8_postfix(string8_t str, u64 size);
-string8_t str8_substr(string8_t str, u64 start, u64 end);
-string8_t str8_substr_size(string8_t str, u64 start, u64 size);
+string8 str8_prefix(string8 str, u64 size);
+string8 str8_postfix(string8 str, u64 size);
+string8 str8_substr(string8 str, u64 start, u64 end);
+string8 str8_substr_size(string8 str, u64 start, u64 size);
 
-void str8_list_push_existing(string8_list_t* list, string8_t str, string8_node_t* node);
-void str8_list_push(arena_t* arena, string8_list_t* list, string8_t str);
+void str8_list_push_existing(string8_list* list, string8 str, string8_node* node);
+void str8_list_push(arena* arena, string8_list* list, string8 str);
 
-string8_list_t str8_split(arena_t* arena, string8_t orig, string8_t split);
-string8_list_t str8_split_char(arena_t* arena, string8_t orig, u8 split_char);
+string8_list str8_split(arena* arena, string8 orig, string8 split);
+string8_list str8_split_char(arena* arena, string8 orig, u8 split_char);
 
-string8_t str8_concat(arena_t* arena, string8_list_t list);
-string8_t str8_join(arena_t* arena, string8_list_t list, string8_join_t join);
+string8 str8_concat(arena* arena, string8_list list);
+string8 str8_join(arena* arena, string8_list list, string8_join join);
 
-string8_t str8_pushfv(arena_t* arena, const char* fmt, va_list args);
-string8_t str8_pushf(arena_t* arena, const char* fmt, ...);
+string8 str8_pushfv(arena* arena, const char* fmt, va_list args);
+string8 str8_pushf(arena* arena, const char* fmt, ...);
 
-string_decode_t str_decode_utf8(u8* str, u32 cap);
-u32             str_encode_utf8(u8* dst, u32 code_point);
+string_decode str_decode_utf8(u8* str, u32 cap);
+u32           str_encode_utf8(u8* dst, u32 code_point);
 
-string_decode_t str_decode_utf16(u16* str, u32 cap);
-u32             str_encode_utf16(u16* dst, u32 code_point);
+string_decode str_decode_utf16(u16* str, u32 cap);
+u32           str_encode_utf16(u16* dst, u32 code_point);
 
-string32_t str32_from_str8(arena_t* arena, string8_t str);
-string8_t  str8_from_str32(arena_t* arena, string32_t str);
-string16_t str16_from_str8(arena_t* arena, string8_t str);
-string8_t  str8_from_str16(arena_t* arena, string16_t str);
+string32 str32_from_str8(arena* arena, string8 str);
+string8  str8_from_str32(arena* arena, string32 str);
+string16 str16_from_str8(arena* arena, string8 str);
+string8  str8_from_str16(arena* arena, string16 str);
 
 #endif // BASE_STR_H

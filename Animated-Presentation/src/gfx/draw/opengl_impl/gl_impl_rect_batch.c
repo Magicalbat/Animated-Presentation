@@ -2,10 +2,10 @@
 
 #include "gl_impl.h"
 
-draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity) { 
-    draw_rectb_t* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb_t);
+draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u64 capacity) { 
+    draw_rectb* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb);
 
-    batch->data = CREATE_ARRAY(arena, draw_rect_t, capacity);
+    batch->data = CREATE_ARRAY(arena, draw_rect, capacity);
     batch->capacity = capacity;
     batch->size = 0;
 
@@ -18,15 +18,15 @@ draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity)
         "out vec4 col;"
         "void main() {"
         "    col = vec4(a_col, 1);"
-        "    vec2 pos = a_quad.xy + (0.5 * a_quad.zw) * (vec2(1) + a_pos_pattern);"
+        "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
         "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
-        "}";
+        "\n}";
     const char* fragment_source = ""
         "#version 330 core\n"
         "in vec4 col;"
-        "void main() {\n"
-        "    gl_FragColor = col;\n"
-        "}";
+        "void main() {"
+        "    gl_FragColor = col;"
+        "\n}";
     batch->gl.shader_program = gl_impl_create_shader_program(vertex_source, fragment_source);
 
     glUseProgram(batch->gl.shader_program);
@@ -42,15 +42,22 @@ draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity)
     glBindVertexArray(batch->gl.vertex_array);
 
     batch->gl.vertex_buffer = gl_impl_create_buffer(
-        GL_ARRAY_BUFFER, sizeof(draw_rect_t) * (capacity), NULL, GL_DYNAMIC_DRAW
+        GL_ARRAY_BUFFER, sizeof(draw_rect) * (capacity), NULL, GL_DYNAMIC_DRAW
     );
     f32 pos_pattern[] = {
-        -1,  1,
+        0, 1,
+        1, 1,
+        0, 0,
+        1, 1,
+        0, 0,
+        1, 0
+
+        /*-1,  1,
          1,  1,
         -1, -1,
          1,  1,
         -1, -1,
-         1, -1   
+         1, -1*/
     };
     batch->gl.pos_pattern_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(f32) * 12, &pos_pattern[0], GL_STATIC_DRAW
@@ -58,16 +65,16 @@ draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity)
     
     return batch;
 }
-void draw_rectb_destroy(draw_rectb_t* batch) {
+void draw_rectb_destroy(draw_rectb* batch) {
     glDeleteProgram(batch->gl.shader_program);
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
     glDeleteBuffers(1, &batch->gl.vertex_buffer);
     glDeleteBuffers(1, &batch->gl.pos_pattern_buffer);
 }
 
-void draw_rectb_push(draw_rectb_t* batch, rect_t rect, vec3_t col) {
+void draw_rectb_push(draw_rectb* batch, rect rect, vec3 col) {
     if (batch->size < batch->capacity) {
-        batch->data[batch->size++] = (draw_rect_t){
+        batch->data[batch->size++] = (draw_rect){
             .rect = rect,
             .col = col
         };
@@ -76,7 +83,7 @@ void draw_rectb_push(draw_rectb_t* batch, rect_t rect, vec3_t col) {
         draw_rectb_push(batch, rect, col);
     }
 }
-void draw_rectb_flush(draw_rectb_t* batch) {
+void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
     glBindVertexArray(batch->gl.vertex_array);
     
@@ -87,14 +94,14 @@ void draw_rectb_flush(draw_rectb_t* batch) {
     glBindBuffer(GL_ARRAY_BUFFER, batch->gl.vertex_buffer);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
-        sizeof(draw_rect_t), (void*)offsetof(draw_rect_t, rect));
+        sizeof(draw_rect), (void*)offsetof(draw_rect, rect));
     glVertexAttribDivisor(1, 1);
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
-        sizeof(draw_rect_t), (void*)offsetof(draw_rect_t, col));
+        sizeof(draw_rect), (void*)offsetof(draw_rect, col));
     glVertexAttribDivisor(2, 1);
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rect_t), batch->data);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rect), batch->data);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)batch->size);
     

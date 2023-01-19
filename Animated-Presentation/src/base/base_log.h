@@ -15,19 +15,19 @@ typedef enum {
     LOG_WARN,
     LOG_ERROR,
     LOG_LEVEL_COUNT
-} log_level_t;
+} log_level;
 
 typedef struct {
-    string8_t str;
-    log_level_t level;
+    string8 str;
+    log_level level;
     // TODO: error codes?
-} log_msg_t;
+} log_data;
 
 typedef struct {
     b8 log_time;
     b8 new_file;
 
-    string8_t file_path;
+    string8 file_path;
 
     u32 max_stored;
 
@@ -35,16 +35,16 @@ typedef struct {
     b8 log_file[LOG_LEVEL_COUNT];
 
     u32 colors[LOG_LEVEL_COUNT];
-} log_desc_t;
+} log_desc;
 
-// log_desc_t should be made with designated initializers
+// log_desc should be made with designated initializers
 // the functions checks for zero values to apply defaults
-void log_init(log_desc_t desc);
+void log_init(log_desc desc);
 void log_quit();
-void log_msg(log_level_t level, const char* msg);
-void log_msgf(log_level_t level, const char* fmt, ...);
-log_msg_t log_get_last(log_level_t level);
-void log_set_col(log_level_t level, u32 col);
+void log_msg(log_level level, const char* msg);
+void log_msgf(log_level level, const char* fmt, ...);
+log_data log_get_last(log_level level);
+void log_set_col(log_level level, u32 col);
 
 #define log_info(msg)        log_msg (LOG_INFO, msg)
 #define log_infof(fmt, ...)  log_msgf(LOG_INFO, fmt, __VA_ARGS__)

@@ -5,12 +5,12 @@
 #include "gfx/gfx.h"
 
 typedef struct {
-    rect_t rect;
-    vec3_t col;
-} draw_rect_t;
+    rect rect;
+    vec3 col;
+} draw_rect;
 
 typedef struct {
-    draw_rect_t* data;
+    draw_rect* data;
     u64 capacity;
     u32 size;
 
@@ -23,13 +23,13 @@ typedef struct {
         u32 pos_pattern_buffer;
     } gl;
     #endif
-} draw_rectb_t;
+} draw_rectb;
 
-draw_rectb_t* draw_rectb_create(arena_t* arena, gfx_window_t* win, u64 capacity);
-void          draw_rectb_destroy(draw_rectb_t* batch);
+draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u64 capacity);
+void        draw_rectb_destroy(draw_rectb* batch);
 
 // These functions will draw rects to the screen
-void draw_rectb_push(draw_rectb_t* batch, rect_t draw_rect, vec3_t col);
-void draw_rectb_flush(draw_rectb_t* batch);
+void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col);
+void draw_rectb_flush(draw_rectb* batch);
 
 #endif // DRAW_RECT_BATCH_H

@@ -31,7 +31,7 @@ typedef struct {
     u8 day;
     u8 month;
     i32 year;
-} datetime_t;
+} datetime;
 
 #define STRINGIFY_NX(a) #a
 #define STRINGIFY(a) STRINGIFY_NX(a)

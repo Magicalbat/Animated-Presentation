@@ -24,19 +24,19 @@
 
 typedef enum {
     FILE_IS_DIR = (1 << 0)
-} file_flags_t;
+} file_flags;
 
 typedef struct {
     // TODO: Time stuff
     u64 size;
-    file_flags_t flags;
-} file_stats_t;
+    file_flags flags;
+} file_stats;
 
 typedef enum {
     FOPEN_READ,
     FOPEN_WRITE,
     FOPEN_APPEND
-} file_mode_t;
+} file_mode;
 
 typedef struct {
     #if defined(_WIN32)
@@ -44,7 +44,7 @@ typedef struct {
     #elif defined(__linux__)
         int fd;
     #endif
-} os_file_t;
+} os_file;
 
 typedef struct {
     #if defined(_WIN32)
@@ -52,13 +52,13 @@ typedef struct {
     #elif defined(__linux__)
         void* handle;
     #endif
-} os_library_t;
+} os_library;
 
-typedef void (*void_func_t)(void);
+typedef void (*void_func)(void);
 
-void           os_main_init(int argc, char** argv);
-void           os_main_quit();
-string8_list_t os_get_cmd_args();
+void         os_main_init(int argc, char** argv);
+void         os_main_quit();
+string8_list os_get_cmd_args();
 
 void* os_mem_reserve(u64 size);
 void  os_mem_commit(void* ptr, u64 size);
@@ -68,26 +68,22 @@ void  os_mem_release(void* ptr, u64 size);
 u64 os_mem_pagesize();
 
 // TODO: make sure linux and windows timestamps are consistent
-datetime_t os_now_localtime();
+datetime os_now_localtime();
 
 u64  os_now_microseconds();
 void os_sleep_milliseconds(u32 t);
 
-string8_t    os_file_read(arena_t* arena, string8_t path);
-b32          os_file_write(string8_t path, string8_list_t str_list);
-b32          os_file_append(string8_t path, string8_list_t str_lit);
-file_stats_t os_file_get_stats(string8_t path);
+string8    os_file_read(arena* arena, string8 path);
+b32        os_file_write(string8 path, string8_list str_list);
+b32        os_file_append(string8 path, string8_list str_lit);
+file_stats os_file_get_stats(string8 path);
 
-os_file_t os_file_open(string8_t path, file_mode_t open_mode);
-b32       os_file_write_open(os_file_t file, string8_t str);
-void      os_file_close(os_file_t file);
+os_file os_file_open(string8 path, file_mode open_mode);
+b32     os_file_write_open(os_file file, string8 str);
+void    os_file_close(os_file file);
 
-os_library_t os_lib_load(string8_t path);
-void_func_t  os_lib_func(os_library_t lib, const char* func_name);
-void         os_lib_release(os_library_t lib);
-
-// TODO
-// Load module
-// Get datetime
+os_library os_lib_load(string8 path);
+void_func  os_lib_func(os_library lib, const char* func_name);
+void       os_lib_release(os_library lib);
 
 #endif // OS_H

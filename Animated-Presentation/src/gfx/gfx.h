@@ -34,7 +34,7 @@
 // TODO: Make this more simlar to draw layer structs
 
 typedef struct {
-    vec2_t mouse_pos;
+    vec2 mouse_pos;
 
     b8* new_mouse_buttons;
     b8* old_mouse_buttons;
@@ -45,7 +45,7 @@ typedef struct {
     u32 width;
     u32 height;
 
-    string8_t title;
+    string8 title;
 
     b8 should_close;
 
@@ -69,16 +69,16 @@ typedef struct {
             } wgl;
         #endif
     #endif
-} gfx_window_t;
+} gfx_window;
 
-gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title);
-void          gfx_win_make_current(gfx_window_t* win);
-void          gfx_win_destroy(gfx_window_t* win);
+gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title);
+void        gfx_win_make_current(gfx_window* win);
+void        gfx_win_destroy(gfx_window* win);
 
-void gfx_win_swap_buffers(gfx_window_t* win);
-void gfx_win_process_events(gfx_window_t* win);
+void gfx_win_swap_buffers(gfx_window* win);
+void gfx_win_process_events(gfx_window* win);
 
-void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height);
-void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title);
+void gfx_win_set_size(gfx_window* win, u32 width, u32 height);
+void gfx_win_set_title(arena* arena, gfx_window* win, string8 title);
 
 #endif // GFX_H

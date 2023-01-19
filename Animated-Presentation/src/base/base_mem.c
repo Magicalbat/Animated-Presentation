@@ -6,15 +6,15 @@
 
 #define COMMIT_SIZE (os_mem_pagesize() * COMMIT_PAGES)
 
-arena_t* arena_create(u64 size) {
-    arena_t* arena = os_mem_reserve(size);
+arena* arena_create(u64 size) {
+    arena* arena = os_mem_reserve(size);
     u64 init_commit = MIN(size, COMMIT_SIZE);
     
     os_mem_commit(arena, init_commit);
     
     if (arena) {
         arena->size = size;
-        arena->cur = ALIGN_UP_POW2(sizeof(arena_t), 64);
+        arena->cur = ALIGN_UP_POW2(sizeof(arena), 64);
         arena->cur_commit = init_commit;
     } else {
         ASSERT(false, "Arena is NULL");
@@ -22,7 +22,7 @@ arena_t* arena_create(u64 size) {
 
     return arena;
 }
-void* arena_alloc(arena_t* arena, u64 size) {
+void* arena_alloc(arena* arena, u64 size) {
     ASSERT(arena->cur + size < arena->size, "Arena ran out of memory");
 
     void* out = ((u8*)arena) + arena->cur;
@@ -36,7 +36,7 @@ void* arena_alloc(arena_t* arena, u64 size) {
 
     return out;
 }
-void arena_pop(arena_t* arena, u64 size) {
+void arena_pop(arena* arena, u64 size) {
     ASSERT(arena->cur - size > 0, "Arena cannot pop any more memory");
 
     u64 new_pos = arena->cur - size;
@@ -49,23 +49,23 @@ void arena_pop(arena_t* arena, u64 size) {
 
     arena->cur = new_pos;
 }
-void arena_pop_to(arena_t* arena, u64 pos) {
+void arena_pop_to(arena* arena, u64 pos) {
     ASSERT(pos <= arena->cur, "Arena cannot pop to that pos");
 
     arena_pop(arena, arena->cur - pos);
 }
-void arena_destroy(arena_t* arena) {
+void arena_destroy(arena* arena) {
     ASSERT(arena != NULL, "Cannot free NULL arena");
     
     os_mem_release(arena, arena->size);
 } 
 
-arena_temp_t arena_temp_begin(arena_t* arena) {
-    return (arena_temp_t){
+arena_temp arena_temp_begin(arena* arena) {
+    return (arena_temp){
         .start_pos = arena->cur,
         .arena = arena
     };
 }
-void arena_temp_end(arena_temp_t temp) {
+void arena_temp_end(arena_temp temp) {
     arena_pop_to(temp.arena, temp.start_pos);
 }

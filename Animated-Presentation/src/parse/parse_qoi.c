@@ -21,16 +21,16 @@ typedef struct {
     u8 g;
     u8 b;
     u8 a;
-} qpixel_t;
+} qpixel;
 
-image_t parse_qoi(arena_t* arena, string8_t file) {
+image parse_qoi(arena* arena, string8 file) {
     if (file.size < 14 ||
         !str8_equals(str8_from_cstr((u8*)file_header), str8_substr(file, 0, 4))) {
         log_error("Invalid QOI header. Not a QOI file");
-        return (image_t){ .valid = false };
+        return (image){ .valid = false };
     }
 
-    image_t out = { .valid = true };
+    image out = { .valid = true };
     u8* data = file.str;
     u64 pos = 4;
 
@@ -44,8 +44,8 @@ image_t parse_qoi(arena_t* arena, string8_t file) {
     // "+ 1" to prevent overflow in WRITE_PIXEL
     out.data = CREATE_ZERO_ARRAY(arena, out.data, u8, out_size + 1);
 
-    qpixel_t arr[64] = { 0 };
-    qpixel_t pixel = { .a = 255 };
+    qpixel arr[64] = { 0 };
+    qpixel pixel = { .a = 255 };
 
     while (out_pos < out_size) {
         switch (PBYTE()) {

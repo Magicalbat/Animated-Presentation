@@ -12,8 +12,8 @@ typedef struct {
     b32 valid;
     u8* data;
     u64 size;
-    string8_t name;
-} gzip_t;
+    string8 name;
+} gzip;
 
 typedef struct {
     b32 valid;
@@ -21,14 +21,14 @@ typedef struct {
     u32 width;
     u32 height;
     u32 channels;
-} image_t;
+} image;
 
-gzip_t parse_gzip(arena_t* arena, string8_t file);
+gzip parse_gzip(arena* arena, string8 file);
 
-image_t parse_png(arena_t* arena, string8_t file);
+image parse_png(arena* arena, string8 file);
 
-image_t parse_qoi(arena_t* arena, string8_t file);
+image parse_qoi(arena* arena, string8 file);
 
-void parse_deflate(bitstream_t* bs, u8* out, u64 out_size);
+void parse_deflate(bitstream* bs, u8* out, u64 out_size);
 
 #endif // PARSE_MISC_H

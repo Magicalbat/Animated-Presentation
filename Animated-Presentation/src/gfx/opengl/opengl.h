@@ -8,7 +8,7 @@
 
 // TODO: Error handling on both platforms
 
-void opengl_load_functions(gfx_window_t* win);
+void opengl_load_functions(gfx_window* win);
 
 #endif // OPENGL_H
 #endif // AP_OPENGL

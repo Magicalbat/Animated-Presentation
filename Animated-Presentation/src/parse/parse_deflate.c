@@ -15,11 +15,11 @@
 #define FAST_MASK ((1 << FAST_BITS) - 1)
 
 typedef struct {
-    bitstream_t* bs;
+    bitstream* bs;
     u8* out;
     u64 out_size;
     u64 out_pos;
-} dstate_t;
+} dstate;
 
 typedef struct {
     u16 fast[1 << FAST_BITS];
@@ -28,12 +28,12 @@ typedef struct {
     u16 syms[NUM_SYMS];
     i32 fallback_index;
     i32 fallback_first;
-} dhuffman_t;
+} dhuffman;
 
 typedef struct {
     u8* data;
     u32 size;
-} u8arr_t;
+} u8arr;
 
 static u16 reverse_u16(u16 n) {
     u16 o = n;
@@ -46,8 +46,7 @@ static u16 reverse_u16(u16 n) {
 
 #define reverse_bits(n, bits) (reverse_u16(n) >> (16 - bits))
 
-// TODO: return success value
-static void dhuffman_build(dhuffman_t* out, u8arr_t code_lens) {
+static void dhuffman_build(dhuffman* out, u8arr code_lens) {
     memset(out->fast, 0, sizeof(out->fast));
     memset(out->counts, 0, sizeof(out->counts));
     memset(out->syms, 0, sizeof(out->syms));
@@ -107,7 +106,7 @@ static void dhuffman_build(dhuffman_t* out, u8arr_t code_lens) {
 #define PBITS(n) (bs_peek_bits(state->bs, (n)))
 #define BITS(n)  (bs_get_bits (state->bs, (n)))
 
-static void parse_stored(dstate_t* state) {
+static void parse_stored(dstate* state) {
     BS_FLUSH_BYTE(state->bs);
     u16 len = BITS(16);
     u16 len_compl = BITS(16);
@@ -126,7 +125,7 @@ static void parse_stored(dstate_t* state) {
     state->bs->bit_pos += (u64)len << 3;
 }
 
-static u32 dhuffman_decode(dstate_t* state, dhuffman_t* huff) {
+static u32 dhuffman_decode(dstate* state, dhuffman* huff) {
     u32 start_bits = PBITS(FAST_BITS);
 
     // fast
@@ -185,7 +184,7 @@ static const u16 dists_extra[30] = {
     12, 12, 13, 13
 };
 
-static void parse_codes(dstate_t* state, dhuffman_t* len_huff, dhuffman_t* dist_huff) {
+static void parse_codes(dstate* state, dhuffman* len_huff, dhuffman* dist_huff) {
     while (1) {
         u32 sym = dhuffman_decode(state, len_huff);
         if (sym < 256) {
@@ -222,13 +221,13 @@ static u8 fixed_dist_lens[32] = {
    5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5
 };
 
-static void parse_fixed(dstate_t* state) {
-    dhuffman_t len_huff = { 0 };
-    dhuffman_t dist_huff = { 0 };
+static void parse_fixed(dstate* state) {
+    dhuffman len_huff = { 0 };
+    dhuffman dist_huff = { 0 };
     dhuffman_build(&len_huff,
-        (u8arr_t){ fixed_len_lens, STATIC_ARR_LEN(fixed_len_lens) });
+        (u8arr){ fixed_len_lens, STATIC_ARR_LEN(fixed_len_lens) });
     dhuffman_build(&dist_huff,
-        (u8arr_t){ fixed_dist_lens, STATIC_ARR_LEN(fixed_dist_lens) });
+        (u8arr){ fixed_dist_lens, STATIC_ARR_LEN(fixed_dist_lens) });
 
     parse_codes(state, &len_huff, &dist_huff);
 }
@@ -237,7 +236,7 @@ static u8 cl_order[19] = {
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15
 };
 
-static void parse_dynamic(dstate_t* state) {
+static void parse_dynamic(dstate* state) {
     u32 hlit  = BITS(5) + 257;
     u32 hdist = BITS(5) + 1;
     u32 hclen = BITS(4) + 4;
@@ -248,13 +247,13 @@ static void parse_dynamic(dstate_t* state) {
         cl_lens[cl_order[i]] = BITS(3);
     }
 
-    dhuffman_t cl_huff = { 0 };
+    dhuffman cl_huff = { 0 };
     dhuffman_build(&cl_huff, 
-        (u8arr_t){ cl_lens, STATIC_ARR_LEN(cl_lens) });
+        (u8arr){ cl_lens, STATIC_ARR_LEN(cl_lens) });
 
     u8 lens[288 + 32] = { 0 };
-    u8arr_t len_lens  = { .data = lens, .size = hlit };
-    u8arr_t dist_lens = { .data = lens + hlit, .size = hdist };
+    u8arr len_lens  = { .data = lens, .size = hlit };
+    u8arr dist_lens = { .data = lens + hlit, .size = hdist };
     
     for (u32 i = 0; i < hlit + hdist;) {
         u32 code_len = dhuffman_decode(state, &cl_huff);
@@ -279,16 +278,16 @@ static void parse_dynamic(dstate_t* state) {
         }
     }
 
-    dhuffman_t len_huff = { 0 };
-    dhuffman_t dist_huff = { 0 };
+    dhuffman len_huff = { 0 };
+    dhuffman dist_huff = { 0 };
     dhuffman_build(&len_huff, len_lens);
     dhuffman_build(&dist_huff, dist_lens);
 
     parse_codes(state, &len_huff, &dist_huff);
 }
 
-void parse_deflate(bitstream_t* bs, u8* out, u64 out_size) {
-    dstate_t state = {
+void parse_deflate(bitstream* bs, u8* out, u64 out_size) {
+    dstate state = {
         bs, out, out_size, 0
     };
     

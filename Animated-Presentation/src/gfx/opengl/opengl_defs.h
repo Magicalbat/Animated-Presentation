@@ -42,11 +42,11 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 #ifndef OPENGL_CALLSTYLE
     #define OPENGL_CALLSTYLE
 #endif
-#define X(ret, name, args) typedef ret (OPENGL_CALLSTYLE* gl_func_##name##_t)args;
+#define X(ret, name, args) typedef ret (OPENGL_CALLSTYLE* gl_func_##name)args;
     #include "opengl_xlist.h"
 #undef X
 
-#define X(ret, name, args) extern gl_func_##name##_t name;// = NULL;
+#define X(ret, name, args) extern gl_func_##name name;
     #include "opengl_xlist.h"
 #undef X
 

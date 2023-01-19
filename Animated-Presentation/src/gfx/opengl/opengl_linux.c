@@ -4,7 +4,7 @@
 #include "gfx/gfx.h"
 #include "opengl.h"
 
-#define X(ret, name, args) gl_func_##name##_t name = NULL;
+#define X(ret, name, args) gl_func_##name name = NULL;
     #include "opengl_xlist.h"
 #undef X
 
@@ -14,8 +14,8 @@ typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXC
 
 static bool isExtensionSupported(const char *extList, const char *extension);
 
-gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t title) {
-    gfx_window_t* win = CREATE_ZERO_STRUCT(arena, win, gfx_window_t);
+gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
+    gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
 
     win->glx.display = XOpenDisplay(NULL);
     ASSERT(win->glx.display != NULL, "Cannot open display");
@@ -132,7 +132,7 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
     XStoreName(win->glx.display, win->glx.window, title.str);
     arena_pop(arena, title.size + 1);
     
-    win->mouse_pos = (vec2_t){ 0, 0 };
+    win->mouse_pos = (vec2){ 0, 0 };
     win->new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
     win->old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
     win->new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
@@ -144,20 +144,20 @@ gfx_window_t* gfx_win_create(arena_t* arena, u32 width, u32 height, string8_t ti
 
     return win;
 }
-void gfx_win_make_current(gfx_window_t* win) {
+void gfx_win_make_current(gfx_window* win) {
     glXMakeCurrent(win->glx.display, win->glx.window, win->glx.context);
 }
-void gfx_win_destroy(gfx_window_t* win) {
+void gfx_win_destroy(gfx_window* win) {
     glXDestroyContext(win->glx.display, win->glx.context);
 
     XDestroyWindow(win->glx.display, win->glx.window);
     XCloseDisplay(win->glx.display);
 }
 
-void gfx_win_swap_buffers(gfx_window_t* win) {
+void gfx_win_swap_buffers(gfx_window* win) {
     glXSwapBuffers(win->glx.display, win->glx.window);
 }
-void gfx_win_process_events(gfx_window_t* win) {
+void gfx_win_process_events(gfx_window* win) {
     while (XPending(win->glx.display)) {
         XEvent e;
         XNextEvent(win->glx.display, &e);
@@ -176,12 +176,12 @@ void gfx_win_process_events(gfx_window_t* win) {
     }
 }
 
-void gfx_win_set_size(gfx_window_t* win, u32 width, u32 height) {
+void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     win->width = width;
     win->height = height;
     XResizeWindow(win->glx.display, win->glx.window, width, height);
 }
-void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
+void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
     win->title = title;
     u8* title_cstr = (u8*)arena_alloc(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
@@ -192,8 +192,8 @@ void gfx_win_set_title(arena_t* arena, gfx_window_t* win, string8_t title) {
     arena_pop(arena, title.size + 1);
 }
 
-void opengl_load_functions(gfx_window_t* win) {
-    #define X(ret, name, args) name = (gl_func_##name##_t)glXGetProcAddress(#name);
+void opengl_load_functions(gfx_window* win) {
+    #define X(ret, name, args) name = (gl_func_##name)glXGetProcAddress(#name);
     #include "opengl_xlist.h"
     #undef X
 }
