@@ -8,8 +8,6 @@
 
 #include "parse/parse.h"
 
-#include <dlfcn.h>
-
 typedef int (*math_func)(int, int);
 typedef const char* (*vers_func)();
 
@@ -60,13 +58,13 @@ int main(int argc, char** argv) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
 
-    os_library_t lib = os_lib_load(STR8_LIT("./test_lib.so"));
+    os_library_t lib = os_lib_load(STR8_LIT("testlib.dll"));
 
-    math_func testlib_add = (math_func)os_lib_func(lib, STR8_LIT("testlib_add"));
-    math_func testlib_sub = (math_func)os_lib_func(lib, STR8_LIT("testlib_sub"));
+    math_func testlib_add = (math_func)os_lib_func(lib, "testlib_add");
+    math_func testlib_mul = (math_func)os_lib_func(lib, "testlib_mul");
     //vers_func testlib_version = (vers_func)dlsym(handle, "testlib_version");
 
-    log_debugf("%d %d", testlib_add(1, 2), testlib_sub(5, 3));
+    log_debugf("%d %d", testlib_add(1, 2), testlib_mul(5, 3));
     //log_debugf("%d %d %s", testlib_add(1, 2), testlib_sub(5, 3), testlib_version());
 
     os_lib_release(lib);

@@ -59,7 +59,7 @@ project "Animated-Presentation"
 
         defines 
         {
-			"DEBUG", "AP_ASSERT"
+            "DEBUG", "AP_ASSERT"
         }
 
     filter "configurations:Release"

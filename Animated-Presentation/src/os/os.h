@@ -4,7 +4,9 @@
 #include "base/base.h"
 
 #if defined(_WIN32)
-    #define UNICODE
+    #ifndef UNICODE
+        #define UNICODE
+    #endif
     #define WIN32_LEAN_AND_MEAN
 
     #include <Windows.h>
@@ -46,6 +48,7 @@ typedef struct {
 
 typedef struct {
     #if defined(_WIN32)
+        HMODULE module;
     #elif defined(__linux__)
         void* handle;
     #endif
@@ -80,7 +83,7 @@ b32       os_file_write_open(os_file_t file, string8_t str);
 void      os_file_close(os_file_t file);
 
 os_library_t os_lib_load(string8_t path);
-void_func_t  os_lib_func(os_library_t lib, string8_t func_name);
+void_func_t  os_lib_func(os_library_t lib, const char* func_name);
 void         os_lib_release(os_library_t lib);
 
 // TODO

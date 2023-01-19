@@ -348,4 +348,35 @@ void os_file_close(os_file_t file) {
     CloseHandle(file.file_handle);
 }
 
+os_library_t os_lib_load(string8_t path) {
+    arena_temp_t temp = arena_temp_begin(w32_arena);
+
+    string16_t path16 = str16_from_str8(temp.arena, path);
+    HMODULE module = LoadLibraryW((LPCWSTR)path16.str);
+
+    arena_temp_end(temp);
+
+    if (module == NULL) {
+        log_w32_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);
+    }
+
+    return (os_library_t){
+        .module = module
+    };
+}
+void_func_t os_lib_func(os_library_t lib, const char* func_name) {
+    void_func_t func = (void_func_t)GetProcAddress(lib.module, func_name);
+
+    if (func == NULL) {
+        log_w32_errorf("Failed to load library function\"%s\"", func_name);
+    }
+
+    return func;
+}
+void os_lib_release(os_library_t lib) {
+    if (FreeLibrary(lib.module) == FALSE) {
+        log_w32_error("Failed to free dynamic library");
+    }
+}
+
 #endif // _WIN32

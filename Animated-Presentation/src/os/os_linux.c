@@ -277,19 +277,11 @@ os_library_t os_lib_load(string8_t path) {
     };
 
 }
-void_func_t os_lib_func(os_library_t lib, string8_t func_name) {
-    arena_temp_t temp = arena_temp_begin(lnx_arena);
-    
-    u8* func_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (func_name.size + 1));
-    memcpy(func_cstr, func_name.str, func_name.size);
-    func_cstr[func_name.size] = '\0';
-    
-    void_func_t func = (void_func_t)dlsym(lib.handle, (char*)func_cstr);
-
-    arena_temp_end(temp);
+void_func_t os_lib_func(os_library_t lib, const char* func_name) {
+    void_func_t func = (void_func_t)dlsym(lib.handle, func_name);
     
     if (func == NULL) {
-        log_dl_errorf("Failed to library function \"%.*s\"", (int)func_name.size, func_name.str);
+        log_dl_errorf("Failed to load library function \"%s\"", func_name);
     }
 
     return func;
