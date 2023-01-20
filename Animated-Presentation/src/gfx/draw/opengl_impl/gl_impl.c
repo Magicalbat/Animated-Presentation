@@ -56,5 +56,40 @@ u32 gl_impl_create_buffer(u32 buffer_type, u64 size, void* data, u32 draw_type) 
 
     return buffer;
 }
+u32 gl_impl_create_texture_ex(arena* arena, string8 file_path, impl_gl_filter filter) {
+    arena_temp temp = arena_temp_begin(arena);
+    string8 file = os_file_read(temp.arena, file_path);
+    if (file.size == 0) { return -1; }
+    image img = { 0 };
+    
+    parse_png(arena, file);
+    if (!img.valid)
+        parse_qoi(arena, file);
+    if (!img.valid)
+        return -1;
+    
+    u32 texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    if (filter == IMPL_GL_LINEAR) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else if (filter == IMPL_GL_NEAREST) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+    
+    u32 color_type = img.channels == 3 ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, color_type, img.width, img.height, 0, color_type, GL_UNSIGNED_BYTE, img.data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    arena_temp_end(temp);
+
+    return texture;
+}
 
 #endif // AP_OPENGL

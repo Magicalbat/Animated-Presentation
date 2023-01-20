@@ -32,6 +32,7 @@ typedef struct {
 
     string8 field_names[MAX_FIELDS];
     field_type field_types[MAX_FIELDS];
+    u16 field_offsets[MAX_FIELDS];
     u32 obj_size; // will allow for extra data
 
     draw_func* draw_func;
@@ -39,7 +40,30 @@ typedef struct {
 } obj_desc;
 
 void register_obj(obj_desc* desc) { ... }
-void create_obj(arena* arena, string8 name) { ... }
+
+typedef struct {
+    f32 x, y, w, h;
+} rect;
+
+obj_desc rect_desc = {
+    .name = "rect",
+    .field_names = {
+        "x", "y", "w", "h"
+    },
+    .field_types = {
+        FIELD_F32, FIELD_F32, FIELD_F32, FIELD_F32
+    },
+    .field_offsets = {
+        offsetof(rect, x),
+        offsetof(rect, y),
+        offsetof(rect, w),
+        offsetof(rect, h),
+    },
+    .obj_size = sizeof(rect)
+    .draw_func = yes,
+    .update_func = no?
+};
+register_obj(rect_desc);
 */
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
@@ -88,17 +112,6 @@ int main(int argc, char** argv) {
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
-
-    os_library lib = os_lib_load(STR8_LIT("./test_lib.so"));
-
-    math_func testlib_add = (math_func)os_lib_func(lib, "testlib_add");
-    math_func testlib_sub = (math_func)os_lib_func(lib, "testlib_sub");
-    vers_func testlib_version = (vers_func)os_lib_func(lib, "testlib_version");
-
-    //log_debugf("%d %d", testlib_add(1, 2), testlib_sub(5, 3));
-    log_debugf("%d %d %s", testlib_add(1, 2), testlib_sub(5, 3), testlib_version());
-
-    os_lib_release(lib);
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
 
@@ -179,7 +192,7 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        for (u32 x = 0; x < 50; x++) {
+        for (u32 x = 0; x < 60; x++) {
             for (u32 y = 0; y < 50; y++) {
                 draw_rectb_push(rectb, (rect){
                     x * 5, y * 5, 2, 2

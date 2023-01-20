@@ -2,32 +2,42 @@
 
 #include "gl_impl.h"
 
-draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u64 capacity) { 
+static const char* color_vert_source;
+static const char* color_frag_source;
+
+static const char* texture_vert_source;
+static const char* texture_frag_source;
+
+static const char* both_vert_source;
+static const char* both_frag_source;
+
+draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u64 capacity, draw_rectb_type type, string8 texture_path) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb);
 
     batch->data = CREATE_ARRAY(arena, draw_rect, capacity);
     batch->capacity = capacity;
     batch->size = 0;
 
-    const char* vertex_source = ""
-        "#version 330 core\n"
-        "layout (location = 0) in vec2 a_pos_pattern;"
-        "layout (location = 1) in vec4 a_quad;"
-        "layout (location = 2) in vec3 a_col;"
-        "uniform mat2 u_win_mat;"
-        "out vec4 col;"
-        "void main() {"
-        "    col = vec4(a_col, 1);"
-        "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
-        "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
-        "\n}";
-    const char* fragment_source = ""
-        "#version 330 core\n"
-        "in vec4 col;"
-        "void main() {"
-        "    gl_FragColor = col;"
-        "\n}";
-    batch->gl.shader_program = gl_impl_create_shader_program(vertex_source, fragment_source);
+    switch (type) {
+        case RECTB_COLOR:
+            batch->gl.shader_program = gl_impl_create_shader_program(
+                color_vert_source,
+                color_frag_source
+            );
+            break;
+        case RECTB_TEXTURE:
+            batch->gl.shader_program = gl_impl_create_shader_program(
+                texture_vert_source,
+                texture_frag_source
+            );
+            break;
+        case RECTB_BOTH:
+            batch->gl.shader_program = gl_impl_create_shader_program(
+                both_vert_source,
+                both_frag_source
+            );
+            break;
+    }
 
     glUseProgram(batch->gl.shader_program);
     
@@ -51,14 +61,8 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u64 capacity) {
         1, 1,
         0, 0,
         1, 0
-
-        /*-1,  1,
-         1,  1,
-        -1, -1,
-         1,  1,
-        -1, -1,
-         1, -1*/
     };
+    
     batch->gl.pos_pattern_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(f32) * 12, &pos_pattern[0], GL_STATIC_DRAW
     );
@@ -111,5 +115,72 @@ void draw_rectb_flush(draw_rectb* batch) {
 
     batch->size = 0;
 }
+
+static const char* color_vert_source = ""
+    "#version 330 core\n"
+    "layout (location = 0) in vec2 a_pos_pattern;"
+    "layout (location = 1) in vec4 a_quad;"
+    "layout (location = 2) in vec3 a_col;"
+    "uniform mat2 u_win_mat;"
+    "out vec4 col;"
+    "void main() {"
+    "    col = vec4(a_col, 1);"
+    "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
+    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "\n}";
+        
+static const char* color_frag_source = ""
+    "#version 330 core\n"
+    "in vec4 col;"
+    "void main() {"
+    "    gl_FragColor = col;"
+    "\n}";
+
+static const char* texture_vert_source = ""
+    "#version 330 core\n"
+    "layout (location = 0) in vec2 a_pos_pattern;"
+    "layout (location = 1) in vec4 a_quad;"
+    "layout (location = 3) in vec2 a_uv;"
+    "uniform mat2 u_win_mat;"
+    "out vec2 uv;"
+    "void main() {"
+    "    uv = a_uv;"
+    "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
+    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "\n}";
+        
+static const char* texture_frag_source = ""
+    "#version 330 core\n"
+    "in vec2 uv;"
+    "uniform sampler2D texture1;"
+    "void main() {"
+    "    gl_FragColor = texture(texture1, uv);"
+    "\n}";
+
+static const char* both_vert_source = ""
+    "#version 330 core\n"
+    "layout (location = 0) in vec2 a_pos_pattern;"
+    "layout (location = 1) in vec4 a_quad;"
+    "layout (location = 2) in vec3 a_col;"
+    "layout (location = 3) in vec2 a_uv;"
+    "uniform mat2 u_win_mat;"
+    "out vec4 col;"
+    "out vec2 uv;"
+    "void main() {"
+    "    col = vec4(a_col, 1);"
+    "    uv = a_uv;"
+    "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
+    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "\n}";
+        
+static const char* both_frag_source = ""
+    "#version 330 core\n"
+    "in vec4 col;"
+    "in vec2 uv;"
+    "uniform sampler2D texture1;"
+    "void main() {"
+    "    gl_FragColor = texture(texture1, uv) * col;"
+    "\n}";
+
 
 #endif // AP_OPENGL
