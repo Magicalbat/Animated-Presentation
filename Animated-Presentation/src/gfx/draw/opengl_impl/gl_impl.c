@@ -59,21 +59,24 @@ u32 gl_impl_create_buffer(u32 buffer_type, u64 size, void* data, u32 draw_type) 
 u32 gl_impl_create_texture_ex(arena* arena, string8 file_path, impl_gl_filter filter) {
     arena_temp temp = arena_temp_begin(arena);
     string8 file = os_file_read(temp.arena, file_path);
-    if (file.size == 0) { return -1; }
+    if (file.size == 0) { 
+        log_errorf("Failed to load texture at \"%.*s\"", (int)file_path.size, file_path.str);
+        return -1;
+    }
     image img = { 0 };
     
-    parse_png(arena, file);
-    if (!img.valid)
-        parse_qoi(arena, file);
-    if (!img.valid)
+    img = parse_png(arena, file);
+    if (!img.valid) {
+        log_errorf("Failed to load texture at \"%.*s\"", (int)file_path.size, file_path.str);
         return -1;
+    }
     
     u32 texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
     if (filter == IMPL_GL_LINEAR) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

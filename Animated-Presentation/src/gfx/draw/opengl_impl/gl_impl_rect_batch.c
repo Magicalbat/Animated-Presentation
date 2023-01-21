@@ -11,30 +11,35 @@ static const char* texture_frag_source;
 static const char* both_vert_source;
 static const char* both_frag_source;
 
+static const u32 elem_size[] = {
+    sizeof(rect) + sizeof(vec3),
+    sizeof(rect) + sizeof(rect),
+    sizeof(rect) + sizeof(vec3) + sizeof(rect),
+};
+
 draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u64 capacity, draw_rectb_type type, string8 texture_path) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb);
 
-    batch->data = CREATE_ARRAY(arena, draw_rect, capacity);
+    batch->data = arena_alloc(arena, elem_size[type] * capacity);
+    memset(batch->data, 0, elem_size[type] * capacity);
     batch->capacity = capacity;
-    batch->size = 0;
+
+    batch->type = type;
 
     switch (type) {
         case RECTB_COLOR:
             batch->gl.shader_program = gl_impl_create_shader_program(
-                color_vert_source,
-                color_frag_source
+                color_vert_source, color_frag_source
             );
             break;
         case RECTB_TEXTURE:
             batch->gl.shader_program = gl_impl_create_shader_program(
-                texture_vert_source,
-                texture_frag_source
+                texture_vert_source, texture_frag_source
             );
             break;
         case RECTB_BOTH:
             batch->gl.shader_program = gl_impl_create_shader_program(
-                both_vert_source,
-                both_frag_source
+                both_vert_source, both_frag_source
             );
             break;
     }
@@ -47,12 +52,16 @@ draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u64 capacity, dr
         0, 2.0f / -((f32)win->height)
     };
     glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
+
+    if (batch->type != RECTB_COLOR) {
+        batch->gl.texture = gl_impl_create_texture(arena, texture_path);
+    }
  
     glGenVertexArrays(1, &batch->gl.vertex_array);
     glBindVertexArray(batch->gl.vertex_array);
 
     batch->gl.vertex_buffer = gl_impl_create_buffer(
-        GL_ARRAY_BUFFER, sizeof(draw_rect) * (capacity), NULL, GL_DYNAMIC_DRAW
+        GL_ARRAY_BUFFER, elem_size[type] * capacity, NULL, GL_DYNAMIC_DRAW
     );
     f32 pos_pattern[] = {
         0, 1,
@@ -74,19 +83,52 @@ void draw_rectb_destroy(draw_rectb* batch) {
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
     glDeleteBuffers(1, &batch->gl.vertex_buffer);
     glDeleteBuffers(1, &batch->gl.pos_pattern_buffer);
-}
-
-void draw_rectb_push(draw_rectb* batch, rect rect, vec3 col) {
-    if (batch->size < batch->capacity) {
-        batch->data[batch->size++] = (draw_rect){
-            .rect = rect,
-            .col = col
-        };
-    } else {
-        draw_rectb_flush(batch);
-        draw_rectb_push(batch, rect, col);
+    if (batch->type != RECTB_COLOR) {
+        glDeleteTextures(1, &batch->gl.texture);
     }
 }
+
+void draw_rectb_push_col(draw_rectb* batch, rect draw_rect, vec3 col) {
+    if (batch->size < batch->capacity) {
+        u32 index = batch->size * elem_size[batch->type];
+
+        *(rect*)(batch->data + index) = draw_rect;
+        *(vec3*)(batch->data + index + sizeof(rect)) = col;
+
+        batch->size++;
+    } else {
+        draw_rectb_flush(batch);
+        draw_rectb_push_col(batch, draw_rect, col);
+    }
+}
+void draw_rectb_push_tex(draw_rectb* batch, rect draw_rect, rect tex_rect) {
+    if (batch->size < batch->capacity) {
+        u32 index = batch->size * elem_size[batch->type];
+
+        *(rect*)(batch->data + index) = draw_rect;
+        *(rect*)(batch->data + index + sizeof(rect)) = tex_rect;
+
+        batch->size++;
+    } else {
+        draw_rectb_flush(batch);
+        draw_rectb_push_tex(batch, draw_rect, tex_rect);
+    }
+}
+void draw_rectb_push_both(draw_rectb* batch, rect draw_rect, vec3 col, rect tex_rect) {
+    if (batch->size < batch->capacity) {
+        u32 index = batch->size * elem_size[batch->type];
+
+        *(rect*)(batch->data + index) = draw_rect;
+        *(vec3*)(batch->data + index + sizeof(rect)) = col;
+        *(rect*)(batch->data + index + sizeof(rect) + sizeof(vec3)) = tex_rect;
+
+        batch->size++;
+    } else {
+        draw_rectb_flush(batch);
+        draw_rectb_push_both(batch, draw_rect, col, tex_rect);
+    }
+}
+
 void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
     glBindVertexArray(batch->gl.vertex_array);
@@ -97,21 +139,29 @@ void draw_rectb_flush(draw_rectb* batch) {
 
     glBindBuffer(GL_ARRAY_BUFFER, batch->gl.vertex_buffer);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
-        sizeof(draw_rect), (void*)offsetof(draw_rect, rect));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, elem_size[batch->type], (void*)(0));
     glVertexAttribDivisor(1, 1);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE,
-        sizeof(draw_rect), (void*)offsetof(draw_rect, col));
-    glVertexAttribDivisor(2, 1);
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rect), batch->data);
+    if (batch->type != RECTB_TEXTURE) {
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, elem_size[batch->type], (void*)(sizeof(rect)));
+        glVertexAttribDivisor(2, 1);
+    }
+    if (batch->type != RECTB_COLOR) {
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, elem_size[batch->type],
+            (void*)(batch->type == RECTB_BOTH ? sizeof(rect) + sizeof(vec3) : sizeof(rect)));
+        glVertexAttribDivisor(3, 1);
+    }
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * elem_size[batch->type], batch->data);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)batch->size);
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
 
     batch->size = 0;
 }
@@ -140,11 +190,11 @@ static const char* texture_vert_source = ""
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos_pattern;"
     "layout (location = 1) in vec4 a_quad;"
-    "layout (location = 3) in vec2 a_uv;"
+    "layout (location = 3) in vec4 a_tex_rect;"
     "uniform mat2 u_win_mat;"
     "out vec2 uv;"
     "void main() {"
-    "    uv = a_uv;"
+    "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
     "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
@@ -162,13 +212,13 @@ static const char* both_vert_source = ""
     "layout (location = 0) in vec2 a_pos_pattern;"
     "layout (location = 1) in vec4 a_quad;"
     "layout (location = 2) in vec3 a_col;"
-    "layout (location = 3) in vec2 a_uv;"
+    "layout (location = 3) in vec4 a_tex_rect;"
     "uniform mat2 u_win_mat;"
     "out vec4 col;"
     "out vec2 uv;"
     "void main() {"
     "    col = vec4(a_col, 1);"
-    "    uv = a_uv;"
+    "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
     "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";

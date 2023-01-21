@@ -269,7 +269,7 @@ static void parse_png_chunk(arena* arena, pstate* state) {
 image parse_png(arena* arena, string8 file) {
     if (!str8_equals(str8_from_cstr((u8*)file_header), str8_substr(file, 0, 8))) {
         log_error("Invalid PNG header, not a PNG file");
-        return (image){ .valid = true };
+        return (image){ .valid = false };
     }
 
     pstate state = {

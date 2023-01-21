@@ -17,6 +17,6 @@ typedef enum {
 u32 gl_impl_create_shader_program(const char* vertex_source, const char* fragment_source);
 u32 gl_impl_create_buffer(u32 buffer_type, u64 size, void* data, u32 draw_type);
 u32 gl_impl_create_texture_ex(arena* arena, string8 file_path, impl_gl_filter filter);
-#define gl_impl_create_texture(arena, file_path) gl_impl_create_texture(arena, file_path, IMPL_GL_LINEAR)
+#define gl_impl_create_texture(arena, file_path) gl_impl_create_texture_ex(arena, file_path, IMPL_GL_LINEAR)
 
 #endif // GL_IMPL_H

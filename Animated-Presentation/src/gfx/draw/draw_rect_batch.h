@@ -11,12 +11,7 @@ typedef enum {
 } draw_rectb_type;
 
 typedef struct {
-    rect rect;
-    vec3 col;
-} draw_rect;
-
-typedef struct {
-    draw_rect* data;
+    u8* data;
     u64 capacity;
     u32 size;
 
@@ -40,7 +35,9 @@ draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u64 capacity, dr
 void draw_rectb_destroy(draw_rectb* batch);
 
 // These functions will draw rects to the screen
-void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col);
+void draw_rectb_push_col(draw_rectb* batch, rect draw_rect, vec3 col);
+void draw_rectb_push_tex(draw_rectb* batch, rect draw_rect, rect tex_rect);
+void draw_rectb_push_both(draw_rectb* batch, rect draw_rect, vec3 col, rect tex_rect);
 void draw_rectb_flush(draw_rectb* batch);
 
 #endif // DRAW_RECT_BATCH_H
