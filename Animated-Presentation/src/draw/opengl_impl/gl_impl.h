@@ -7,7 +7,7 @@
 
 #include "gfx/gfx.h"
 #include "gfx/opengl/opengl.h"
-#include "gfx/draw/draw.h"
+#include "draw/draw.h"
 
 typedef enum {
     IMPL_GL_LINEAR,

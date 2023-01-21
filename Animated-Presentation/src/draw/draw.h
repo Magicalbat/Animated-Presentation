@@ -1,7 +1,6 @@
 #ifndef DRAW_H
 #define DRAW_H
 
-#include "base/base.h"
 #include "gfx/gfx.h"
 
 #ifdef AP_OPENGL

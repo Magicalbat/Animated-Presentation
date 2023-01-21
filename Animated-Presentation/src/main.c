@@ -3,8 +3,8 @@
 #include "gfx/gfx.h"
 
 #include "gfx/opengl/opengl.h"
-#include "gfx/draw/draw.h"
-#include "gfx/draw/opengl_impl/gl_impl.h"
+#include "draw/draw.h"
+#include "draw/opengl_impl/gl_impl.h"
 
 /*
 typedef enum {
