@@ -8,5 +8,6 @@
 #endif
 
 #include "draw_rect_batch.h"
+#include "draw_polygon.h"
 
 #endif // DRAW_H

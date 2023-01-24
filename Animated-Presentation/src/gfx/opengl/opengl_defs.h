@@ -55,7 +55,12 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 #define GL_FALSE                          0
 #define GL_TRUE                           1
 
+#define GL_LINES                          0x0001
+#define GL_LINE_LOOP                      0x0002
+#define GL_LINE_STRIP                     0x0003
 #define GL_TRIANGLES                      0x0004
+#define GL_TRIANGLE_STRIP                 0x0005
+#define GL_TRIANGLE_FAN                   0x0006
 
 #define GL_UNSIGNED_BYTE                  0x1401
 #define GL_UNSIGNED_INT                   0x1405

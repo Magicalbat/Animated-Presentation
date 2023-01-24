@@ -21,9 +21,12 @@ typedef enum {
 
 typedef void (draw_func)(gfx_window* win, void* obj);
 typedef void (update_func)(f32 delta, void* obj);
+typedef void (create_func)();
+typedef void (destroy_func)(void* obj);
 
 #define MAX_FIELDS 32
 typedef struct {
+    u32 obj_desc_size; // allows for additional desc functionality in the future
     string8 name;
 
     string8 field_names[MAX_FIELDS];
@@ -33,6 +36,9 @@ typedef struct {
 
     draw_func* draw_func;
     update_func* update_func;
+
+    create_func* create_func;
+    destroy_func* destroy_func;
 } obj_desc;
 
 void register_obj(obj_desc* desc) { ... }
@@ -42,6 +48,7 @@ typedef struct {
 } rect;
 
 obj_desc rect_desc = {
+    .obj_desc_size = sizeof(obj_desc),
     .name = "rect",
     .field_names = {
         "x", "y", "w", "h"
@@ -82,7 +89,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
         type, severity, message);
 }
 
-#define WIN_SCALE 2
+#define WIN_SCALE 1
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -91,7 +98,7 @@ int main(int argc, char** argv) {
         .log_time = LOG_NO,
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
-
+    
     arena* perm_arena = arena_create(MiB(16));
 
     gfx_window* win = gfx_win_create(
@@ -99,6 +106,7 @@ int main(int argc, char** argv) {
         320 * WIN_SCALE, 180 * WIN_SCALE,
         STR8_LIT("Test window")
     );
+    
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
@@ -110,8 +118,17 @@ int main(int argc, char** argv) {
     glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
-        RECTB_BOTH, STR8_LIT("Animated-Presentation/res/monkey 1.png"));
+        RECTB_BOTH, STR8_LIT("monkey 1.png"));
 
+    draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
+    vec2 p[36];
+    vec2_arr points = { .data=p, .size=36 };
+    for (u32 i = 0; i < 36; i++) {
+        float a = (f32)(i * 10) * (3.14159f / 180.0f);
+        p[i].x = (sinf(a) * 25) + 50;
+        p[i].y = (cosf(a) * 25) + 50;
+    }
+    
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
     // TODO: Better frame independence
@@ -137,19 +154,19 @@ int main(int argc, char** argv) {
         
         draw_rectb_flush(rectb);
 
+        draw_poly_conv_arr(poly, points);
+
         gfx_win_swap_buffers(win);
 
         time_prev = time_now;
     }
 
+    draw_poly_destroy(poly);
     draw_rectb_destroy(rectb);
 
     gfx_win_destroy(win);
-
     arena_destroy(perm_arena);
-
     log_quit();
-
     os_main_quit();
 
     return 0;
