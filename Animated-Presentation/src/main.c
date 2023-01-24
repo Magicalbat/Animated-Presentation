@@ -69,6 +69,9 @@ obj_desc rect_desc = {
 register_obj(rect_desc);
 */
 
+// TODO: Anti-aliasing
+// https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     log_level level = LOG_DEBUG;
@@ -89,7 +92,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
         type, severity, message);
 }
 
-#define WIN_SCALE 1
+#define WIN_SCALE 2
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -118,7 +121,7 @@ int main(int argc, char** argv) {
     glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
-        RECTB_BOTH, STR8_LIT("monkey 1.png"));
+        RECTB_BOTH, STR8_LIT("Animated-Presentation/res/monkey 1.png"));
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
     vec2 p[36];
@@ -154,7 +157,7 @@ int main(int argc, char** argv) {
         
         draw_rectb_flush(rectb);
 
-        draw_poly_conv_arr(poly, points);
+        draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
 
         gfx_win_swap_buffers(win);
 

@@ -141,7 +141,6 @@ string8 os_file_read(arena* arena, string8 path) {
     u64 total_size = ((u64)high_size << 32) | low_size;
 
     u64 arena_start_pos = arena->cur;
-    b32 success = true;
 
     u8* buffer = CREATE_ARRAY(arena, u8, total_size);
 

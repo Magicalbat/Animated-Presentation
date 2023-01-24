@@ -2,6 +2,7 @@
 #define DRAW_POLYGON_H
 
 #include "base/base.h"
+#include "gfx/gfx.h"
 
 typedef struct {
     u32 max_verts;
@@ -40,10 +41,10 @@ typedef struct {
 draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts);
 void          draw_poly_destroy(draw_polygon* poly);
 
-void draw_poly_conv_list(draw_polygon* poly, vec2_list list);
-void draw_poly_conv_arr (draw_polygon* poly, vec2_arr arr);
+void draw_poly_conv_list(draw_polygon* poly, vec3 col, vec2_list list);
+void draw_poly_conv_arr (draw_polygon* poly, vec3 col, vec2_arr arr);
 
-void draw_poly_list(draw_polygon* poly, vec2_list list);
-void draw_poly_arr (draw_polygon* poly, vec2_arr arr);
+void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list);
+void draw_poly_arr (draw_polygon* poly, vec3 col, vec2_arr arr);
 
 #endif // DRAW_POLYGON_H

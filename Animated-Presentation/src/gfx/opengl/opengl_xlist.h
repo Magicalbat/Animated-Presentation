@@ -38,6 +38,7 @@ X(void, glGetProgramInfoLog, (GLuint program, GLsizei bufSize, GLsizei *length, 
 X(GLint, glGetUniformLocation, (GLuint program, const GLchar *name))
 X(void, glGetUniformfv, (GLuint program, GLint location, GLfloat *params))
 X(void, glUniformMatrix2fv, (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value))
+X(void, glUniform3f, (GLint location, GLfloat v0, GLfloat v1, GLfloat v2))
 
 X(void, glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
 

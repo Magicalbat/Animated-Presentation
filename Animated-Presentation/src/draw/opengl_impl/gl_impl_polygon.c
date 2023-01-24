@@ -46,18 +46,51 @@ void draw_poly_destroy(draw_polygon* poly) {
     glDeleteBuffers(1, &poly->gl.index_buffer);
 }
 
-void draw_poly_conv_list(draw_polygon* poly, vec2_list list);
-void draw_poly_conv_arr(draw_polygon* poly, vec2_arr arr) {
+static void poly_gl_setup(draw_polygon* poly, vec3 col) {
+    glUseProgram(poly->gl.shader_program);
+    glUniform3f(poly->gl.col_loc, col.x, col.y, col.z);
+
+    glBindVertexArray(poly->gl.vertex_array);
+    glBindBuffer(GL_ARRAY_BUFFER, poly->gl.vertex_buffer);
+    
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+}
+static void poly_gl_end(draw_polygon* poly) {
+    glDisableVertexAttribArray(0);
+}
+
+void draw_poly_conv_list(draw_polygon* poly, vec3 col, vec2_list list) {
+    if (list.size > poly->max_verts) {
+        log_errorf("Cannot draw polygon of %u (max is %u)", list.size, poly->max_verts);
+        return;
+    }
+
+    u32 i = 0;
+    for (vec2_node* node = list.first; node != NULL; node = node->next) {
+        poly->verts[i++] = node->v;
+    }
+
+    poly_gl_setup(poly, col);
+
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * list.size, poly->verts);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, list.size);
+
+    poly_gl_end(poly);
+}
+void draw_poly_conv_arr(draw_polygon* poly, vec3 col, vec2_arr arr) {
     if (arr.size > poly->max_verts) {
         log_errorf("Cannot draw polygon of %u (max is %u)", arr.size, poly->max_verts);
         return;
     }
 
-    glBindVertexArray(poly->gl.vertex_array);
-    glBindBuffer(GL_ARRAY_BUFFER, poly->gl.vertex_buffer);
+    poly_gl_setup(poly, col);
     
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * arr.size, arr.data);
-    glDrawArrays(GL_TRIANGLES, 0, arr.size);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, arr.size);
+
+    poly_gl_end(poly);
 }
 
 static const char* vert_source = ""
@@ -68,13 +101,13 @@ static const char* vert_source = ""
     "out vec4 col;"
     "void main() {"
     "    col = vec4(u_col, 1);"
-    "    gl_Position = vec4((a_pos * u_win_mat)/* + vec2(-1, 1)*/, 0, 1);"
+    "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
 static const char* frag_source = ""
     "#version 330 core\n"
     "in vec4 col;"
     "void main() {"
-    "    gl_FragColor = vec4(1);"
+    "    gl_FragColor = col;"
     "\n}";
 
 #endif // AP_OPENGL
