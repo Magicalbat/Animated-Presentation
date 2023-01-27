@@ -6,6 +6,137 @@
 #include "draw/draw.h"
 #include "draw/opengl_impl/gl_impl.h"
 
+// TODO: Anti-aliasing
+// https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+
+// https://www.khronos.org/opengl/wiki/OpenGL_Error
+void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+    log_level level = LOG_DEBUG;
+    switch (severity) {
+        case GL_DEBUG_SEVERITY_NOTIFICATION:
+            level = LOG_DEBUG;
+            break;
+        case GL_DEBUG_SEVERITY_LOW:
+        case GL_DEBUG_SEVERITY_MEDIUM:
+            level = LOG_WARN;
+            break;
+        case GL_DEBUG_SEVERITY_HIGH:
+            level = LOG_ERROR;
+            break;
+        default: break;
+    }
+    log_msgf(level, "GL CALLBACK - type = 0x%x, severity = 0x%x, message = %s",
+        type, severity, message);
+}
+
+#define WIN_SCALE 1
+
+int main(int argc, char** argv) {
+    os_main_init(argc, argv);
+
+    log_init((log_desc){ 
+        .log_time = LOG_NO,
+        .log_file = { 0, 0, LOG_NO, LOG_NO }
+    });
+    
+    arena* perm_arena = arena_create(MiB(16));
+
+    gfx_window* win = gfx_win_create(
+        perm_arena,
+        320 * WIN_SCALE, 180 * WIN_SCALE,
+        STR8_LIT("Test window")
+    );
+    
+    gfx_win_make_current(win);
+    opengl_load_functions(win);
+
+    //log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
+    //log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
+    //log_infof("GL Version: %s",  glGetString(GL_VERSION));
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(opengl_message_callback, 0);
+
+    draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
+        RECTB_BOTH, STR8_LIT("kodim23.qoi"));
+
+    draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
+    
+    vec2 p[18];
+    vec2_arr points = { .data=p, .size=18 };
+    for (u32 i = 0; i < 18; i++) {
+        float a = (f32)(i * 20) * (3.14159f / 180.0f);
+        vec2 v = {
+            .x = (sinf(a) * 25) + 50,
+            .y = (cosf(a) * 25) + 50
+        };
+        p[i] = v;
+    }
+
+    cbezier bezier = {
+        (vec2){ 0, 0 },
+        (vec2){ 0, 0.22 },
+        (vec2){ 0.82, 0.34 },
+        (vec2){ 1, 1 }
+    };
+    
+    glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+
+    // TODO: Better frame independence
+    u64 time_prev = os_now_microseconds();
+    
+    while (!win->should_close) {
+        u64 time_now = os_now_microseconds();
+        f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
+
+        gfx_win_process_events(win);
+
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        /*for (u32 x = 0; x < 10; x++) {
+            for (u32 y = 0; y < 10; y++) {
+                draw_rectb_push_both(rectb, (rect){
+                    (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
+                }, (vec3){
+                    (f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
+                }, (rect){ (f32)x / 20.0f, (f32)y / 20.0f, 0.5f, 0.5f });
+            }
+        }*/
+
+        for (f32 t = 0; t < 1; t += 0.02f) {
+            draw_rectb_push_both(rectb, (rect){
+                cbezier_calc_x(&bezier, t) * 100.0f,
+                cbezier_calc_y(&bezier, t) * 100.0f,
+                10, 10
+            }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
+            
+            draw_rectb_push_both(rectb, (rect){
+                cbezier_calcd_x(&bezier, t) * 100.0f,
+                cbezier_calcd_y(&bezier, t) * 100.0f,
+                10, 10
+            }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
+        }
+        
+        draw_rectb_flush(rectb);
+
+        //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
+
+        gfx_win_swap_buffers(win);
+
+        time_prev = time_now;
+    }
+
+    draw_poly_destroy(poly);
+    draw_rectb_destroy(rectb);
+
+    gfx_win_destroy(win);
+    arena_destroy(perm_arena);
+    log_quit();
+    os_main_quit();
+
+    return 0;
+}
+
 /*
 typedef enum {
     FIELD_EMPTY,
@@ -68,109 +199,3 @@ obj_desc rect_desc = {
 };
 register_obj(rect_desc);
 */
-
-// TODO: Anti-aliasing
-// https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
-
-// https://www.khronos.org/opengl/wiki/OpenGL_Error
-void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-    log_level level = LOG_DEBUG;
-    switch (severity) {
-        case GL_DEBUG_SEVERITY_NOTIFICATION:
-            level = LOG_DEBUG;
-            break;
-        case GL_DEBUG_SEVERITY_LOW:
-        case GL_DEBUG_SEVERITY_MEDIUM:
-            level = LOG_WARN;
-            break;
-        case GL_DEBUG_SEVERITY_HIGH:
-            level = LOG_ERROR;
-            break;
-        default: break;
-    }
-    log_msgf(level, "GL CALLBACK - type = 0x%x, severity = 0x%x, message = %s",
-        type, severity, message);
-}
-
-#define WIN_SCALE 2
-
-int main(int argc, char** argv) {
-    os_main_init(argc, argv);
-
-    log_init((log_desc){ 
-        .log_time = LOG_NO,
-        .log_file = { 0, 0, LOG_NO, LOG_NO }
-    });
-    
-    arena* perm_arena = arena_create(MiB(16));
-
-    gfx_window* win = gfx_win_create(
-        perm_arena,
-        320 * WIN_SCALE, 180 * WIN_SCALE,
-        STR8_LIT("Test window")
-    );
-    
-    gfx_win_make_current(win);
-    opengl_load_functions(win);
-
-    //log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
-    //log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
-    //log_infof("GL Version: %s",  glGetString(GL_VERSION));
-
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(opengl_message_callback, 0);
-
-    draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
-        RECTB_BOTH, STR8_LIT("Animated-Presentation/res/monkey 1.png"));
-
-    draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
-    vec2 p[36];
-    vec2_arr points = { .data=p, .size=36 };
-    for (u32 i = 0; i < 36; i++) {
-        float a = (f32)(i * 10) * (3.14159f / 180.0f);
-        p[i].x = (sinf(a) * 25) + 50;
-        p[i].y = (cosf(a) * 25) + 50;
-    }
-    
-    glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
-
-    // TODO: Better frame independence
-    u64 time_prev = os_now_microseconds();
-    
-    while (!win->should_close) {
-        u64 time_now = os_now_microseconds();
-        f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
-
-        gfx_win_process_events(win);
-
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        for (u32 x = 0; x < 10; x++) {
-            for (u32 y = 0; y < 10; y++) {
-                draw_rectb_push_both(rectb, (rect){
-                    (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
-                }, (vec3){
-                    (f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
-                }, (rect){ (f32)x / 20.0f, (f32)y / 20.0f, 0.5f, 0.5f });
-            }
-        }
-        
-        draw_rectb_flush(rectb);
-
-        draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
-
-        gfx_win_swap_buffers(win);
-
-        time_prev = time_now;
-    }
-
-    draw_poly_destroy(poly);
-    draw_rectb_destroy(rectb);
-
-    gfx_win_destroy(win);
-    arena_destroy(perm_arena);
-    log_quit();
-    os_main_quit();
-
-    return 0;
-}

@@ -17,7 +17,7 @@ static const u32 elem_size[] = {
     sizeof(rect) + sizeof(vec3) + sizeof(rect),
 };
 
-draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u64 capacity, draw_rectb_type type, string8 texture_path) { 
+draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, draw_rectb_type type, string8 texture_path) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb);
 
     batch->data = arena_alloc(arena, elem_size[type] * capacity);

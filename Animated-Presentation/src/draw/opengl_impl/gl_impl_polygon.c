@@ -10,8 +10,7 @@ draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts) {
 
     poly->max_verts = max_verts;
     poly->verts = CREATE_ARRAY(arena, vec2, max_verts);
-    // TODO: Will this always be enough indices?
-    poly->indices = CREATE_ARRAY(arena, u32, max_verts * 6);
+    poly->indices = CREATE_ARRAY(arena, u32, max_verts * 3);
 
     poly->gl.shader_program = gl_impl_create_shader_program(vert_source, frag_source);
 
@@ -34,7 +33,7 @@ draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts) {
     );
     
     poly->gl.index_buffer = gl_impl_create_buffer(
-        GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * max_verts * 6, NULL, GL_DYNAMIC_DRAW
+        GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * max_verts * 3, NULL, GL_DYNAMIC_DRAW
     );
 
     return poly;
@@ -75,6 +74,7 @@ void draw_poly_conv_list(draw_polygon* poly, vec3 col, vec2_list list) {
     poly_gl_setup(poly, col);
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * list.size, poly->verts);
+    
     glDrawArrays(GL_TRIANGLE_FAN, 0, list.size);
 
     poly_gl_end(poly);
@@ -88,9 +88,17 @@ void draw_poly_conv_arr(draw_polygon* poly, vec3 col, vec2_arr arr) {
     poly_gl_setup(poly, col);
     
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * arr.size, arr.data);
+    
     glDrawArrays(GL_TRIANGLE_FAN, 0, arr.size);
 
     poly_gl_end(poly);
+}
+
+void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list) {
+    log_error("TODO: draw_poly_list");
+}
+void draw_poly_arr(draw_polygon* poly, vec3 col, vec2_arr arr) {
+    log_error("TODO: draw_poly_arr");
 }
 
 static const char* vert_source = ""

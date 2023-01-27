@@ -12,7 +12,7 @@ typedef enum {
 
 typedef struct {
     u8* data;
-    u64 capacity;
+    u32 capacity;
     u32 size;
 
     draw_rectb_type type;
@@ -30,7 +30,7 @@ typedef struct {
     #endif
 } draw_rectb;
 
-draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u64 capacity, draw_rectb_type type, string8 texture_path);
+draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, draw_rectb_type type, string8 texture_path);
 #define draw_rectb_create(arena, win, capacity) draw_rectb_create_ex(arena, win, capacity, RECTB_COLOR, STR8_LIT(""))
 void draw_rectb_destroy(draw_rectb* batch);
 

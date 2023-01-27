@@ -23,12 +23,11 @@ typedef struct {
     u32 channels;
 } image;
 
+void parse_deflate(bitstream* bs, u8* out, u64 out_size);
+
 gzip parse_gzip(arena* arena, string8 file);
 
 image parse_png(arena* arena, string8 file);
-
 image parse_qoi(arena* arena, string8 file);
-
-void parse_deflate(bitstream* bs, u8* out, u64 out_size);
 
 #endif // PARSE_MISC_H
