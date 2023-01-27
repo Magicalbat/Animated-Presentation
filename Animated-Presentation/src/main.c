@@ -61,6 +61,8 @@ int main(int argc, char** argv) {
         RECTB_BOTH, STR8_LIT("kodim23.qoi"));
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
+
+    draw_cbezier* draw_bezier = draw_cbezier_create(perm_arena, win, 256);
     
     vec2 p[18];
     vec2_arr points = { .data=p, .size=18 };
@@ -75,9 +77,9 @@ int main(int argc, char** argv) {
 
     cbezier bezier = {
         (vec2){ 0, 0 },
-        (vec2){ 0, 0.22 },
-        (vec2){ 0.82, 0.34 },
-        (vec2){ 1, 1 }
+        (vec2){ 0, 0.22 * 100 },
+        (vec2){ 0.82 * 100, 0.34 * 100 },
+        (vec2){ 100, 100 }
     };
     
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
@@ -103,16 +105,20 @@ int main(int argc, char** argv) {
             }
         }*/
 
+        draw_rectb_push_both(rectb, (rect){
+            160, 10, 160, 160
+        }, (vec3){ 1, 1, 1}, (rect){ 0, 0, 1, 1});
+
         for (f32 t = 0; t < 1; t += 0.02f) {
             draw_rectb_push_both(rectb, (rect){
-                cbezier_calc_x(&bezier, t) * 100.0f,
-                cbezier_calc_y(&bezier, t) * 100.0f,
+                cbezier_calc_x(&bezier, t),
+                cbezier_calc_y(&bezier, t),
                 10, 10
             }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
             
             draw_rectb_push_both(rectb, (rect){
-                cbezier_calcd_x(&bezier, t) * 100.0f,
-                cbezier_calcd_y(&bezier, t) * 100.0f,
+                cbezier_calcd_x(&bezier, t),
+                cbezier_calcd_y(&bezier, t),
                 10, 10
             }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
         }
@@ -121,11 +127,15 @@ int main(int argc, char** argv) {
 
         //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
 
+        draw_cbezier_push(draw_bezier, &bezier, 6, (vec3){ 0, 1, 1 });
+        draw_cbezier_flush(draw_bezier);
+
         gfx_win_swap_buffers(win);
 
         time_prev = time_now;
     }
 
+    draw_cbezier_destroy(draw_bezier);
     draw_poly_destroy(poly);
     draw_rectb_destroy(rectb);
 

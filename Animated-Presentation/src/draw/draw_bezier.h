@@ -10,11 +10,12 @@ typedef struct {
 } cb_vertex;
 
 typedef struct {
-    cbezier bezier;
-
-    cb_vertex* verts;
+    u32* indices;
+    cb_vertex* vertices;
     u32 capacity;
-    u32 size;
+
+    u32 index_pos;
+    u32 vertex_pos;
 
     #if defined(AP_OPENGL)
     struct {
@@ -27,11 +28,11 @@ typedef struct {
     #endif
 } draw_cbezier;
 
-draw_cbezier* draw_cbezier_create(arena* arena, u32 capacity);
+draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity);
 void          draw_cbezier_destroy(draw_cbezier* draw_cb);
 
-void draw_cbezier_push(draw_cbezier* draw_cb, vec3 col);
-void draw_cbezier_push_grad(draw_cbeier* draw_cb, vec3 start_col, vec3 end_col);
+void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col);
+void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 start_col, vec3 end_col);
 void draw_cbezier_flush(draw_cbezier* draw_cb);
 
 #endif // DRAW_BEZIER_H

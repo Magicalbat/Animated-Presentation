@@ -9,5 +9,6 @@
 
 #include "draw_rect_batch.h"
 #include "draw_polygon.h"
+#include "draw_bezier.h"
 
 #endif // DRAW_H

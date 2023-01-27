@@ -31,7 +31,7 @@
 #define GFX_NUM_KEYS          256
 #define GFX_NUM_MOUSE_BUTTONS 5
 
-// TODO: Make this more simlar to draw layer structs
+// TODO: remove pointer arrays for keys and mouse buttons
 
 typedef struct {
     vec2 mouse_pos;
