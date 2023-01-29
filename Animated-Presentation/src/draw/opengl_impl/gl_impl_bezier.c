@@ -10,7 +10,7 @@ draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
 
     draw_cb->capacity = capacity;
     draw_cb->indices = CREATE_ARRAY(arena, u32, capacity * 6);
-    draw_cb->vertices = CREATE_ARRAY(arena, cb_vertex, capacity);
+    draw_cb->vertices = CREATE_ARRAY(arena, cb_vertex, capacity * 4);
 
     draw_cb->gl.shader_program = gl_impl_create_shader_program(vert_source, frag_source);
 
@@ -51,20 +51,18 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
 
     u32 num_segs = MAX(0, (u32)(estimate_len * 0.2));
 
-    if (num_segs > draw_cb->capacity << 2) {
+    if (num_segs > draw_cb->capacity * 4) {
         log_error("Bezier is too bit to draw");
         return;
     }
-    if (draw_cb->vertex_pos >> 2 + 1 + num_segs > draw_cb->capacity) {
+    if ((draw_cb->vertex_pos / 4) + 1 + num_segs > draw_cb->capacity) {
         draw_cbezier_flush(draw_cb);
     }
 
-    f32 half_width = width * 0.5;
+    f32 half_width = width * 0.5f;
 
     vec2 start_pos = cbezier_calc(bezier, 0);
     vec2 start_perp = vec2_nrm(vec2_prp(cbezier_calcd(bezier, 0)));
-    start_perp.x *= (start_perp.x >= 0) * 2 - 1;
-    start_perp.y *= (start_perp.y >= 0) * 2 - 1;
 
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_add(start_pos, vec2_mul(start_perp, half_width)),

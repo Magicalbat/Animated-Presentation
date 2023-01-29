@@ -29,7 +29,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
         type, severity, message);
 }
 
-#define WIN_SCALE 1
+#define WIN_SCALE 2
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -50,15 +50,15 @@ int main(int argc, char** argv) {
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
-    //log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
-    //log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
-    //log_infof("GL Version: %s",  glGetString(GL_VERSION));
+    log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
+    log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
+    log_infof("GL Version: %s",  glGetString(GL_VERSION));
 
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
-        RECTB_BOTH, STR8_LIT("kodim23.qoi"));
+        RECTB_BOTH, STR8_LIT("C:/Users/magic/Desktop/Projects/C/Animated-Presentation/monkey 1.png"));
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
 
@@ -77,15 +77,17 @@ int main(int argc, char** argv) {
 
     cbezier bezier = {
         (vec2){ 0, 0 },
-        (vec2){ 0, 0.22 * 100 },
-        (vec2){ 0.82 * 100, 0.34 * 100 },
-        (vec2){ 100, 100 }
+        (vec2){ 0, 0.22 * 200 },
+        (vec2){ 0.82 * 200, 0.34 * 200 },
+        (vec2){ 200, 200 }
     };
     
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
 
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
+
+    i32 cur_point = -1;
     
     while (!win->should_close) {
         u64 time_now = os_now_microseconds();
@@ -105,29 +107,41 @@ int main(int argc, char** argv) {
             }
         }*/
 
-        draw_rectb_push_both(rectb, (rect){
-            160, 10, 160, 160
-        }, (vec3){ 1, 1, 1}, (rect){ 0, 0, 1, 1});
+        if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
+            for (u32 i = 0; i < 4; i++) {
+                if (vec2_len(vec2_sub(win->mouse_pos, bezier.p[i])) <= 16) {
+                    cur_point = i;
+                    break;
+                }
+            }
+        }
+        if (GFX_MOUSE_JUST_UP(win, GFX_MB_LEFT)) {
+            cur_point = -1;
+        }
 
-        for (f32 t = 0; t < 1; t += 0.02f) {
+        if (cur_point != -1) {
+            bezier.p[cur_point] = win->mouse_pos;
+        }
+
+        for (u32 i = 0; i < 4; i++) {
+            draw_rectb_push_both(rectb, (rect){
+                bezier.p[i].x - 8, bezier.p[i].y - 8, 16, 16
+            }, (vec3){ 1, 1, 1}, (rect){ 0, 0, 1, 1});
+        }
+
+        /*for (f32 t = 0; t <= 1; t += 0.02f) {
             draw_rectb_push_both(rectb, (rect){
                 cbezier_calc_x(&bezier, t),
                 cbezier_calc_y(&bezier, t),
                 10, 10
             }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
-            
-            draw_rectb_push_both(rectb, (rect){
-                cbezier_calcd_x(&bezier, t),
-                cbezier_calcd_y(&bezier, t),
-                10, 10
-            }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
-        }
+        }*/
         
         draw_rectb_flush(rectb);
 
         //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
 
-        draw_cbezier_push(draw_bezier, &bezier, 6, (vec3){ 0, 1, 1 });
+        draw_cbezier_push(draw_bezier, &bezier, 8, (vec3){ 0.2f, 1.0f, 0.8f });
         draw_cbezier_flush(draw_bezier);
 
         gfx_win_swap_buffers(win);

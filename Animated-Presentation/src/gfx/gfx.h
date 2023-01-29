@@ -36,11 +36,11 @@
 typedef struct {
     vec2 mouse_pos;
 
-    b8* new_mouse_buttons;
-    b8* old_mouse_buttons;
+    b8 mouse_buttons[GFX_NUM_MOUSE_BUTTONS];
+    b8 prev_mouse_buttons[GFX_NUM_MOUSE_BUTTONS];
 
-    b8* new_keys;
-    b8* old_keys;
+    b8 keys[GFX_NUM_KEYS];
+    b8 prev_keys[GFX_NUM_KEYS];
 
     u32 width;
     u32 height;
@@ -80,5 +80,14 @@ void gfx_win_process_events(gfx_window* win);
 
 void gfx_win_set_size(gfx_window* win, u32 width, u32 height);
 void gfx_win_set_title(arena* arena, gfx_window* win, string8 title);
+
+#define GFX_MOUSE_DOWN(win, mb) ( win->mouse_buttons[mb])
+#define GFX_MOUSE_UP(win, mb)   (!win->mouse_buttons[mb])
+#define GFX_MOUSE_JUST_DOWN(win, mb) (win->mouse_buttons[mb] && !win->prev_mouse_buttons[mb])
+#define GFX_MOUSE_JUST_UP(win, mb) (!win->mouse_buttons[mb] && win->prev_mouse_buttons[mb])
+
+#define GFX_MB_LEFT   0
+#define GFX_MB_MIDDLE 1
+#define GFX_MB_RIGHT  2
 
 #endif // GFX_H

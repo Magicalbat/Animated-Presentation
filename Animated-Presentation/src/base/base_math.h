@@ -81,24 +81,24 @@ inline vec2 qbezier_calc(qbezier* b, f32 t) {
 inline f32 cbezier_calc_x(cbezier* b, f32 t) {
     return (1 - t) * (1 - t) * (1 - t) * b->p0.x +
            3 * (1 - t) * (1 - t) * t * b->p1.x + 
-           6 * (1 - t) * t * t * b->p2.x + 
+           3 * (1 - t) * t * t * b->p2.x + 
            t * t * t * b->p3.x;
 }
 inline f32 cbezier_calc_y(cbezier* b, f32 t) {
     return (1 - t) * (1 - t) * (1 - t) * b->p0.y +
            3 * (1 - t) * (1 - t) * t * b->p1.y + 
-           6 * (1 - t) * t * t * b->p2.y + 
+           3 * (1 - t) * t * t * b->p2.y + 
            t * t * t * b->p3.y;
 }
 inline vec2 cbezier_calc(cbezier* b, f32 t) {
     return (vec2){
         .x = (1 - t) * (1 - t) * (1 - t) * b->p0.x +
              3 * (1 - t) * (1 - t) * t * b->p1.x + 
-             6 * (1 - t) * t * t * b->p2.x + 
+             3 * (1 - t) * t * t * b->p2.x + 
              t * t * t * b->p3.x,
         .y = (1 - t) * (1 - t) * (1 - t) * b->p0.y +
              3 * (1 - t) * (1 - t) * t * b->p1.y + 
-             6 * (1 - t) * t * t * b->p2.y + 
+             3 * (1 - t) * t * t * b->p2.y + 
              t * t * t * b->p3.y
     };
 }

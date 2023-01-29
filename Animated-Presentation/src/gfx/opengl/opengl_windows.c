@@ -106,15 +106,20 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     ATOM atom = RegisterClass(&win->wgl.window_class);
 
     string16 title16 = str16_from_str8(arena, title);
+
+    RECT win_rect = { 0, 0, width, height };
+    AdjustWindowRect(&win_rect, WS_OVERLAPPEDWINDOW, FALSE);
     
     win->wgl.window = CreateWindow(
         win->wgl.window_class.lpszClassName,
         title16.str,
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT,
-        width, height,
+        win_rect.right - win_rect.left, win_rect.bottom - win_rect.top,
         NULL, NULL, win->wgl.h_instance, NULL
     );
+
+    SetPropA(win->wgl.window, "gfx_window", win);
 
     arena_pop(arena, sizeof(u16) * title16.size);
 
@@ -149,15 +154,9 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
 
     win->wgl.context = wglCreateContexAttribsARB(win->wgl.device_context, NULL, gl_attribs);
 
-    win->mouse_pos = (vec2){ 0, 0 };
-    win->new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
-    win->old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
-    win->new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
-    win->old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
     win->width = width;
     win->height = height;
     win->title = title;
-    win->should_close = false;
 
     return win;
 }
@@ -179,6 +178,9 @@ void gfx_win_swap_buffers(gfx_window* win) {
     SwapBuffers(win->wgl.device_context);
 }
 void gfx_win_process_events(gfx_window* win) {
+    memcpy(win->prev_mouse_buttons, win->mouse_buttons, GFX_NUM_MOUSE_BUTTONS);
+    memcpy(win->prev_keys, win->keys, GFX_NUM_KEYS);
+
     MSG msg;
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
         if (msg.message == WM_QUIT) {
@@ -212,7 +214,30 @@ void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+    gfx_window* win = (gfx_window*)GetPropA(hwnd, "gfx_window");
+
     switch (uMsg) {
+        case WM_MOUSEMOVE:
+            win->mouse_pos.x = (f32)((lParam) & 0xffff);
+            win->mouse_pos.y = (f32)((lParam >> 16) & 0xffff);
+            break;
+
+        case WM_LBUTTONDOWN:
+            win->mouse_buttons[GFX_MB_LEFT] = true; break;
+        case WM_LBUTTONUP:
+            win->mouse_buttons[GFX_MB_LEFT] = false; break;
+        case WM_MBUTTONDOWN:
+            win->mouse_buttons[GFX_MB_MIDDLE] = true; break;
+        case WM_MBUTTONUP:
+            win->mouse_buttons[GFX_MB_MIDDLE] = false; break;
+        case WM_RBUTTONDOWN:
+            win->mouse_buttons[GFX_MB_RIGHT] = true; break;
+        case WM_RBUTTONUP:
+            win->mouse_buttons[GFX_MB_RIGHT] = false; break;
+
+        case WM_KEYDOWN: break;
+        case WM_KEYUP: break;
+
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;
