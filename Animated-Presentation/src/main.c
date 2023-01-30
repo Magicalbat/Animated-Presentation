@@ -29,7 +29,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
         type, severity, message);
 }
 
-#define WIN_SCALE 2
+#define WIN_SCALE 1
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
-        RECTB_BOTH, STR8_LIT("C:/Users/magic/Desktop/Projects/C/Animated-Presentation/monkey 1.png"));
+        RECTB_BOTH, STR8_LIT("monkey 1.png"));
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
 
@@ -77,9 +77,9 @@ int main(int argc, char** argv) {
 
     cbezier bezier = {
         (vec2){ 0, 0 },
-        (vec2){ 0, 0.22 * 200 },
-        (vec2){ 0.82 * 200, 0.34 * 200 },
-        (vec2){ 200, 200 }
+        (vec2){ 0, 0.22 * 100 },
+        (vec2){ 0.82 * 100, 0.34 * 100 },
+        (vec2){ 100, 100 }
     };
     
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
@@ -109,7 +109,7 @@ int main(int argc, char** argv) {
 
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
             for (u32 i = 0; i < 4; i++) {
-                if (vec2_len(vec2_sub(win->mouse_pos, bezier.p[i])) <= 16) {
+                if (vec2_len(vec2_sub(win->mouse_pos, bezier.p[i])) <= 12) {
                     cur_point = i;
                     break;
                 }
@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 
         for (u32 i = 0; i < 4; i++) {
             draw_rectb_push_both(rectb, (rect){
-                bezier.p[i].x - 8, bezier.p[i].y - 8, 16, 16
+                bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
             }, (vec3){ 1, 1, 1}, (rect){ 0, 0, 1, 1});
         }
 
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 
         //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
 
-        draw_cbezier_push(draw_bezier, &bezier, 8, (vec3){ 0.2f, 1.0f, 0.8f });
+        draw_cbezier_push(draw_bezier, &bezier, 4, (vec3){ 0.2f, 1.0f, 0.8f });
         draw_cbezier_flush(draw_bezier);
 
         gfx_win_swap_buffers(win);

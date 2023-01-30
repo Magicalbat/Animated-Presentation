@@ -83,7 +83,7 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
         .background_pixel = WhitePixel(win->glx.display, win->glx.screen),
         .override_redirect = True,
         .colormap = XCreateColormap(win->glx.display, RootWindow(win->glx.display, win->glx.screen), visual->visual, AllocNone),
-        .event_mask = ExposureMask | KeyPressMask
+        .event_mask = ExposureMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
     };
 
     // https://stackoverflow.com/questions/10792361/how-do-i-gracefully-exit-an-x11-event-loop
@@ -99,7 +99,7 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     win->glx.del_window = XInternAtom(win->glx.display, "WM_DELETE_WINDOW", 0);
     XSetWMProtocols(win->glx.display , win->glx.window, &win->glx.del_window, 1);
     XMapWindow(win->glx.display, win->glx.window);
-    XSelectInput(win->glx.display, win->glx.window, KeyPress | ClientMessage);
+    //XSelectInput(win->glx.display, win->glx.window, ClientMessage | ButtonPress | ButtonRelease | MotionNotify);
     
     XFree(visual);
 
@@ -132,15 +132,9 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     XStoreName(win->glx.display, win->glx.window, title.str);
     arena_pop(arena, title.size + 1);
     
-    win->mouse_pos = (vec2){ 0, 0 };
-    win->new_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
-    win->old_mouse_buttons = CREATE_ARRAY(arena, b8, GFX_NUM_MOUSE_BUTTONS);
-    win->new_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
-    win->old_keys = CREATE_ARRAY(arena, b8, GFX_NUM_KEYS);
     win->width = width;
     win->height = height;
     win->title = title;
-    win->should_close = false;
 
     return win;
 }
@@ -158,12 +152,23 @@ void gfx_win_swap_buffers(gfx_window* win) {
     glXSwapBuffers(win->glx.display, win->glx.window);
 }
 void gfx_win_process_events(gfx_window* win) {
+    memcpy(win->prev_mouse_buttons, win->mouse_buttons, GFX_NUM_MOUSE_BUTTONS);
+    memcpy(win->prev_keys, win->keys, GFX_NUM_KEYS);
+    
     while (XPending(win->glx.display)) {
         XEvent e;
         XNextEvent(win->glx.display, &e);
 
         switch(e.type) {
-            case KeyPress:
+            case ButtonPress:
+                win->mouse_buttons[e.xbutton.button - 1] = true;
+                break;
+            case ButtonRelease:
+                win->mouse_buttons[e.xbutton.button - 1] = false;
+                break;
+            case MotionNotify:
+                win->mouse_pos.x = (f32)e.xmotion.x;
+                win->mouse_pos.y = (f32)e.xmotion.y;
                 break;
             case ClientMessage:
                 if (e.xclient.data.l[0] == win->glx.del_window) {
