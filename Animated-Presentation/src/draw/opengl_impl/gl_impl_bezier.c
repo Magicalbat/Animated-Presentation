@@ -49,7 +49,7 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
         vec2_len(vec2_sub(bezier->p2, bezier->p1)) +
         vec2_len(vec2_sub(bezier->p3, bezier->p2));
 
-    u32 num_segs = MAX(0, (u32)(estimate_len * 0.2));
+    u32 num_segs = MAX(0, (u32)(estimate_len * 0.4));
 
     if (num_segs > draw_cb->capacity * 4) {
         log_error("Bezier is too bit to draw");
@@ -61,20 +61,20 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
 
     f32 half_width = width * 0.5f;
 
-    vec2 start_pos = cbezier_calc(bezier, 0);
-    vec2 start_perp = vec2_nrm(vec2_prp(cbezier_calcd(bezier, 0)));
+    vec2 pos = cbezier_calc(bezier, 0);
+    vec2 perp = vec2_nrm(vec2_prp(cbezier_calcd(bezier, 0)));
 
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
-        .pos = vec2_add(start_pos, vec2_mul(start_perp, half_width)),
+        .pos = vec2_add(pos, vec2_mul(perp, half_width)),
         .col = col
     };
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
-        .pos = vec2_add(start_pos, vec2_mul(start_perp, -half_width)),
+        .pos = vec2_add(pos, vec2_mul(perp, -half_width)),
         .col = col
     };
 
     f32 step = 1.0f / (f32)(num_segs);
-    for (f32 t = step; t <= 1.0f; t += step) {
+    for (f32 t = step; t < 1.0f; t += step) {
         vec2 pos = cbezier_calc(bezier, t);
         vec2 perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, t))), half_width);
 
@@ -95,6 +95,26 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
         draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
         draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 1;
     }
+
+    pos = cbezier_calc(bezier, 1);
+    perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, 1))), half_width);
+
+    draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
+        .pos = vec2_add(pos, perp),
+        .col = col
+    };
+    draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
+        .pos = vec2_sub(pos, perp),
+        .col = col
+    };
+
+    draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 4;
+    draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 3;
+    draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
+    
+    draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 3;
+    draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
+    draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 1;
 }
 void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 start_col, vec3 end_col) {
     log_error("TODO: cbezier push grad");
