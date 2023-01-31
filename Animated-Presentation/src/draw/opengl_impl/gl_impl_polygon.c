@@ -3,7 +3,7 @@
 #include "gl_impl.h"
 
 static const char* vert_source;
-static const char* frag_source;
+// gl_impl_color_frag
 
 draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts) {
     draw_polygon* poly = CREATE_ZERO_STRUCT(arena, poly, draw_polygon);
@@ -12,7 +12,7 @@ draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts) {
     poly->verts = CREATE_ARRAY(arena, vec2, max_verts);
     poly->indices = CREATE_ARRAY(arena, u32, max_verts * 3);
 
-    poly->gl.shader_program = gl_impl_create_shader_program(vert_source, frag_source);
+    poly->gl.shader_program = gl_impl_create_shader_program(vert_source, gl_impl_color_frag);
 
     glUseProgram(poly->gl.shader_program);
     u32 win_mat_loc = glGetUniformLocation(poly->gl.shader_program, "u_win_mat");
@@ -110,12 +110,6 @@ static const char* vert_source = ""
     "void main() {"
     "    col = vec4(u_col, 1);"
     "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
-    "\n}";
-static const char* frag_source = ""
-    "#version 330 core\n"
-    "in vec4 col;"
-    "void main() {"
-    "    gl_FragColor = col;"
     "\n}";
 
 #endif // AP_OPENGL

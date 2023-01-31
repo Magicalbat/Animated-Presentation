@@ -3,7 +3,7 @@
 #include "gl_impl.h"
 
 static const char* vert_source;
-static const char* frag_source;
+// gl_impl_color_frag
 
 draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
     draw_cbezier* draw_cb = CREATE_ZERO_STRUCT(arena, draw_cb, draw_cbezier);
@@ -12,7 +12,7 @@ draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
     draw_cb->indices = CREATE_ARRAY(arena, u32, capacity * 6);
     draw_cb->vertices = CREATE_ARRAY(arena, cb_vertex, capacity * 4);
 
-    draw_cb->gl.shader_program = gl_impl_create_shader_program(vert_source, frag_source);
+    draw_cb->gl.shader_program = gl_impl_create_shader_program(vert_source, gl_impl_color_frag);
 
     glUseProgram(draw_cb->gl.shader_program);
     
@@ -49,7 +49,7 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
         vec2_len(vec2_sub(bezier->p2, bezier->p1)) +
         vec2_len(vec2_sub(bezier->p3, bezier->p2));
 
-    u32 num_segs = MAX(0, (u32)(estimate_len * 0.4));
+    u32 num_segs = MAX(0, (u32)(estimate_len * 0.1));
 
     if (num_segs > draw_cb->capacity * 4) {
         log_error("Bezier is too bit to draw");
@@ -74,7 +74,8 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
     };
 
     f32 step = 1.0f / (f32)(num_segs);
-    for (f32 t = step; t < 1.0f; t += step) {
+    f32 t = step;
+    for (u32 i = 1; i < num_segs && t < 1.0f; i++, t += step) {
         vec2 pos = cbezier_calc(bezier, t);
         vec2 perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, t))), half_width);
 
@@ -152,13 +153,6 @@ static const char* vert_source = ""
     "void main() {"
     "    col = vec4(a_col, 1);"
     "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
-    "\n}";
-
-static const char* frag_source = ""
-    "#version 330 core\n"
-    "in vec4 col;"
-    "void main() {"
-    "    gl_FragColor = col;"
     "\n}";
 
 #endif // AP_OPENGL

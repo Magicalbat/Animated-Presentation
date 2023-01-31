@@ -3,7 +3,7 @@
 #include "gl_impl.h"
 
 static const char* color_vert_source;
-static const char* color_frag_source;
+// gl_impl_color_frag
 
 static const char* texture_vert_source;
 static const char* texture_frag_source;
@@ -28,7 +28,7 @@ draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, dr
     switch (type) {
         case RECTB_COLOR:
             batch->gl.shader_program = gl_impl_create_shader_program(
-                color_vert_source, color_frag_source
+                color_vert_source, gl_impl_color_frag
             );
             break;
         case RECTB_TEXTURE:
@@ -176,13 +176,6 @@ static const char* color_vert_source = ""
     "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
         
-static const char* color_frag_source = ""
-    "#version 330 core\n"
-    "in vec4 col;"
-    "void main() {"
-    "    gl_FragColor = col;"
-    "\n}";
-
 static const char* texture_vert_source = ""
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos_pattern;"
@@ -198,10 +191,11 @@ static const char* texture_vert_source = ""
         
 static const char* texture_frag_source = ""
     "#version 330 core\n"
+    "layout (location = 0) out vec4 out_col;"
     "in vec2 uv;"
     "uniform sampler2D texture1;"
     "void main() {"
-    "    gl_FragColor = texture(texture1, uv);"
+    "    out_col = texture(texture1, uv);"
     "\n}";
 
 static const char* both_vert_source = ""
@@ -222,11 +216,12 @@ static const char* both_vert_source = ""
         
 static const char* both_frag_source = ""
     "#version 330 core\n"
+    "layout (location = 0) out vec4 out_col;"
     "in vec4 col;"
     "in vec2 uv;"
     "uniform sampler2D texture1;"
     "void main() {"
-    "    gl_FragColor = texture(texture1, uv) * col;"
+    "    out_col = texture(texture1, uv) * col;"
     "\n}";
 
 

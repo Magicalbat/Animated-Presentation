@@ -6,9 +6,6 @@
 #include "draw/draw.h"
 #include "draw/opengl_impl/gl_impl.h"
 
-// TODO: Anti-aliasing
-// https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
-
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     log_level level = LOG_DEBUG;

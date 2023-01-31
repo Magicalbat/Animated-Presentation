@@ -2,6 +2,15 @@
 
 #include "gl_impl.h"
 
+const char* gl_impl_color_frag = ""
+    "#version 330 core\n"
+    "layout (location = 0) out vec4 out_col;"
+    "in vec4 col;"
+    "void main() {"
+    "    out_col = col;"
+    "\n}";
+
+
 u32 gl_impl_create_shader_program(const char* vertex_source, const char* fragment_source) {
     u32 vertex_shader;
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);

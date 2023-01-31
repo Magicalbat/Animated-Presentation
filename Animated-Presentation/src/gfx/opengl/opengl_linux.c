@@ -56,10 +56,6 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
             glXGetFBConfigAttrib(win->glx.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
             glXGetFBConfigAttrib(win->glx.display, fbc[i], GLX_SAMPLES       , &samples );
         
-            //printf( "  Matching fbconfig %d, visual ID 0x%2x: SAMPLE_BUFFERS = %d,"
-            //        " SAMPLES = %d\n", 
-            //        i, vi->visualid, samp_buf, samples );
-
             if (best_fbc_i < 0 || samp_buf && samples > best_num_samp)
                 best_fbc_i = i, best_num_samp = samples;
             if (worst_fbc_i < 0 || !samp_buf || samples < worst_num_samp)
@@ -99,7 +95,6 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     win->glx.del_window = XInternAtom(win->glx.display, "WM_DELETE_WINDOW", 0);
     XSetWMProtocols(win->glx.display , win->glx.window, &win->glx.del_window, 1);
     XMapWindow(win->glx.display, win->glx.window);
-    //XSelectInput(win->glx.display, win->glx.window, ClientMessage | ButtonPress | ButtonRelease | MotionNotify);
     
     XFree(visual);
 

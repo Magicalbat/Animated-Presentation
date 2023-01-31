@@ -31,7 +31,7 @@ typedef struct {
 } draw_rectb;
 
 draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, draw_rectb_type type, string8 texture_path);
-#define draw_rectb_create(arena, win, capacity) draw_rectb_create_ex(arena, win, capacity, RECTB_COLOR, STR8_LIT(""))
+#define draw_rectb_create(arena, win, capacity) draw_rectb_create_ex(arena, win, capacity, RECTB_COLOR, (string8){ .size=0 })
 void draw_rectb_destroy(draw_rectb* batch);
 
 // These functions will draw rects to the screen

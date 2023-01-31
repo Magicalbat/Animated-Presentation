@@ -34,14 +34,6 @@
 // TODO: remove pointer arrays for keys and mouse buttons
 
 typedef struct {
-    vec2 mouse_pos;
-
-    b8 mouse_buttons[GFX_NUM_MOUSE_BUTTONS];
-    b8 prev_mouse_buttons[GFX_NUM_MOUSE_BUTTONS];
-
-    b8 keys[GFX_NUM_KEYS];
-    b8 prev_keys[GFX_NUM_KEYS];
-
     u32 width;
     u32 height;
 
@@ -69,6 +61,15 @@ typedef struct {
             } wgl;
         #endif
     #endif
+
+    vec2 mouse_pos;
+
+    b8 mouse_buttons[GFX_NUM_MOUSE_BUTTONS];
+    b8 prev_mouse_buttons[GFX_NUM_MOUSE_BUTTONS];
+
+    b8 keys[GFX_NUM_KEYS];
+    b8 prev_keys[GFX_NUM_KEYS];
+
 } gfx_window;
 
 gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title);
