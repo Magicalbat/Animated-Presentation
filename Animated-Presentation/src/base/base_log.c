@@ -75,6 +75,13 @@ void log_init(log_desc base_desc) {
 
     log_arena_start_pos = log_arena->cur;
 }
+void log_quit(void) {
+    arena_destroy(log_arena);
+
+    if (make_file) {
+        os_file_close(file);
+    }
+}
 
 void log_impl(log_data msg) {
     logs[log_index++] = msg;
@@ -104,7 +111,6 @@ void log_impl(log_data msg) {
         os_file_write_open(file, STR8_LIT("\n"));
     }
 }
-
 void log_msg(log_level level, const char* msg_cstr) {
     if (log_index + 1 >= desc.max_stored) {
         arena_pop_to(log_arena, log_arena_start_pos);
@@ -118,13 +124,7 @@ void log_msg(log_level level, const char* msg_cstr) {
 
     log_impl(msg);
 }
-void log_quit() {
-    arena_destroy(log_arena);
 
-    if (make_file) {
-        os_file_close(file);
-    }
-}
 void log_msgf(log_level level, const char* fmt, ...) {
     if (log_index + 1 >= desc.max_stored) {
         arena_pop_to(log_arena, log_arena_start_pos);

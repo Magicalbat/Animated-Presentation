@@ -57,20 +57,20 @@ typedef struct {
 typedef void (*void_func)(void);
 
 void         os_main_init(int argc, char** argv);
-void         os_main_quit();
-string8_list os_get_cmd_args();
+void         os_main_quit(void);
+string8_list os_get_cmd_args(void);
 
 void* os_mem_reserve(u64 size);
 void  os_mem_commit(void* ptr, u64 size);
 void  os_mem_decommit(void* ptr, u64 size);
 void  os_mem_release(void* ptr, u64 size);
 
-u64 os_mem_pagesize();
+u64 os_mem_pagesize(void);
 
 // TODO: make sure linux and windows timestamps are consistent
-datetime os_now_localtime();
+datetime os_now_localtime(void);
 
-u64  os_now_microseconds();
+u64  os_now_microseconds(void);
 void os_sleep_milliseconds(u32 t);
 
 string8    os_file_read(arena* arena, string8 path);

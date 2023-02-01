@@ -8,7 +8,7 @@
 static arena*       lnx_arena;
 static string8_list lnx_cmd_args;
 
-static string8 lnx_error_string() {
+static string8 lnx_error_string(void) {
     char* err_cstr = strerror(errno);
     
     return str8_from_cstr(err_cstr);
@@ -31,10 +31,10 @@ void os_main_init(int argc, char** argv) {
         str8_list_push(lnx_arena, &lnx_cmd_args, str);
     }
 }
-void os_main_quit() {
+void os_main_quit(void) {
     arena_destroy(lnx_arena);
 }
-string8_list os_get_cmd_args() {
+string8_list os_get_cmd_args(void) {
     return lnx_cmd_args;
 }
 
@@ -53,11 +53,11 @@ void os_mem_release(void* ptr, u64 size) {
     munmap(ptr, size);
 }
 
-u64 os_mem_pagesize() {
+u64 os_mem_pagesize(void) {
     return sysconf(_SC_PAGE_SIZE);
 }
 
-datetime os_now_localtime() {
+datetime os_now_localtime(void) {
     time_t t = time(NULL);
     struct tm tm = *localtime(&t);
 
@@ -71,7 +71,7 @@ datetime os_now_localtime() {
     };
 }
 
-u64 os_now_microseconds() {
+u64 os_now_microseconds(void) {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts.tv_sec * 1000000 + ts.tv_nsec / 1000;
@@ -243,7 +243,7 @@ void os_file_close(os_file file) {
     close(file.fd);
 }
 
-static string8 dl_error_string() {
+static string8 dl_error_string(void) {
     char* err_cstr = dlerror();
     
     return str8_from_cstr(err_cstr);

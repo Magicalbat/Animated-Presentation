@@ -7,7 +7,6 @@
 #include "draw/opengl_impl/gl_impl.h"
 
 // TODO: enable -Wall and fix warnings
-// TODO: use (void) instead of ()
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
@@ -70,8 +69,8 @@ int main(int argc, char** argv) {
     for (u32 i = 0; i < 18; i++) {
         float a = (f32)(i * 20) * (3.14159f / 180.0f);
         vec2 v = {
-            .x = (sinf(a) * 25) + 50,
-            .y = (cosf(a) * 25) + 50
+            .x = (sinf(a) * 5),
+            .y = (cosf(a) * 5)
         };
         p[i] = v;
     }
@@ -103,7 +102,8 @@ int main(int argc, char** argv) {
                 draw_rectb_push_ex(rectb, (rect){
                     (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
                 }, (vec3){
-                    (f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
+                    1.0f, 1.0f, 1.0f
+                    //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
                 }, 
                 (x + y) % 2 == 0 ? monkey : birds, 
                 (rect){ 0, 0, 1, 1 });
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 
         draw_rectb_flush(rectb);
 
-        //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
+        draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
 
         draw_cbezier_push_grad(draw_bezier, &bezier, 4,
             (vec3){ 0.0f, 1.0f, 0.0f }, (vec3){ 0.8f, 0.0f, 0.2f});

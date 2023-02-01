@@ -8,7 +8,7 @@ static u64            w32_ticks_per_second;
 static arena*       w32_arena;
 static string8_list w32_cmd_args;
 
-static string8 win32_error_string() {
+static string8 win32_error_string(void) {
     DWORD err = GetLastError();
     if (err == 0) {
         return (string8){ 0 };
@@ -57,11 +57,11 @@ void os_main_init(int argc, char** argv) {
         str8_list_push(w32_arena, &w32_cmd_args, str);
     }
 }
-void os_main_quit() {
+void os_main_quit(void) {
     arena_destroy(w32_arena);
     timeEndPeriod(1);
 }
-string8_list os_get_cmd_args() {
+string8_list os_get_cmd_args(void) {
     return w32_cmd_args;
 }
 
@@ -79,13 +79,13 @@ void os_mem_release(void* ptr, u64 size) {
     VirtualFree(ptr, 0, MEM_RELEASE);
 }
 
-u64 os_mem_pagesize() {
+u64 os_mem_pagesize(void) {
     SYSTEM_INFO si;
     GetSystemInfo(&si);
     return si.dwPageSize;
 }
 
-datetime os_now_localtime() {
+datetime os_now_localtime(void) {
     SYSTEMTIME t;
     GetLocalTime(&t);
     return (datetime){
@@ -98,7 +98,7 @@ datetime os_now_localtime() {
     };
 }
 
-u64 os_now_microseconds() {
+u64 os_now_microseconds(void) {
     u64 out = 0;
     LARGE_INTEGER perf_count;
     if (QueryPerformanceCounter(&perf_count)) {
