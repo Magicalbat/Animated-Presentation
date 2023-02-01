@@ -46,7 +46,7 @@ void draw_poly_conv_arr (draw_polygon* poly, vec3 col, vec2_arr arr);
 
 // TODO: write these two functiosn
 // Seidel Algorithm
-void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list);
-void draw_poly_arr (draw_polygon* poly, vec3 col, vec2_arr arr);
+// void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list);
+// void draw_poly_arr (draw_polygon* poly, vec3 col, vec2_arr arr);
 
 #endif // DRAW_POLYGON_H

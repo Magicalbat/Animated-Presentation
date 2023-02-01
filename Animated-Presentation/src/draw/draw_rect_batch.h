@@ -3,24 +3,37 @@
 
 #include "base/base.h"
 #include "gfx/gfx.h"
-
-typedef enum {
-    RECTB_COLOR,
-    RECTB_TEXTURE,
-    RECTB_BOTH,
-} draw_rectb_type;
+#include "parse/parse.h"
 
 typedef struct {
-    u8* data;
+    rect draw_rect;
+    vec3 col;
+    float tex_id;
+    rect tex_rect;
+} draw_rectb_rect;
+
+typedef struct {
+    b32 active; 
+
+    u32 width;
+    u32 height;
+
+    #ifdef AP_OPENGL
+        struct { u32 tex; } gl;
+    #endif
+} draw_rectb_tex;
+
+#define RECTB_MAX_TEXS 16
+
+typedef struct {
+    draw_rectb_rect* data;
     u32 capacity;
     u32 size;
 
-    draw_rectb_type type;
+    draw_rectb_tex textures[RECTB_MAX_TEXS];
 
     #ifdef AP_OPENGL
         struct {
-            u32 texture;
-    
             u32 shader_program;
     
             u32 vertex_array;
@@ -30,14 +43,18 @@ typedef struct {
     #endif
 } draw_rectb;
 
-draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, draw_rectb_type type, string8 texture_path);
-#define draw_rectb_create(arena, win, capacity) draw_rectb_create_ex(arena, win, capacity, RECTB_COLOR, (string8){ .size=0 })
+draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity);
 void draw_rectb_destroy(draw_rectb* batch);
 
+u32 draw_rectb_add_tex(draw_rectb* batch, image img);
+u32 draw_rectb_create_tex(arena* arena, draw_rectb* batch, string8 file_path);
+void draw_rectb_destroy_tex(draw_rectb* batch, u32 tex_id);
+
 // These functions will draw rects to the screen
-void draw_rectb_push_col(draw_rectb* batch, rect draw_rect, vec3 col);
-void draw_rectb_push_tex(draw_rectb* batch, rect draw_rect, rect tex_rect);
-void draw_rectb_push_both(draw_rectb* batch, rect draw_rect, vec3 col, rect tex_rect);
+void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id, rect tex_rect);
+inline void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col) {
+    draw_rectb_push_ex(batch, draw_rect, col, 0, (rect){ 0.0f, 0.0f, 1.0f, 1.0f }); 
+}
 void draw_rectb_flush(draw_rectb* batch);
 
 #endif // DRAW_RECT_BATCH_H

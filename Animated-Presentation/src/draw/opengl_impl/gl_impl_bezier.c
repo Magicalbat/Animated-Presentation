@@ -43,7 +43,7 @@ void draw_cbezier_destroy(draw_cbezier* draw_cb) {
     glDeleteBuffers(1, &draw_cb->gl.index_buffer);
 }
 
-void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col) {
+void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 start_col, vec3 end_col) {
     f32 estimate_len = 
         vec2_len(vec2_sub(bezier->p1, bezier->p0)) +
         vec2_len(vec2_sub(bezier->p2, bezier->p1)) +
@@ -59,25 +59,30 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
         draw_cbezier_flush(draw_cb);
     }
 
+    vec3 scol = rgb_to_hsv(start_col);
+    vec3 ecol = rgb_to_hsv(end_col);
+
     f32 half_width = width * 0.5f;
 
     vec2 pos = cbezier_calc(bezier, 0);
     vec2 perp = vec2_nrm(vec2_prp(cbezier_calcd(bezier, 0)));
+    vec3 col = scol;
 
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_add(pos, vec2_mul(perp, half_width)),
-        .col = col
+        .col = start_col
     };
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_add(pos, vec2_mul(perp, -half_width)),
-        .col = col
+        .col = start_col
     };
 
     f32 step = 1.0f / (f32)(num_segs);
     f32 t = step;
     for (u32 i = 1; i < num_segs && t < 1.0f; i++, t += step) {
-        vec2 pos = cbezier_calc(bezier, t);
-        vec2 perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, t))), half_width);
+        pos = cbezier_calc(bezier, t);
+        perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, t))), half_width);
+        col = hsv_to_rgb(vec3_add(vec3_mul(scol, 1 - t), vec3_mul(ecol, t)));
 
         draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
             .pos = vec2_add(pos, perp),
@@ -102,11 +107,11 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
 
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_add(pos, perp),
-        .col = col
+        .col = end_col
     };
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_sub(pos, perp),
-        .col = col
+        .col = end_col
     };
 
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 4;
@@ -117,9 +122,7 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 1;
 }
-void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 start_col, vec3 end_col) {
-    log_error("TODO: cbezier push grad");
-}
+
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glUseProgram(draw_cb->gl.shader_program);
     glBindVertexArray(draw_cb->gl.vertex_array);

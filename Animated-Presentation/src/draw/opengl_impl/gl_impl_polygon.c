@@ -94,12 +94,12 @@ void draw_poly_conv_arr(draw_polygon* poly, vec3 col, vec2_arr arr) {
     poly_gl_end(poly);
 }
 
-void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list) {
-    log_error("TODO: draw_poly_list");
-}
-void draw_poly_arr(draw_polygon* poly, vec3 col, vec2_arr arr) {
-    log_error("TODO: draw_poly_arr");
-}
+//void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list) {
+//    log_error("TODO: draw_poly_list");
+//}
+//void draw_poly_arr(draw_polygon* poly, vec3 col, vec2_arr arr) {
+//    log_error("TODO: draw_poly_arr");
+//}
 
 static const char* vert_source = ""
     "#version 330 core\n"

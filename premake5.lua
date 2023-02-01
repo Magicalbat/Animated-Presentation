@@ -34,10 +34,14 @@ project "Animated-Presentation"
     links { }
 
     filter "system:linux"
-      links
-      {
-        "m", "X11", "GL", "GLX", "dl"
-      }
+        links 
+        {
+            "m", "X11", "GL", "GLX", "dl"
+        }
+        buildoptions
+        {
+            --"-Wall"
+        }
 
     filter "system:windows"
         staticruntime "On"

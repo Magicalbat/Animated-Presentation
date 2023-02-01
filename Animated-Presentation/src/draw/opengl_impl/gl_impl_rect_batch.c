@@ -2,46 +2,16 @@
 
 #include "gl_impl.h"
 
-static const char* color_vert_source;
-// gl_impl_color_frag
+static const char* vert_source;
+static const char* frag_source;
 
-static const char* texture_vert_source;
-static const char* texture_frag_source;
-
-static const char* both_vert_source;
-static const char* both_frag_source;
-
-static const u32 elem_size[] = {
-    sizeof(rect) + sizeof(vec3),
-    sizeof(rect) + sizeof(rect),
-    sizeof(rect) + sizeof(vec3) + sizeof(rect),
-};
-
-draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, draw_rectb_type type, string8 texture_path) { 
+draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb);
 
-    batch->data = arena_alloc(arena, elem_size[type] * capacity);
+    batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;
-
-    batch->type = type;
-
-    switch (type) {
-        case RECTB_COLOR:
-            batch->gl.shader_program = gl_impl_create_shader_program(
-                color_vert_source, gl_impl_color_frag
-            );
-            break;
-        case RECTB_TEXTURE:
-            batch->gl.shader_program = gl_impl_create_shader_program(
-                texture_vert_source, texture_frag_source
-            );
-            break;
-        case RECTB_BOTH:
-            batch->gl.shader_program = gl_impl_create_shader_program(
-                both_vert_source, both_frag_source
-            );
-            break;
-    }
+    
+    batch->gl.shader_program = gl_impl_create_shader_program(vert_source, frag_source);
 
     glUseProgram(batch->gl.shader_program);
     
@@ -52,15 +22,18 @@ draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, dr
     };
     glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
 
-    if (batch->type != RECTB_COLOR) {
-        batch->gl.texture = gl_impl_create_texture(arena, texture_path);
+    u32 textures_loc = glGetUniformLocation(batch->gl.shader_program, "u_textures");
+    u32 tex_indices[RECTB_MAX_TEXS];
+    for (u32 i = 0; i < RECTB_MAX_TEXS; i++) {
+        tex_indices[i] = i;
     }
- 
+    glUniform1iv(textures_loc, RECTB_MAX_TEXS, tex_indices);
+
     glGenVertexArrays(1, &batch->gl.vertex_array);
     glBindVertexArray(batch->gl.vertex_array);
 
     batch->gl.vertex_buffer = gl_impl_create_buffer(
-        GL_ARRAY_BUFFER, elem_size[type] * capacity, NULL, GL_DYNAMIC_DRAW
+        GL_ARRAY_BUFFER, sizeof(draw_rectb_rect) * capacity, NULL, GL_DYNAMIC_DRAW
     );
     f32 pos_pattern[] = {
         0, 1,
@@ -72,6 +45,14 @@ draw_rectb* draw_rectb_create_ex(arena* arena, gfx_window* win, u32 capacity, dr
     batch->gl.pos_pattern_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(pos_pattern), &pos_pattern[0], GL_STATIC_DRAW
     );
+
+    u32 color = 0xffffffff;
+    draw_rectb_add_tex(batch, (image){
+        .width = 1,
+        .height = 1,
+        .channels = 4,
+        .data = (u8*)&color
+    });
     
     return batch;
 }
@@ -80,148 +61,176 @@ void draw_rectb_destroy(draw_rectb* batch) {
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
     glDeleteBuffers(1, &batch->gl.vertex_buffer);
     glDeleteBuffers(1, &batch->gl.pos_pattern_buffer);
-    if (batch->type != RECTB_COLOR) {
-        glDeleteTextures(1, &batch->gl.texture);
+
+    for (u32 i = 0; i < RECTB_MAX_TEXS; i++) {
+        if (batch->textures[i].active) {
+            glDeleteTextures(1, &batch->textures[i].gl.tex);
+        }
     }
 }
 
-void draw_rectb_push_col(draw_rectb* batch, rect draw_rect, vec3 col) {
-    if (batch->size < batch->capacity) {
-        u32 index = batch->size * elem_size[batch->type];
+u32 draw_rectb_add_tex(draw_rectb* batch, image img) {
+    u32 texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    
+    u32 color_type = img.channels == 3 ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, color_type, img.width, img.height, 0, color_type, GL_UNSIGNED_BYTE, img.data);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-        *(rect*)(batch->data + index) = draw_rect;
-        *(vec3*)(batch->data + index + sizeof(rect)) = col;
-
-        batch->size++;
-    } else {
-        draw_rectb_flush(batch);
-        draw_rectb_push_col(batch, draw_rect, col);
+    u32 id = -1;
+    for (u32 i = 0; i < RECTB_MAX_TEXS; i++) {
+        if (!batch->textures[i].active) {
+            id = i;
+            break;
+        }
     }
+    
+    if (id == -1) {
+        log_errorf("Draw rect batch ran out of textures, max is %u", RECTB_MAX_TEXS);
+        glDeleteTextures(1, &texture);
+        return -1;
+    }
+
+    batch->textures[id] = (draw_rectb_tex){
+        .active = true,
+        .width = img.width,
+        .height = img.height,
+        .gl.tex = texture
+    };
+    
+    return id;
 }
-void draw_rectb_push_tex(draw_rectb* batch, rect draw_rect, rect tex_rect) {
-    if (batch->size < batch->capacity) {
-        u32 index = batch->size * elem_size[batch->type];
+u32 draw_rectb_create_tex(arena* arena, draw_rectb* batch, string8 file_path) {
+    arena_temp temp = arena_temp_begin(arena);
 
-        *(rect*)(batch->data + index) = draw_rect;
-        *(rect*)(batch->data + index + sizeof(rect)) = tex_rect;
-
-        batch->size++;
-    } else {
-        draw_rectb_flush(batch);
-        draw_rectb_push_tex(batch, draw_rect, tex_rect);
+    string8 file = os_file_read(temp.arena, file_path);
+    if (file.size == 0) {
+        arena_temp_end(temp);
+        return -1;
     }
+    
+    image img = parse_png(temp.arena, file);
+    if (!img.valid)
+        img = parse_qoi(temp.arena, file);
+        
+    if (!img.valid) {
+        arena_temp_end(temp);
+        return -1;
+    }
+
+    u32 id = draw_rectb_add_tex(batch, img);
+
+    arena_temp_end(temp);
+
+    return id;
 }
-void draw_rectb_push_both(draw_rectb* batch, rect draw_rect, vec3 col, rect tex_rect) {
-    if (batch->size < batch->capacity) {
-        u32 index = batch->size * elem_size[batch->type];
-
-        *(rect*)(batch->data + index) = draw_rect;
-        *(vec3*)(batch->data + index + sizeof(rect)) = col;
-        *(rect*)(batch->data + index + sizeof(rect) + sizeof(vec3)) = tex_rect;
-
-        batch->size++;
-    } else {
-        draw_rectb_flush(batch);
-        draw_rectb_push_both(batch, draw_rect, col, tex_rect);
+void draw_rectb_destroy_tex(draw_rectb* batch, u32 tex_id) {
+    if (tex_id >= RECTB_MAX_TEXS || !batch->textures[tex_id].active) {
+        log_errorf("Cannot destroy draw rect batch texture id %u", tex_id);
+        return;
     }
+
+    glDeleteTextures(1, &batch->textures[tex_id].gl.tex);
+    
+    batch->textures[tex_id] = (draw_rectb_tex){ 0 };
+}
+
+void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id, rect tex_rect) {
+    if (batch->size >= batch->capacity)
+        draw_rectb_flush(batch);
+    
+    batch->data[batch->size++] = (draw_rectb_rect){
+        .draw_rect = draw_rect,
+        .col = col,
+        .tex_id = tex_id,
+        .tex_rect = tex_rect
+    };
 }
 
 void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
     glBindVertexArray(batch->gl.vertex_array);
+
+    for (u32 i = 0; i < RECTB_MAX_TEXS; i++) {
+        if (batch->textures[i].active) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, batch->textures[i].gl.tex);
+        }
+    }
+
+    
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
     
     glBindBuffer(GL_ARRAY_BUFFER, batch->gl.pos_pattern_buffer);
-    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     glBindBuffer(GL_ARRAY_BUFFER, batch->gl.vertex_buffer);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, elem_size[batch->type], (void*)(0));
+    
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, draw_rect)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, col)));
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, tex_id)));
+    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, tex_rect)));
+    
     glVertexAttribDivisor(1, 1);
+    glVertexAttribDivisor(2, 1);
+    glVertexAttribDivisor(3, 1);
+    glVertexAttribDivisor(4, 1);
 
-    if (batch->type != RECTB_TEXTURE) {
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, elem_size[batch->type], (void*)(sizeof(rect)));
-        glVertexAttribDivisor(2, 1);
-    }
-    if (batch->type != RECTB_COLOR) {
-        glEnableVertexAttribArray(3);
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, elem_size[batch->type],
-            (void*)(batch->type == RECTB_BOTH ? sizeof(rect) + sizeof(vec3) : sizeof(rect)));
-        glVertexAttribDivisor(3, 1);
-    }
+    // TODO: other attribs
 
-    glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * elem_size[batch->type], batch->data);
-
+    glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rectb_rect), batch->data);
+    
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)batch->size);
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
 
     batch->size = 0;
 }
 
-static const char* color_vert_source = ""
+static const char* vert_source = ""
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos_pattern;"
     "layout (location = 1) in vec4 a_quad;"
     "layout (location = 2) in vec3 a_col;"
-    "uniform mat2 u_win_mat;"
-    "out vec4 col;"
-    "void main() {"
-    "    col = vec4(a_col, 1);"
-    "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
-    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
-    "\n}";
-        
-static const char* texture_vert_source = ""
-    "#version 330 core\n"
-    "layout (location = 0) in vec2 a_pos_pattern;"
-    "layout (location = 1) in vec4 a_quad;"
-    "layout (location = 3) in vec4 a_tex_rect;"
-    "uniform mat2 u_win_mat;"
-    "out vec2 uv;"
-    "void main() {"
-    "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
-    "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
-    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
-    "\n}";
-        
-static const char* texture_frag_source = ""
-    "#version 330 core\n"
-    "layout (location = 0) out vec4 out_col;"
-    "in vec2 uv;"
-    "uniform sampler2D texture1;"
-    "void main() {"
-    "    out_col = texture(texture1, uv);"
-    "\n}";
-
-static const char* both_vert_source = ""
-    "#version 330 core\n"
-    "layout (location = 0) in vec2 a_pos_pattern;"
-    "layout (location = 1) in vec4 a_quad;"
-    "layout (location = 2) in vec3 a_col;"
-    "layout (location = 3) in vec4 a_tex_rect;"
+    "layout (location = 3) in float a_tex_id;"
+    "layout (location = 4) in vec4 a_tex_rect;"
     "uniform mat2 u_win_mat;"
     "out vec4 col;"
     "out vec2 uv;"
+    "flat out float tex_id;"
     "void main() {"
     "    col = vec4(a_col, 1);"
     "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
+    "    tex_id = a_tex_id;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
     "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
         
-static const char* both_frag_source = ""
-    "#version 330 core\n"
+static const char* frag_source = ""
+    "#version 400 core\n"
     "layout (location = 0) out vec4 out_col;"
     "in vec4 col;"
     "in vec2 uv;"
-    "uniform sampler2D texture1;"
+    "flat in float tex_id;"
+    "uniform sampler2D u_textures[" STRINGIFY(RECTB_MAX_TEXS) "];"
     "void main() {"
-    "    out_col = texture(texture1, uv) * col;"
+    "    int id = int(tex_id);"
+    "    out_col = texture(u_textures[id], uv) * col;"
     "\n}";
 
 

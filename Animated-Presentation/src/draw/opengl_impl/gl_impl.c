@@ -76,9 +76,6 @@ u32 gl_impl_create_texture_ex(arena* arena, string8 file_path, impl_gl_filter fi
     
     img = parse_png(arena, file);
     if (!img.valid) {
-        img = parse_qoi(arena, file);
-    }
-    if (!img.valid) {
         log_errorf("Failed to load texture at \"%.*s\"", (int)file_path.size, file_path.str);
         return -1;
     }

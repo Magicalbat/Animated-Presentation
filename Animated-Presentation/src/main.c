@@ -6,6 +6,9 @@
 #include "draw/draw.h"
 #include "draw/opengl_impl/gl_impl.h"
 
+// TODO: enable -Wall and fix warnings
+// TODO: use (void) instead of ()
+
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
 void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     log_level level = LOG_DEBUG;
@@ -54,8 +57,9 @@ int main(int argc, char** argv) {
     glEnable(GL_DEBUG_OUTPUT);
     glDebugMessageCallback(opengl_message_callback, 0);
 
-    draw_rectb* rectb = draw_rectb_create_ex(perm_arena, win, 1024,
-        RECTB_BOTH, STR8_LIT("monkey 1.png"));
+    draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
+    u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
+    u32 birds = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("kodim23.qoi"));
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
 
@@ -94,15 +98,17 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        /*for (u32 x = 0; x < 10; x++) {
+        for (u32 x = 0; x < 10; x++) {
             for (u32 y = 0; y < 10; y++) {
-                draw_rectb_push_both(rectb, (rect){
+                draw_rectb_push_ex(rectb, (rect){
                     (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
                 }, (vec3){
                     (f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
-                }, (rect){ (f32)x / 20.0f, (f32)y / 20.0f, 0.5f, 0.5f });
+                }, 
+                (x + y) % 2 == 0 ? monkey : birds, 
+                (rect){ 0, 0, 1, 1 });
             }
-        }*/
+        }
 
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
             for (u32 i = 0; i < 4; i++) {
@@ -121,24 +127,17 @@ int main(int argc, char** argv) {
         }
 
         for (u32 i = 0; i < 4; i++) {
-            draw_rectb_push_both(rectb, (rect){
+            draw_rectb_push(rectb, (rect){
                 bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
-            }, (vec3){ 1, 1, 1}, (rect){ 0, 0, 1, 1});
+            }, (vec3){ 1, 1, 1});
         }
 
-        /*for (f32 t = 0; t <= 1; t += 0.02f) {
-            draw_rectb_push_both(rectb, (rect){
-                cbezier_calc_x(&bezier, t),
-                cbezier_calc_y(&bezier, t),
-                10, 10
-            }, (vec3){ 1, 1, 1 }, (rect){ 0, 0, 1, 1 });
-        }*/
-        
         draw_rectb_flush(rectb);
 
         //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, points);
 
-        draw_cbezier_push(draw_bezier, &bezier, 4, (vec3){ 0.2f, 1.0f, 0.8f });
+        draw_cbezier_push_grad(draw_bezier, &bezier, 4,
+            (vec3){ 0.0f, 1.0f, 0.0f }, (vec3){ 0.8f, 0.0f, 0.2f});
         draw_cbezier_flush(draw_bezier);
 
         gfx_win_swap_buffers(win);

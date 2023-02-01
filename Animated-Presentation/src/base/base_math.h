@@ -7,9 +7,21 @@
 
 typedef struct { f32 x, y, w, h; } rect;
 
-typedef struct { f32 x, y;       } vec2;
-typedef struct { f32 x, y, z;    } vec3;
-typedef struct { f32 x, y, z, w; } vec4;
+typedef union {
+    struct { f32 x, y; };
+    struct { f32 u, v; };
+} vec2;
+
+typedef union {
+    struct { f32 x, y, z; };
+    struct { f32 r, g, b; };
+    struct { f32 h, s, v; };
+} vec3;
+
+typedef union {
+    struct { f32 x, y, z, w; };
+    struct { f32 r, g, b, a; };
+} vec4;
 
 typedef union {
     struct {
@@ -29,6 +41,9 @@ typedef union {
     };
     vec2 p[4];
 } cbezier;
+
+vec3 rgb_to_hsv(vec3 rgb);
+vec3 hsv_to_rgb(vec3 hsv);
 
 inline vec2 vec2_add(vec2 a, vec2 b) { return (vec2) { a.x + b.x, a.y + b.y }; }
 inline vec2 vec2_sub(vec2 a, vec2 b) { return (vec2) { a.x - b.x, a.y - b.y }; }
