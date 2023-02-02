@@ -97,4 +97,6 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 #define GL_DEBUG_SEVERITY_LOW             0x9148
 #define GL_DEBUG_SEVERITY_NOTIFICATION    0x826B
 
+#define GL_TEXTURE0                       0x84C0
+
 #endif // GL_DEFS_H

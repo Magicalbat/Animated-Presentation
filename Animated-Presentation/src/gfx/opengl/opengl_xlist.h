@@ -45,3 +45,5 @@ X(void, glUniformMatrix2fv, (GLint location, GLsizei count, GLboolean transpose,
 X(void, glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
 
 X(void, glGenerateMipmap, (GLenum target))
+
+X(void, glActiveTexture, (GLenum texture))
