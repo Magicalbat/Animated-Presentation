@@ -23,7 +23,7 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) {
     glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
 
     u32 textures_loc = glGetUniformLocation(batch->gl.shader_program, "u_textures");
-    u32 tex_indices[RECTB_MAX_TEXS];
+    i32 tex_indices[RECTB_MAX_TEXS];
     for (u32 i = 0; i < RECTB_MAX_TEXS; i++) {
         tex_indices[i] = i;
     }
@@ -147,7 +147,7 @@ void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id,
     batch->data[batch->size++] = (draw_rectb_rect){
         .draw_rect = draw_rect,
         .col = col,
-        .tex_id = tex_id,
+        .tex_id = (f32)tex_id,
         .tex_rect = tex_rect
     };
 }
