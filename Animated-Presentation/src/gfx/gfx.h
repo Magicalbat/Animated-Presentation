@@ -31,8 +31,6 @@
 #define GFX_NUM_KEYS          256
 #define GFX_NUM_MOUSE_BUTTONS 5
 
-// TODO: remove pointer arrays for keys and mouse buttons
-
 typedef struct {
     u32 width;
     u32 height;

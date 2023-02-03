@@ -29,6 +29,7 @@ gzip parse_gzip(arena* arena, string8 file);
 
 image parse_png(arena* arena, string8 file);
 image parse_qoi(arena* arena, string8 file);
+image parse_image(arena* arena, string8 file);
 // TODO: image identifier function / parse image
 
 #endif // PARSE_MISC_H

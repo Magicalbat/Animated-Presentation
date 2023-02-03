@@ -20,7 +20,6 @@ typedef enum {
 typedef struct {
     string8 str;
     log_level level;
-    // TODO: error codes?
 } log_data;
 
 typedef struct {

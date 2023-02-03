@@ -8,8 +8,6 @@
     #include "opengl_xlist.h"
 #undef X
 
-// TODO: Fix unnamed window
-
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
 static bool isExtensionSupported(const char *extList, const char *extension);
@@ -44,7 +42,7 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     GLXFBConfig* fbc = glXChooseFBConfig(win->glx.display, DefaultScreen(win->glx.display), glx_attribs, &fbcount);
     if (fbc == 0) {
         XCloseDisplay(win->glx.display);
-        ASSERT(false, "Failed to retrieve framebuffer.");
+        log_error("Failed to retrieve framebuffer");
     }
 
     int best_fbc_i = -1, worst_fbc_i = -1, best_num_samp = -1, worst_num_samp = 999;
@@ -79,7 +77,7 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
         .background_pixel = WhitePixel(win->glx.display, win->glx.screen),
         .override_redirect = True,
         .colormap = XCreateColormap(win->glx.display, RootWindow(win->glx.display, win->glx.screen), visual->visual, AllocNone),
-        .event_mask = ExposureMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask
+        .event_mask = ExposureMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | KeyPressMask | KeyReleaseMask
     };
 
     // https://stackoverflow.com/questions/10792361/how-do-i-gracefully-exit-an-x11-event-loop
@@ -164,6 +162,11 @@ void gfx_win_process_events(gfx_window* win) {
             case MotionNotify:
                 win->mouse_pos.x = (f32)e.xmotion.x;
                 win->mouse_pos.y = (f32)e.xmotion.y;
+                break;
+            case KeyPress:
+                // TODO: Keyboard input
+                break;
+            case KeyRelease:
                 break;
             case ClientMessage:
                 if (e.xclient.data.l[0] == win->glx.del_window) {

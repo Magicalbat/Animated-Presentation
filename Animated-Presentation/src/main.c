@@ -172,7 +172,7 @@ typedef enum {
 
 typedef void (draw_func)(gfx_window* win, void* obj);
 typedef void (update_func)(f32 delta, void* obj);
-typedef void (create_func)();
+typedef void (create_func)(arena* arena);
 typedef void (destroy_func)(void* obj);
 
 #define MAX_FIELDS 32

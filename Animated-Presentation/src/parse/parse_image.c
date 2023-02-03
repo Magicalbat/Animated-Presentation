@@ -1,5 +1,8 @@
 #include "parse/parse.h"
 
+string8 png_file_header = (string8){ "\x89" "PNG" "\r\n" "\x1A" "\n", 8 };
+string8 qoi_file_header = (string8){ "qoif", 4 };
+
 typedef enum {
     PNG_NULL,
     PNG_IHDR,
@@ -72,8 +75,6 @@ static inline u8 pget_byte(pstate* state) {
 #define PBYTE() (ppeek_byte(state))
 #define BYTE()  (pget_byte(state))
 #define U32()   (BYTE() << 24 | BYTE() << 16 | BYTE() << 8 | BYTE())
-
-static const char* file_header = "\x89" "PNG" "\r\n" "\x1A" "\n";
 
 #define PNG_CHUNK_ID(a, b, c, d) ((u32)(a) << 24 | (u32)(b) << 16 | (u32)(c) << 8 | (u32)(d))
 
@@ -267,7 +268,7 @@ static void parse_png_chunk(arena* arena, pstate* state) {
 }
 
 image parse_png(arena* arena, string8 file) {
-    if (!str8_equals(str8_from_cstr((u8*)file_header), str8_substr(file, 0, 8))) {
+    if (!str8_equals(png_file_header, str8_substr(file, 0, 8))) {
         log_error("Invalid PNG header, not a PNG file");
         return (image){ .valid = false };
     }
@@ -287,4 +288,141 @@ image parse_png(arena* arena, string8 file) {
     
     state.png.data = state.out;
     return state.png;
+}
+
+
+#undef PBYTE
+#undef BYTE
+#undef U32
+
+#define PBYTE() (data[pos])
+#define BYTE()  (data[pos++])
+#define U32() \
+    (data[pos] << 24 | data[pos+1] << 16 | data[pos+2] << 8 | data[pos+3]); \
+    pos += 4
+#define PIXEL_INDEX(p) ((p.r * 3 + p.g * 5 + p.b * 7 + p.a * 11) & 63)
+#define WRITE_PIXEL(p) do {       \
+    out.data[out_pos + 0] = p.r; \
+    out.data[out_pos + 1] = p.g; \
+    out.data[out_pos + 2] = p.b; \
+    out.data[out_pos + 3] = p.a; \
+    out_pos += out.channels;     \
+} while (0)
+
+typedef struct {
+    u8 r;
+    u8 g;
+    u8 b;
+    u8 a;
+} qpixel;
+
+image parse_qoi(arena* arena, string8 file) {
+    if (file.size < 14 ||
+        !str8_equals(qoi_file_header, str8_substr(file, 0, 4))) {
+        log_error("Invalid QOI header. Not a QOI file");
+        return (image){ .valid = false };
+    }
+
+    image out = { .valid = true };
+    u8* data = file.str;
+    u64 pos = 4;
+
+    out.width = U32();
+    out.height = U32();
+    out.channels = BYTE();
+    u32 colorspace = BYTE();
+
+    u64 out_pos = 0;
+    u64 out_size = out.width * out.height * out.channels;
+    // "+ 1" to prevent overflow in WRITE_PIXEL
+    out.data = CREATE_ZERO_ARRAY(arena, out.data, u8, out_size + 1);
+
+    qpixel arr[64] = { 0 };
+    qpixel pixel = { .a = 255 };
+
+    while (out_pos < out_size) {
+        switch (PBYTE()) {
+            case 0b11111110:
+                pos++;
+                pixel.r = BYTE();
+                pixel.g = BYTE();
+                pixel.b = BYTE();
+
+                arr[PIXEL_INDEX(pixel)] = pixel;
+                WRITE_PIXEL(pixel);
+
+                break;
+            case 0b11111111:
+                pos++;
+                pixel.r = BYTE();
+                pixel.g = BYTE();
+                pixel.b = BYTE();
+                pixel.a = BYTE();
+
+                arr[PIXEL_INDEX(pixel)] = pixel;
+                WRITE_PIXEL(pixel);
+
+                break;
+            default:
+                switch ((PBYTE() & 0b11000000) >> 6) {
+                    case 0b00: ;
+                        u8 index = BYTE() & 0b00111111;
+                        pixel = arr[index];
+                        WRITE_PIXEL(pixel);
+
+                        break;
+                    case 0b01: ;
+                        u8 dr = ((PBYTE() & 0b00110000) >> 4) - 2;
+                        u8 dg = ((PBYTE() & 0b00001100) >> 2) - 2;
+                        u8 db = (( BYTE() & 0b00000011) >> 0) - 2;
+
+                        pixel.r += dr;
+                        pixel.g += dg;
+                        pixel.b += db;
+
+                        arr[PIXEL_INDEX(pixel)] = pixel;
+                        WRITE_PIXEL(pixel);
+
+                        break;
+                    case 0b10: ;
+                        u8 diff_g = (BYTE() & 0b00111111) - 32;
+                        u8 diff_r = (((PBYTE() & 0b11110000) >> 4) - 8) + diff_g;
+                        u8 diff_b = ((BYTE() & 0b00001111) - 8) + diff_g;
+
+                        pixel.r += diff_r;
+                        pixel.g += diff_g;
+                        pixel.b += diff_b;
+
+                        arr[PIXEL_INDEX(pixel)] = pixel;
+                        WRITE_PIXEL(pixel);
+ 
+                        break;
+                    case 0b11: ;
+                        u8 length = BYTE() & 0b00111111;
+
+                        do {
+                            WRITE_PIXEL(pixel);
+                        } while (length--);
+
+                        break;
+                }
+                break;
+        }
+    }
+
+    arena_pop(arena, 1);
+    return out;
+}
+
+image parse_image(arena* arena, string8 file) {
+    if (file.size >= png_file_header.size && str8_equals(png_file_header, str8_substr(file, 0, png_file_header.size))) {
+        return parse_png(arena, file);
+    }
+    if (file.size >= qoi_file_header.size && str8_equals(qoi_file_header, str8_substr(file, 0, qoi_file_header.size))) {
+        return parse_qoi(arena, file);
+    }
+
+    log_error("Unsupported image format");
+
+    return (image){ 0 };
 }

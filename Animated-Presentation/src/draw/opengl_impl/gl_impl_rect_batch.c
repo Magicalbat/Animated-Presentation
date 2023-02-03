@@ -116,9 +116,7 @@ u32 draw_rectb_create_tex(arena* arena, draw_rectb* batch, string8 file_path) {
         return -1;
     }
     
-    image img = parse_png(temp.arena, file);
-    if (!img.valid)
-        img = parse_qoi(temp.arena, file);
+    image img = parse_image(temp.arena, file);
         
     if (!img.valid) {
         arena_temp_end(temp);
@@ -186,8 +184,6 @@ void draw_rectb_flush(draw_rectb* batch) {
     glVertexAttribDivisor(2, 1);
     glVertexAttribDivisor(3, 1);
     glVertexAttribDivisor(4, 1);
-
-    // TODO: other attribs
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rectb_rect), batch->data);
     

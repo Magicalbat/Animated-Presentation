@@ -11,6 +11,7 @@ string8 str8_from_cstr(u8* cstr) {
     for(; *ptr != 0; ptr += 1);
     return str8_from_range(cstr, ptr);
 }
+
 string8 str8_copy(arena* arena, string8 str) {
     string8 out = { 
         .str = (u8*)arena_alloc(arena, str.size),
@@ -19,6 +20,14 @@ string8 str8_copy(arena* arena, string8 str) {
 
     memcpy(out.str, str.str, str.size);
     
+    return out;
+}
+u8* str8_to_cstr(arena* arena, string8 str) {
+    u8* out = CREATE_ARRAY(arena, u8, str.size + 1);
+    
+    memcpy(out, str.str, str.size);
+    out[str.size] = '\0';
+
     return out;
 }
 

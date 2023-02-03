@@ -55,7 +55,9 @@ typedef struct {
 string8 str8_create(u8* str, u64 size);
 string8 str8_from_range(u8* start, u8* end);
 string8 str8_from_cstr(u8* cstr);
+
 string8 str8_copy(arena* arena, string8 str);
+u8*     str8_to_cstr(arena* arena, string8 str);
 
 b8 str8_equals(string8 a, string8 b);
 b8 str8_contains(string8 a, string8 b);

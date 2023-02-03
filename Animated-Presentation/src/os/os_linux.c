@@ -84,10 +84,7 @@ void os_sleep_milliseconds(u32 t) {
 int lnx_open_impl(string8 path, int flags, mode_t mode) {
     arena_temp temp = arena_temp_begin(lnx_arena);
     
-    u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
-    memcpy(path_cstr, path.str, path.size);
-    path_cstr[path.size] = '\0';
-    
+    u8* path_cstr = str8_to_cstr(temp.arena, path);
     int fd = open((char*)path_cstr, flags, mode);
 
     arena_temp_end(temp);
@@ -191,10 +188,8 @@ file_flags lnx_file_flags(mode_t mode) {
 file_stats os_file_get_stats(string8 path) {
     arena_temp temp = arena_temp_begin(lnx_arena);
     
-    u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
-    memcpy(path_cstr, path.str, path.size);
-    path_cstr[path.size] = '\0';
-
+    u8* path_cstr = str8_to_cstr(temp.arena, path);
+    
     struct stat file_stat;
     stat((char*)path_cstr, &file_stat);
 
@@ -260,9 +255,7 @@ static string8 dl_error_string(void) {
 os_library os_lib_load(string8 path) {
     arena_temp temp = arena_temp_begin(lnx_arena);
     
-    u8* path_cstr = (u8*)arena_alloc(temp.arena, sizeof(u8) * (path.size + 1));
-    memcpy(path_cstr, path.str, path.size);
-    path_cstr[path.size] = '\0';
+    u8* path_cstr = str8_to_cstr(temp.arena, path);
     
     void* handle = dlopen((char*)path_cstr, RTLD_LAZY);
 
