@@ -1,7 +1,7 @@
 #include "parse/parse.h"
 
-string8 png_file_header = (string8){ "\x89" "PNG" "\r\n" "\x1A" "\n", 8 };
-string8 qoi_file_header = (string8){ "qoif", 4 };
+static const string8 png_file_header = { (u8*)("\x89" "PNG" "\r\n" "\x1A" "\n"), 8 };
+static const string8 qoi_file_header = { (u8*)("qoif"), 4 };
 
 typedef enum {
     PNG_NULL,

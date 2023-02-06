@@ -46,4 +46,6 @@ X(void, glDebugMessageCallback, (GLDEBUGPROC callback, const void *userParam))
 
 X(void, glGenerateMipmap, (GLenum target))
 
-X(void, glActiveTexture, (GLenum texture))
+#ifndef __linux__
+    X(void, glActiveTexture, (GLenum texture))
+#endif
