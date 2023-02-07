@@ -29,8 +29,10 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) {
     }
     glUniform1iv(textures_loc, RECTB_MAX_TEXS, tex_indices);
 
+#ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &batch->gl.vertex_array);
     glBindVertexArray(batch->gl.vertex_array);
+#endif
 
     batch->gl.vertex_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(draw_rectb_rect) * capacity, NULL, GL_DYNAMIC_DRAW
@@ -58,7 +60,9 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) {
 }
 void draw_rectb_destroy(draw_rectb* batch) {
     glDeleteProgram(batch->gl.shader_program);
+#ifndef __EMSCRIPTEN__
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
+#endif
     glDeleteBuffers(1, &batch->gl.vertex_buffer);
     glDeleteBuffers(1, &batch->gl.pos_pattern_buffer);
 
@@ -151,10 +155,16 @@ void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id,
         .tex_rect = tex_rect
     };
 }
+void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col) {
+    draw_rectb_push_ex(batch, draw_rect, col, 0, (rect){ 0.0f, 0.0f, 1.0f, 1.0f }); 
+}
 
 void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
+
+#ifndef __EMSCRIPTEN__
     glBindVertexArray(batch->gl.vertex_array);
+#endif
 
     for (u32 i = 0; i < RECTB_MAX_TEXS; i++) {
         if (batch->textures[i].active) {

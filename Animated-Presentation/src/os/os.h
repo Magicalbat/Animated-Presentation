@@ -11,7 +11,7 @@
 
     #include <Windows.h>
     #include <timeapi.h>
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__EMSCRIPTEN__)
     #include <sys/mman.h>
     #include <sys/stat.h>
     #include <unistd.h>
@@ -20,6 +20,11 @@
     #include <string.h>
     #include <errno.h>
     #include <dlfcn.h>
+
+    #if defined(__EMSCRIPTEN__)
+        #include <emscripten.h>
+        #include <emscripten/fetch.h>
+    #endif
 #endif
 
 typedef enum {
@@ -49,7 +54,7 @@ typedef struct {
 typedef struct {
     #if defined(_WIN32)
         HMODULE module;
-    #elif defined(__linux__)
+    #elif defined(__linux__) || defined(__EMSCRIPTEN__)
         void* handle;
     #endif
 } os_library;

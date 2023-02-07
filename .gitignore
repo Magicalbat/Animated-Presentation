@@ -23,5 +23,7 @@ infgen.c
 **.png
 **.qoi
 **.so
+**.html
+**.js
 test_lib.c
 Animated-Presentation/res

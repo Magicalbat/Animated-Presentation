@@ -6,10 +6,11 @@
 #include "draw/draw.h"
 #include "draw/opengl_impl/gl_impl.h"
 
+// TODO: use gles2 for wasm
 // TODO: enable -Wall and fix warnings
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
-void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+/*void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
     log_level level = LOG_DEBUG;
     switch (severity) {
         case GL_DEBUG_SEVERITY_NOTIFICATION:
@@ -26,7 +27,7 @@ void opengl_message_callback(GLenum source, GLenum type, GLuint id, GLenum sever
     }
     log_msgf(level, "GL CALLBACK - type = 0x%x, severity = 0x%x, message = %s",
         type, severity, message);
-}
+}*/
 
 #define WIN_SCALE 1
 
@@ -38,7 +39,7 @@ int main(int argc, char** argv) {
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
     
-    arena* perm_arena = arena_create(MiB(16));
+    arena* perm_arena = arena_create(MiB(4));
 
     gfx_window* win = gfx_win_create(
         perm_arena,
@@ -53,8 +54,8 @@ int main(int argc, char** argv) {
     log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
     log_infof("GL Version: %s",  glGetString(GL_VERSION));
 
-    glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(opengl_message_callback, 0);
+    //glEnable(GL_DEBUG_OUTPUT);
+    //glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
     u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));

@@ -28,8 +28,10 @@ draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts) {
     poly->gl.offset_loc = glGetUniformLocation(poly->gl.shader_program, "u_offset");
     glUniform2f(poly->gl.offset_loc, 0.0f, 0.0f);
     
+#ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &poly->gl.vertex_array);
     glBindVertexArray(poly->gl.vertex_array);
+#endif
     
     poly->gl.vertex_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(vec2) * max_verts, NULL, GL_DYNAMIC_DRAW
@@ -43,7 +45,9 @@ draw_polygon* draw_poly_create(arena* arena, gfx_window* win, u32 max_verts) {
 }
 void draw_poly_destroy(draw_polygon* poly) {
     glDeleteProgram(poly->gl.shader_program);
+#ifndef __EMSCRIPTEN__
     glDeleteVertexArrays(1, &poly->gl.vertex_array);
+#endif
     glDeleteBuffers(1, &poly->gl.vertex_buffer);
     glDeleteBuffers(1, &poly->gl.index_buffer);
 }
@@ -53,7 +57,9 @@ static void poly_gl_setup(draw_polygon* poly, vec3 col, vec2 offset) {
     glUniform3f(poly->gl.col_loc, col.x, col.y, col.z);
     glUniform2f(poly->gl.offset_loc, offset.x, offset.y);
 
+#ifndef __EMSCRIPTEN__
     glBindVertexArray(poly->gl.vertex_array);
+#endif
     glBindBuffer(GL_ARRAY_BUFFER, poly->gl.vertex_buffer);
     
     glEnableVertexAttribArray(0);

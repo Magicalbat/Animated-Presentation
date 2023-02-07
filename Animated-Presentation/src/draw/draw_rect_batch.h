@@ -52,9 +52,7 @@ void draw_rectb_destroy_tex(draw_rectb* batch, u32 tex_id);
 
 // These functions will draw rects to the screen
 void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id, rect tex_rect);
-inline void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col) {
-    draw_rectb_push_ex(batch, draw_rect, col, 0, (rect){ 0.0f, 0.0f, 1.0f, 1.0f }); 
-}
+void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col);
 void draw_rectb_flush(draw_rectb* batch);
 
 #endif // DRAW_RECT_BATCH_H

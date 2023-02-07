@@ -1,6 +1,8 @@
 #ifndef GL_DEFS_H
 #define GL_DEFS_H
 
+#ifndef __EMSCRIPTEN__
+
 #include "base/base_defs.h"
 
 typedef unsigned int GLenum;
@@ -99,4 +101,5 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
 
 #define GL_TEXTURE0                       0x84C0
 
+#endif // __EMSCRIPTEN__
 #endif // GL_DEFS_H

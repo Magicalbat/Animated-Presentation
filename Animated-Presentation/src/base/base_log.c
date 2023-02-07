@@ -52,6 +52,7 @@ void log_init(log_desc base_desc) {
         desc.file_path = STR8_LIT("log.txt");
     }
 
+#ifndef __EMSCRIPTEN__
     make_file = false;
     for (u32 i = 0; i < LOG_LEVEL_COUNT; i++) {
         if (desc.log_file[i] == LOG_YES) {
@@ -63,6 +64,11 @@ void log_init(log_desc base_desc) {
         file_mode open_mode = desc.new_file == LOG_YES ? FOPEN_WRITE : FOPEN_APPEND;
         file = os_file_open(desc.file_path, open_mode);
     }
+#else
+    for (u32 i = 0; i < LOG_LEVEL_COUNT; i++) {
+        desc.log_file[i] = LOG_NO;
+    }
+#endif
 
     log_arena = arena_create(desc.max_stored * 256 + KiB(4));
 

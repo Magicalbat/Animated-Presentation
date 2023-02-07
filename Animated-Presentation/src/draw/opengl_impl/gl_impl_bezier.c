@@ -23,8 +23,10 @@ draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
     };
     glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
 
+#ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &draw_cb->gl.vertex_array);
     glBindVertexArray(draw_cb->gl.vertex_array);
+#endif
 
     draw_cb->gl.vertex_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(cb_vertex) * capacity * 4, NULL, GL_DYNAMIC_DRAW
@@ -38,7 +40,9 @@ draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
 }
 void draw_cbezier_destroy(draw_cbezier* draw_cb) {
     glDeleteProgram(draw_cb->gl.shader_program);
+#ifndef __EMSCRIPTEN__
     glDeleteVertexArrays(1, &draw_cb->gl.vertex_array);
+#endif
     glDeleteBuffers(1, &draw_cb->gl.vertex_buffer);
     glDeleteBuffers(1, &draw_cb->gl.index_buffer);
 }
@@ -125,7 +129,10 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
 
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glUseProgram(draw_cb->gl.shader_program);
+
+#ifndef __EMSCRIPTEN__
     glBindVertexArray(draw_cb->gl.vertex_array);
+#endif
 
     glBindBuffer(GL_ARRAY_BUFFER, draw_cb->gl.vertex_buffer);
     glBufferSubData(GL_ARRAY_BUFFER, 0, draw_cb->vertex_pos * sizeof(cb_vertex), draw_cb->vertices);

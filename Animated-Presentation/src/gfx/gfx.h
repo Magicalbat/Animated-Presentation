@@ -13,6 +13,10 @@
     #define WIN32_LEAN_AND_MEAN
 
     #include <Windows.h>
+#elif defined(__EMSCRIPTEN__)
+    #include <emscripten.h>
+    #include <emscripten/html5.h>
+    #include <GLES3/gl3.h>
 #else
     #error cannot find valid platform
 #endif
@@ -57,6 +61,10 @@ typedef struct {
                 HDC device_context;
                 HGLRC context;
             } wgl;
+        #elif defined(__EMSCRIPTEN__)
+            struct {
+                EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx;
+            } wasm;
         #endif
     #endif
 

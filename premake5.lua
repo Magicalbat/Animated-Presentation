@@ -1,6 +1,5 @@
 workspace "Animated-Presentation"
     configurations {"Debug", "Release"}
-    architecture "x64"
     startproject "Animated Presentation"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -43,7 +42,7 @@ project "Animated-Presentation"
             --"-Wall"
         }
 
-    filter "system:windows"
+    filter { "system:windows", "options:not wasm" }
         staticruntime "On"
         systemversion "latest"
         
@@ -52,12 +51,17 @@ project "Animated-Presentation"
             "gdi32.lib", "kernel32", "user32", "winmm", "opengl32"
         }
 
-    filter { "system:windows", "action:vs2022" }
-        cdialect "C17"
+    newoption {
+        trigger = "wasm",
+        description = "Choose whether or not to make build files for wasm",
+    }
 
-    filter { "system:windows", "action:gmake or gmake2 or win_gmake" }
-        toolset "clang"
-
+    filter "options:wasm"
+        linkoptions { "-sFETCH=1", "-sWASM=1", "-sFULL_ES3=1", "--proxy-to-worker" }
+        links { "m", "GL" }
+    filter "options:not wasM"
+        architecture "x64"
+    
     filter "configurations:Debug"
         symbols "On"
 
@@ -69,3 +73,16 @@ project "Animated-Presentation"
     filter "configurations:Release"
         optimize "On"
         defines "NDEBUG"
+
+    filter { "system:windows", "action:vs2022" }
+        cdialect "C17"
+
+    filter { "system:windows", "action:gmake or gmake2 or win_gmake" }
+        toolset "clang"
+
+    -- Emscripten for clangd on my computer
+    filter "action:ecc"
+        includedirs
+        {
+            "C:/Users/magic/Desktop/Projects/Applications/emsdk/upstream/emscripten/cache/sysroot/include",
+        }
