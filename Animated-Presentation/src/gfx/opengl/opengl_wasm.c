@@ -10,8 +10,8 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
 
     EmscriptenWebGLContextAttributes attr;
-	emscripten_webgl_init_context_attributes(&attr);
-	attr.alpha = 0;
+    emscripten_webgl_init_context_attributes(&attr);
+    attr.alpha = 0;
     //attr.depth = 0;
     //attr.stencil = 0;
 
