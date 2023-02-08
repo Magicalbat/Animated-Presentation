@@ -66,6 +66,8 @@ void os_sleep_milliseconds(u32 t) {
     emscripten_sleep(t);
 }
 
+// TODO: make this work better
+// https://stackoverflow.com/questions/63959571/how-do-i-pass-a-file-blob-from-javascript-to-emscripten-webassembly-c
 EM_ASYNC_JS(char*, os_file_read_impl, (char* file_name), {
     const response = await fetch(UTF8ToString(file_name));
     if (!response.ok) {
