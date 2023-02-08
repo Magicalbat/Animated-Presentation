@@ -63,32 +63,40 @@ u64 os_now_microseconds(void) {
 }
 
 void os_sleep_milliseconds(u32 t) {
-    usleep(t * 1000);
+    emscripten_sleep(t);
 }
+
+EM_ASYNC_JS(char*, os_file_read_impl, (char* file_name), {
+    const response = await fetch(UTF8ToString(file_name));
+    if (!response.ok) {
+        return 0;
+    }
+
+    const text = await response.text();
+
+    const lengthBytes = lengthBytesUTF8(text)+1;
+    const stringOnWasmHeap = _malloc(lengthBytes);
+    stringToUTF8(text, stringOnWasmHeap, lengthBytes);
+
+    return stringOnWasmHeap;
+})
 
 string8 os_file_read(arena* arena, string8 path) {
     arena_temp temp = arena_temp_begin(arena);
 
     u8* path_cstr = str8_to_cstr(temp.arena, path);
-
-    emscripten_fetch_attr_t attr;
-    emscripten_fetch_attr_init(&attr);
-    strcpy(attr.requestMethod, "GET");
-    attr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY | EMSCRIPTEN_FETCH_SYNCHRONOUS | EMSCRIPTEN_FETCH_REPLACE;
-    emscripten_fetch_t *fetch = emscripten_fetch(&attr, (char*)path_cstr);
+    u8* file = (u8*)os_file_read_impl((char*)path_cstr);
 
     arena_temp_end(temp);
 
     string8 out = { 0 }; 
-    if (fetch->status == 200) {
-        out.size = fetch->numBytes;
-        out.str = CREATE_ARRAY(arena, u8, out.size);
-        memcpy(out.str, fetch->data, out.size);
+    if (file != NULL) {
+        out = str8_copy(arena, str8_from_cstr(file));
     } else {
-        log_errorf("Failed to read file from %s", fetch->url);
+        log_errorf("Failed to read file from %.*s", (int)path.size, path.str);
     }
 
-    emscripten_fetch_close(fetch);
+    free(file);
 
     return out;
 }
@@ -127,7 +135,7 @@ void os_file_close(os_file file) {
 static string8 dl_error_string(void) {
     char* err_cstr = dlerror();
     
-    return str8_from_cstr(err_cstr);
+    return str8_from_cstr((u8*)err_cstr);
 }
 #define log_dl_error(msg) do { \
         string8 err = dl_error_string(); \

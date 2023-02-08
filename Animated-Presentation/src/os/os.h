@@ -46,7 +46,7 @@ typedef enum {
 typedef struct {
     #if defined(_WIN32)
         HANDLE file_handle;
-    #elif defined(__linux__)
+    #elif defined(__linux__) || defined(__EMSCRIPTEN__)
         int fd;
     #endif
 } os_file;

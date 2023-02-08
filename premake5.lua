@@ -63,7 +63,17 @@ project "Animated-Presentation"
     }
 
     filter "options:wasm"
-        linkoptions { "-sFETCH=1", "-sWASM=1", "-sFULL_ES3=1", "--proxy-to-worker" }
+        linkoptions
+        {
+            "-sFETCH=1",
+            "-sWASM=1",
+
+            "-sASYNCIFY=1",
+            "-O2",
+
+            "-sFULL_ES3=1",
+            "-sOFFSCREEN_FRAMEBUFFER=1"
+        }
         links { "m", "GL" }
 
     filter "options:not wasm"

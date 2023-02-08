@@ -53,17 +53,18 @@ int main(int argc, char** argv) {
     log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
     log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
     log_infof("GL Version: %s",  glGetString(GL_VERSION));
+    
 
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
-    u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
-    u32 birds = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("kodim23.qoi"));
+    //u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
+    //u32 birds = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("kodim23.qoi"));
 
-    draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
+    //draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
 
-    draw_cbezier* draw_bezier = draw_cbezier_create(perm_arena, win, 256);
+    //draw_cbezier* draw_bezier = draw_cbezier_create(perm_arena, win, 256);
     
     vec2 p[18];
     vec2_arr points = { .data=p, .size=18 };
@@ -98,18 +99,21 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        for (u32 x = 0; x < 10; x++) {
-            for (u32 y = 0; y < 10; y++) {
-                draw_rectb_push_ex(rectb, (rect){
-                    (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
-                }, (vec3){
-                    1.0f, 1.0f, 1.0f
-                    //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
-                }, 
-                (x + y) % 2 == 0 ? monkey : birds, 
-                (rect){ 0, 0, 1, 1 });
-            }
-        }
+        draw_rectb_push(rectb, (rect){
+            0.0f, 0.0f, 0.5f, 0.5f
+        }, (vec3){ 1.0f, 1.0f, 1.0f });
+        //for (u32 x = 0; x < 10; x++) {
+        //    for (u32 y = 0; y < 10; y++) {
+        //        draw_rectb_push(rectb, (rect){
+        //            (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
+        //        }, (vec3){
+        //            1.0f, 1.0f, 1.0f
+        //            //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
+        //        });
+        //        //(x + y) % 2 == 0 ? monkey : birds, 
+        //        //(rect){ 0, 0, 1, 1 });
+        //    }
+        //}
 
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
             for (u32 i = 0; i < 4; i++) {
@@ -127,96 +131,35 @@ int main(int argc, char** argv) {
             bezier.p[cur_point] = win->mouse_pos;
         }
 
-        for (u32 i = 0; i < 4; i++) {
-            draw_rectb_push(rectb, (rect){
-                bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
-            }, (vec3){ 1, 1, 1});
-        }
+        //for (u32 i = 0; i < 4; i++) {
+        //    draw_rectb_push(rectb, (rect){
+        //        bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
+        //    }, (vec3){ 1, 1, 1});
+        //}
 
         draw_rectb_flush(rectb);
 
-        draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
+        //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
 
-        draw_cbezier_push_grad(draw_bezier, &bezier, 4,
-            (vec3){ 0.0f, 1.0f, 0.0f }, (vec3){ 0.8f, 0.0f, 0.2f});
-        draw_cbezier_flush(draw_bezier);
+        //draw_cbezier_push_grad(draw_bezier, &bezier, 4,
+        //    (vec3){ 0.0f, 1.0f, 0.0f }, (vec3){ 0.8f, 0.0f, 0.2f});
+        //draw_cbezier_flush(draw_bezier);
 
         gfx_win_swap_buffers(win);
 
         time_prev = time_now;
+        os_sleep_milliseconds(16);
     }
 
-    draw_cbezier_destroy(draw_bezier);
-    draw_poly_destroy(poly);
+    //draw_cbezier_destroy(draw_bezier);
+    //draw_poly_destroy(poly);
     draw_rectb_destroy(rectb);
 
     gfx_win_destroy(win);
+    
     arena_destroy(perm_arena);
     log_quit();
     os_main_quit();
 
     return 0;
 }
-
-/*
-typedef enum {
-    FIELD_EMPTY,
-    FIELD_I32,
-    FIELD_I64,
-    FIELD_F32,
-    FIELD_F64,
-    FIELD_VEC2,
-    FIELD_VEC3,
-    FIELD_VEC4,
-    FIELD_STR8
-} field_type;
-
-typedef void (draw_func)(gfx_window* win, void* obj);
-typedef void (update_func)(f32 delta, void* obj);
-typedef void (create_func)(arena* arena);
-typedef void (destroy_func)(void* obj);
-
-#define MAX_FIELDS 32
-typedef struct {
-    u32 obj_desc_size; // allows for additional desc functionality in the future
-    string8 name;
-
-    string8 field_names[MAX_FIELDS];
-    field_type field_types[MAX_FIELDS];
-    u16 field_offsets[MAX_FIELDS];
-    u32 obj_size; // will allow for extra data
-
-    draw_func* draw_func;
-    update_func* update_func;
-
-    create_func* create_func;
-    destroy_func* destroy_func;
-} obj_desc;
-
-void register_obj(obj_desc* desc) { ... }
-
-typedef struct {
-    f32 x, y, w, h;
-} rect;
-
-obj_desc rect_desc = {
-    .obj_desc_size = sizeof(obj_desc),
-    .name = "rect",
-    .field_names = {
-        "x", "y", "w", "h"
-    },
-    .field_types = {
-        FIELD_F32, FIELD_F32, FIELD_F32, FIELD_F32
-    },
-    .field_offsets = {
-        offsetof(rect, x),
-        offsetof(rect, y),
-        offsetof(rect, w),
-        offsetof(rect, h),
-    },
-    .obj_size = sizeof(rect)
-    .draw_func = yes,
-    .update_func = no?
-};
-register_obj(rect_desc);
-*/

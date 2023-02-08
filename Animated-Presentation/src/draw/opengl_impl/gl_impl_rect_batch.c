@@ -17,8 +17,8 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) {
     
     u32 win_mat_loc = glGetUniformLocation(batch->gl.shader_program, "u_win_mat");
     f32 win_mat[] = {
-        2.0f / (f32)win->width, 0,
-        0, 2.0f / -((f32)win->height)
+        2.0f / ((f32)win->width), 0,
+        0, 2.0f / ((f32)win->height)
     };
     glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
 
@@ -209,34 +209,55 @@ void draw_rectb_flush(draw_rectb* batch) {
 }
 
 static const char* vert_source = ""
+#ifdef __EMSCRIPTEN__
+    "attribute vec2 a_pos_pattern;"
+    "attribute vec4 a_quad;"
+    "attribute vec3 a_col;"
+    "attribute float a_tex_id;"
+    "attribute vec4 a_tex_rect;"
+    "varying vec4 col;"
+    "varying vec2 uv;"
+    "varying float tex_id;"
+#else
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos_pattern;"
     "layout (location = 1) in vec4 a_quad;"
     "layout (location = 2) in vec3 a_col;"
     "layout (location = 3) in float a_tex_id;"
     "layout (location = 4) in vec4 a_tex_rect;"
+    "out mediump vec4 col;"
+    "out mediump vec2 uv;"
+    "out lowp float tex_id;"
+#endif
     "uniform mat2 u_win_mat;"
-    "out vec4 col;"
-    "out vec2 uv;"
-    "flat out float tex_id;"
     "void main() {"
     "    col = vec4(a_col, 1);"
     "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
     "    tex_id = a_tex_id;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
-    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "    gl_Position = vec4(pos/* * u_win_mat) + vec2(-1, 1)*/, 0, 1);"
     "\n}";
         
 static const char* frag_source = ""
+#ifdef __EMSCRIPTEN__
+    "varying mediump vec4 col;"
+    "varying mediump vec2 uv;"
+    "varying lowp float tex_id;"
+#else
     "#version 400 core\n"
-    "layout (location = 0) out vec4 out_col;"
+    "layout (location = 0) out vec4 o_col;"
     "in vec4 col;"
     "in vec2 uv;"
-    "flat in float tex_id;"
+    "in float tex_id;"
+#endif
     "uniform sampler2D u_textures[" STRINGIFY(RECTB_MAX_TEXS) "];"
     "void main() {"
     "    int id = int(tex_id);"
+#ifdef __EMSCRIPTEN__
+    "    gl_FragColor = /*texture(u_textures[id], uv) * */col;"
+#else
     "    out_col = texture(u_textures[id], uv) * col;"
+#endif
     "\n}";
 
 
