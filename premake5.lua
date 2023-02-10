@@ -4,15 +4,22 @@ workspace "Animated-Presentation"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-IncludeDirs = {}
+newoption {
+    trigger = "wasm",
+    description = "Choose whether or not to make build files for wasm",
+}
 
 project "Animated-Presentation"
     location "Animated-Presentation"
     kind "ConsoleApp"
     language "C"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+
+    filter "options:wasm"
+        targetname ("%{prj.name}.js")
+    filter {}
 
     files
     {
@@ -32,7 +39,7 @@ project "Animated-Presentation"
 
     links { }
 
-    filter "system:linux"
+    filter { "system:linux", "options:not wasm" }
         links 
         {
             "m", "X11", "GL", "GLX", "dl"
@@ -42,7 +49,7 @@ project "Animated-Presentation"
             --"-Wall"
         }
 
-    filter { "system:windows", "options:not wasm" }
+    --[[filter { "system:windows", "options:not wasm" }
         staticruntime "On"
         systemversion "latest"
         
@@ -55,12 +62,7 @@ project "Animated-Presentation"
         cdialect "C17"
 
     filter { "system:windows", "action:gmake or gmake2 or win_gmake" }
-        toolset "clang"
-
-    newoption {
-        trigger = "wasm",
-        description = "Choose whether or not to make build files for wasm",
-    }
+        toolset "clang"]]
 
     filter "options:wasm"
         linkoptions
@@ -75,6 +77,9 @@ project "Animated-Presentation"
             "-sOFFSCREEN_FRAMEBUFFER=1"
         }
         links { "m", "GL" }
+
+    filter { "options:wasm", "system:linux" }
+        linkoptions { "--cache \"../emcc-cache\""}
 
     filter "options:not wasm"
         architecture "x64"
