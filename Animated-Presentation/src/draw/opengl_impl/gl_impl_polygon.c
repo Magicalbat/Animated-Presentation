@@ -112,6 +112,18 @@ void draw_poly_conv_arr(draw_polygon* poly, vec3 col, vec2 offset, vec2_arr arr)
 //}
 
 static const char* vert_source = ""
+#ifdef __EMSCRIPTEN__
+    "precision mediump float;"
+    "attribute vec2 a_pos;"
+    "uniform mat2 u_win_mat;"
+    "uniform vec3 u_col;"
+    "uniform vec2 u_offset;"
+    "varying vec4 col;"
+    "void main() {"
+    "    col = vec4(u_col, 1);"
+    "    gl_Position = vec4(((a_pos + u_offset) * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "\n}";
+#else
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos;"
     "uniform mat2 u_win_mat;"
@@ -122,5 +134,6 @@ static const char* vert_source = ""
     "    col = vec4(u_col, 1);"
     "    gl_Position = vec4(((a_pos + u_offset) * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
+#endif
 
 #endif // AP_OPENGL

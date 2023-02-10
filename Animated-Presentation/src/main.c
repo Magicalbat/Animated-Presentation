@@ -54,7 +54,6 @@ int main(int argc, char** argv) {
     log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
     log_infof("GL Version: %s",  glGetString(GL_VERSION));
     
-
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(opengl_message_callback, 0);
 
@@ -62,9 +61,9 @@ int main(int argc, char** argv) {
     //u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
     //u32 birds = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("kodim23.qoi"));
 
-    //draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
+    draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
 
-    //draw_cbezier* draw_bezier = draw_cbezier_create(perm_arena, win, 256);
+    draw_cbezier* draw_bezier = draw_cbezier_create(perm_arena, win, 256);
     
     vec2 p[18];
     vec2_arr points = { .data=p, .size=18 };
@@ -85,35 +84,31 @@ int main(int argc, char** argv) {
     };
     
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+    glViewport(0, 0, win->width, win->height);
 
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
 
     i32 cur_point = -1;
-    
+
     while (!win->should_close) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
-        gfx_win_process_events(win);
-
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw_rectb_push(rectb, (rect){
-            0.0f, 0.0f, 0.5f, 0.5f
-        }, (vec3){ 1.0f, 1.0f, 1.0f });
-        //for (u32 x = 0; x < 10; x++) {
-        //    for (u32 y = 0; y < 10; y++) {
-        //        draw_rectb_push(rectb, (rect){
-        //            (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
-        //        }, (vec3){
-        //            1.0f, 1.0f, 1.0f
-        //            //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
-        //        });
-        //        //(x + y) % 2 == 0 ? monkey : birds, 
-        //        //(rect){ 0, 0, 1, 1 });
-        //    }
-        //}
+        /*for (u32 x = 0; x < 10; x++) {
+            for (u32 y = 0; y < 10; y++) {
+                draw_rectb_push(rectb, (rect){
+                    (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
+                }, (vec3){
+                    1.0f, 1.0f, 1.0f
+                    //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
+                });
+                //(x + y) % 2 == 0 ? monkey : birds, 
+                //(rect){ 0, 0, 1, 1 });
+            }
+        }*/
 
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
             for (u32 i = 0; i < 4; i++) {
@@ -131,28 +126,29 @@ int main(int argc, char** argv) {
             bezier.p[cur_point] = win->mouse_pos;
         }
 
-        //for (u32 i = 0; i < 4; i++) {
-        //    draw_rectb_push(rectb, (rect){
-        //        bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
-        //    }, (vec3){ 1, 1, 1});
-        //}
+        for (u32 i = 0; i < 4; i++) {
+            draw_rectb_push(rectb, (rect){
+                bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
+            }, (vec3){ 1, 1, 1});
+        }
 
         draw_rectb_flush(rectb);
 
-        //draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
-
-        //draw_cbezier_push_grad(draw_bezier, &bezier, 4,
-        //    (vec3){ 0.0f, 1.0f, 0.0f }, (vec3){ 0.8f, 0.0f, 0.2f});
-        //draw_cbezier_flush(draw_bezier);
+        draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
+        
+        draw_cbezier_push_grad(draw_bezier, &bezier, 4,
+            (vec3){ 0.0f, 1.0f, 0.0f }, (vec3){ 0.8f, 0.0f, 0.2f});
+        draw_cbezier_flush(draw_bezier);
 
         gfx_win_swap_buffers(win);
+        gfx_win_process_events(win);
 
         time_prev = time_now;
         os_sleep_milliseconds(16);
     }
 
-    //draw_cbezier_destroy(draw_bezier);
-    //draw_poly_destroy(poly);
+    draw_cbezier_destroy(draw_bezier);
+    draw_poly_destroy(poly);
     draw_rectb_destroy(rectb);
 
     gfx_win_destroy(win);

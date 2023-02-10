@@ -13,6 +13,22 @@ EM_BOOL on_mouse_move(int event_type, const EmscriptenMouseEvent* e, void* win_p
     return true;
 }
 
+EM_BOOL on_mouse_down(int event_type, const EmscriptenMouseEvent* e, void* win_ptr) {
+    gfx_window* win = (gfx_window*)win_ptr;
+
+    win->mouse_buttons[e->button] = true;
+
+    return true;
+}
+
+EM_BOOL on_mouse_up(int event_type, const EmscriptenMouseEvent* e, void* win_ptr) {
+    gfx_window* win = (gfx_window*)win_ptr;
+
+    win->mouse_buttons[e->button] = false;
+
+    return true;
+}
+
 void opengl_load_functions(gfx_window* win) { }
 
 gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
@@ -30,6 +46,8 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
     emscripten_set_canvas_element_size("#canvas", width, height);
 
     emscripten_set_mousemove_callback("#canvas", win, false, on_mouse_move);
+    emscripten_set_mousedown_callback("#canvas", win, false, on_mouse_down);
+    emscripten_set_mouseup_callback("#canvas", win, false, on_mouse_up);
 
     win->width = width;
     win->height = height;

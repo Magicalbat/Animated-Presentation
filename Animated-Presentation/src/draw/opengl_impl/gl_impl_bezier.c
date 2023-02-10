@@ -155,6 +155,17 @@ void draw_cbezier_flush(draw_cbezier* draw_cb) {
 }
 
 static const char* vert_source = ""
+#ifdef __EMSCRIPTEN__
+    "precision mediump float;"
+    "attribute vec2 a_pos;"
+    "attribute vec3 a_col;"
+    "uniform mat2 u_win_mat;"
+    "varying vec4 col;"
+    "void main() {"
+    "    col = vec4(a_col, 1);"
+    "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "\n}";
+#else
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos;"
     "layout (location = 1) in vec3 a_col;"
@@ -164,5 +175,6 @@ static const char* vert_source = ""
     "    col = vec4(a_col, 1);"
     "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
+#endif
 
 #endif // AP_OPENGL

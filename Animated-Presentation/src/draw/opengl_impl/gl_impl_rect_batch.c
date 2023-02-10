@@ -18,7 +18,7 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) {
     u32 win_mat_loc = glGetUniformLocation(batch->gl.shader_program, "u_win_mat");
     f32 win_mat[] = {
         2.0f / ((f32)win->width), 0,
-        0, 2.0f / ((f32)win->height)
+        0, 2.0f / -((f32)win->height)
     };
     glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
 
@@ -210,6 +210,7 @@ void draw_rectb_flush(draw_rectb* batch) {
 
 static const char* vert_source = ""
 #ifdef __EMSCRIPTEN__
+    "precision mediump float;"
     "attribute vec2 a_pos_pattern;"
     "attribute vec4 a_quad;"
     "attribute vec3 a_col;"
@@ -235,7 +236,7 @@ static const char* vert_source = ""
     "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
     "    tex_id = a_tex_id;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
-    "    gl_Position = vec4(pos/* * u_win_mat) + vec2(-1, 1)*/, 0, 1);"
+    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
         
 static const char* frag_source = ""
@@ -243,22 +244,23 @@ static const char* frag_source = ""
     "varying mediump vec4 col;"
     "varying mediump vec2 uv;"
     "varying lowp float tex_id;"
+    "uniform sampler2D u_textures[" STRINGIFY(RECTB_MAX_TEXS) "];"
+    "void main() {"
+    "    int id = int(tex_id);"
+    "    gl_FragColor = texture2D(u_textures[id], uv) * col;"
+    "\n}";
 #else
     "#version 400 core\n"
     "layout (location = 0) out vec4 o_col;"
     "in vec4 col;"
     "in vec2 uv;"
     "in float tex_id;"
-#endif
     "uniform sampler2D u_textures[" STRINGIFY(RECTB_MAX_TEXS) "];"
     "void main() {"
     "    int id = int(tex_id);"
-#ifdef __EMSCRIPTEN__
-    "    gl_FragColor = /*texture(u_textures[id], uv) * */col;"
-#else
     "    out_col = texture(u_textures[id], uv) * col;"
-#endif
     "\n}";
+#endif
 
 
 #endif // AP_OPENGL

@@ -3,12 +3,20 @@
 #include "gl_impl.h"
 
 const char* gl_impl_color_frag = ""
+#ifdef __EMSCRIPTEN__
+    "precision mediump float;"
+    "varying vec4 col;"
+    "void main() {"
+    "   gl_FragColor = col;"
+    "\n}";
+#else
     "#version 330 core\n"
     "layout (location = 0) out vec4 out_col;"
     "in vec4 col;"
     "void main() {"
     "    out_col = col;"
     "\n}";
+#endif
 
 
 u32 gl_impl_create_shader_program(const char* vertex_source, const char* fragment_source) {
