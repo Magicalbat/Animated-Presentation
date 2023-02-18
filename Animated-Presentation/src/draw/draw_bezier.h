@@ -33,9 +33,7 @@ void          draw_cbezier_destroy(draw_cbezier* draw_cb);
 
 //void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col);
 void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 start_col, vec3 end_col);
-inline void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col) {
-    draw_cbezier_push_grad(draw_cb, bezier, width, col, col);
-}
+void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col);
 
 void draw_cbezier_flush(draw_cbezier* draw_cb);
 

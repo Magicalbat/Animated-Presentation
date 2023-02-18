@@ -74,7 +74,9 @@ project "Animated-Presentation"
             "-O2",
 
             "-sFULL_ES3=1",
-            "-sOFFSCREEN_FRAMEBUFFER=1"
+            "-sOFFSCREEN_FRAMEBUFFER=1",
+
+            "-sMIN_WEBGL_VERSION=2",
         }
         links { "m", "GL" }
 

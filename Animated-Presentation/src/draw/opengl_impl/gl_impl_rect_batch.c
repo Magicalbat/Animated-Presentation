@@ -172,7 +172,6 @@ void draw_rectb_flush(draw_rectb* batch) {
             glBindTexture(GL_TEXTURE_2D, batch->textures[i].gl.tex);
         }
     }
-
     
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -198,6 +197,11 @@ void draw_rectb_flush(draw_rectb* batch) {
     glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rectb_rect), batch->data);
     
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)batch->size);
+
+    glVertexAttribDivisor(1, 0);
+    glVertexAttribDivisor(2, 0);
+    glVertexAttribDivisor(3, 0);
+    glVertexAttribDivisor(4, 0);
     
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);

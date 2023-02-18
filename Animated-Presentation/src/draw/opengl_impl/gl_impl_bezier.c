@@ -126,6 +126,9 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 1;
 }
+void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col) {
+    draw_cbezier_push_grad(draw_cb, bezier, width, col, col);
+}
 
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glUseProgram(draw_cb->gl.shader_program);
