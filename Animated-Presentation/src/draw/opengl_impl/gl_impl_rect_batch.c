@@ -48,13 +48,14 @@ draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity) {
         GL_ARRAY_BUFFER, sizeof(pos_pattern), &pos_pattern[0], GL_STATIC_DRAW
     );
 
-    u32 color = 0xffffffff;
-    draw_rectb_add_tex(batch, (image){
-        .width = 1,
-        .height = 1,
-        .channels = 4,
-        .data = (u8*)&color
-    });
+    draw_rectb_create_tex(arena, batch, STR8_LIT("kodim23.qoi"));
+    //u32 color = 0xffffffff;
+    //draw_rectb_add_tex(batch, (image){
+    //    .width = 1,
+    //    .height = 1,
+    //    .channels = 4,
+    //    .data = (u8*)&color
+    //});
     
     return batch;
 }

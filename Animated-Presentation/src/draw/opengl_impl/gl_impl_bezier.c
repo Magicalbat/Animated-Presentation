@@ -29,11 +29,11 @@ draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
 #endif
 
     draw_cb->gl.vertex_buffer = gl_impl_create_buffer(
-        GL_ARRAY_BUFFER, sizeof(cb_vertex) * capacity * 4, NULL, GL_DYNAMIC_DRAW
+        GL_ARRAY_BUFFER, sizeof(cb_vertex) * (capacity * 3), NULL, GL_DYNAMIC_DRAW
     );
     
     draw_cb->gl.index_buffer = gl_impl_create_buffer(
-        GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * capacity * 6, NULL, GL_DYNAMIC_DRAW
+        GL_ELEMENT_ARRAY_BUFFER, sizeof(u32) * (capacity * 6), NULL, GL_DYNAMIC_DRAW
     );
 
     return draw_cb;
@@ -54,12 +54,9 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
         vec2_len(vec2_sub(bezier->p3, bezier->p2));
 
     u32 num_segs = MAX(0, (u32)(estimate_len * 0.1));
+    num_segs = MIN(num_segs, draw_cb->capacity);
 
-    if (num_segs > draw_cb->capacity * 4) {
-        log_error("Bezier is too bit to draw");
-        return;
-    }
-    if ((draw_cb->vertex_pos / 4) + 1 + num_segs > draw_cb->capacity) {
+    if ((draw_cb->index_pos / 6) + 1 + num_segs > draw_cb->capacity) {
         draw_cbezier_flush(draw_cb);
     }
 

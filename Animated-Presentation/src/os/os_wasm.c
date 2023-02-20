@@ -68,37 +68,55 @@ void os_sleep_milliseconds(u32 t) {
 
 // TODO: make this work better
 // https://stackoverflow.com/questions/63959571/how-do-i-pass-a-file-blob-from-javascript-to-emscripten-webassembly-c
-EM_ASYNC_JS(char*, os_file_read_impl, (char* file_name), {
+EM_ASYNC_JS(u8*, os_file_read_impl, (char* file_name), {
     const response = await fetch(UTF8ToString(file_name));
     if (!response.ok) {
         return 0;
     }
 
-    const text = await response.text();
+    const blob = await response.blob();
+    const data = new Uint8Array(await blob.arrayBuffer());
 
-    const lengthBytes = lengthBytesUTF8(text)+1;
-    const stringOnWasmHeap = _malloc(lengthBytes);
-    stringToUTF8(text, stringOnWasmHeap, lengthBytes);
+    const len = data.length;
+    const lengthArr = new Uint8Array(8);
+    for (let i = 0; i < 8; i++) {
+        lengthArr[i] = (len >>> (i * 8)) & 0xff;
+    }
+    
+    const ptr = _malloc(data.length + 8);
 
-    return stringOnWasmHeap;
+    HEAP8.set(lengthArr, ptr);
+    HEAP8.set(data, ptr + 8);
+
+    return ptr;
 })
 
 string8 os_file_read(arena* arena, string8 path) {
     arena_temp temp = arena_temp_begin(arena);
 
     u8* path_cstr = str8_to_cstr(temp.arena, path);
-    u8* file = (u8*)os_file_read_impl((char*)path_cstr);
+    u8* data = (u8*)os_file_read_impl((char*)path_cstr);
 
     arena_temp_end(temp);
 
-    string8 out = { 0 }; 
-    if (file != NULL) {
-        out = str8_copy(arena, str8_from_cstr(file));
-    } else {
+    if (data == NULL) {
         log_errorf("Failed to read file from %.*s", (int)path.size, path.str);
+        return (string8){ .size = 0 };
     }
 
-    free(file);
+    u64 size = 0;
+    for (u32 i = 0; i < 8; i++) {
+        size |= data[i] << (i * 8);
+    }
+
+    string8 file = {
+        .str = data + 8,
+        .size = size
+    };
+
+    string8 out = str8_copy(arena, file);
+
+    free(data);
 
     return out;
 }

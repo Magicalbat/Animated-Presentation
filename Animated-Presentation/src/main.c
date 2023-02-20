@@ -29,7 +29,7 @@
         type, severity, message);
 }*/
 
-#define WIN_SCALE 1
+#define WIN_SCALE 3
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -56,37 +56,6 @@ int main(int argc, char** argv) {
     
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(opengl_message_callback, 0);
-
-    const char* vert_source = ""
-        "precision mediump float;"
-        ""
-        "attribute vec2 vertPosition;"
-        "attribute vec3 vertColor;"
-        "varying vec3 fragColor;"
-        ""
-        "void main()"
-        "{"
-        "  fragColor = vertColor;"
-        "  gl_Position = vec4(vertPosition, 0.0, 1.0);"
-        "}";
-    const char* frag_source = ""
-        "precision mediump float;"
-        ""
-        "varying vec3 fragColor;"
-        "void main()"
-        "{"
-        "  gl_FragColor = vec4(fragColor, 1.0);"
-        "}";
-    u32 shader_prog = gl_impl_create_shader_program(vert_source, frag_source);
-
-    f32 verts[] = {
-        -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
-         0.0f,  0.5f,  0.0f, 1.0f, 0.0f,
-         0.5f, -0.5f,  0.0f, 0.0f, 1.0f
-    };
-    u32 vert_buff = gl_impl_create_buffer(
-        GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW
-    );
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
     //u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
@@ -170,21 +139,7 @@ int main(int argc, char** argv) {
         draw_cbezier_push_grad(draw_bezier, &bezier, 4,
             (vec3){ 0.0f, 0.1f, 0.8f } , (vec3){ 0.8f, 0.1f, 0.2f});
         draw_cbezier_flush(draw_bezier);
-
-        glUseProgram(shader_prog);
-        glBindBuffer(GL_ARRAY_BUFFER, vert_buff);
-
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(f32) * 5, (void*)0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 5, (void*)(sizeof(f32) * 2));
-
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-
+        
         gfx_win_swap_buffers(win);
         gfx_win_process_events(win);
 

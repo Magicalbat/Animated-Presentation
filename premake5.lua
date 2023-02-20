@@ -49,7 +49,7 @@ project "Animated-Presentation"
             --"-Wall"
         }
 
-    --[[filter { "system:windows", "options:not wasm" }
+    filter { "system:windows", "options:not wasm" }
         staticruntime "On"
         systemversion "latest"
         
@@ -62,7 +62,7 @@ project "Animated-Presentation"
         cdialect "C17"
 
     filter { "system:windows", "action:gmake or gmake2 or win_gmake" }
-        toolset "clang"]]
+        toolset "clang"
 
     filter "options:wasm"
         linkoptions
@@ -71,7 +71,7 @@ project "Animated-Presentation"
             "-sWASM=1",
 
             "-sASYNCIFY=1",
-            "-O2",
+            --"-O2",
 
             "-sFULL_ES3=1",
             "-sOFFSCREEN_FRAMEBUFFER=1",
