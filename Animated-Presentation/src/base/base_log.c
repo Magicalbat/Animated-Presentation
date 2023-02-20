@@ -12,8 +12,8 @@ static string8 log_names[LOG_LEVEL_COUNT] = {
     { (u8*)"Error", 5 },
 };
 
-static arena* log_arena;
-static u64 log_arena_start_pos;
+static marena* log_arena;
+static u64 log_marena_start_pos;
 
 static b32 make_file;
 static os_file file;
@@ -70,7 +70,7 @@ void log_init(log_desc base_desc) {
     }
 #endif
 
-    log_arena = arena_create(&(arena_desc){
+    log_arena = marena_create(&(marena_desc){
         .desired_max_size = desc.max_stored * 256 + KiB(4)
     });
 
@@ -81,10 +81,10 @@ void log_init(log_desc base_desc) {
         last_logs[i] = (log_data){ 0 };
     }
 
-    log_arena_start_pos = log_arena->pos;
+    log_marena_start_pos = log_arena->pos;
 }
 void log_quit(void) {
-    arena_destroy(log_arena);
+    marena_destroy(log_arena);
 
     if (make_file) {
         os_file_close(file);
@@ -106,12 +106,12 @@ void log_impl(log_data msg) {
     }
     if (desc.log_file[msg.level] == LOG_YES) {
         if (desc.log_time == LOG_YES) {
-            arena_temp temp = arena_temp_begin(log_arena);
+            marena_temp temp = marena_temp_begin(log_arena);
             
             string8 time_str = str8_pushf(temp.arena, "(%02d:%02d:%02d) ", datetime.hour, datetime.min, datetime.sec);
             os_file_write_open(file, time_str);
             
-            arena_temp_end(temp);
+            marena_temp_end(temp);
         }
         os_file_write_open(file, log_names[msg.level]);
         os_file_write_open(file, STR8_LIT(": "));
@@ -121,7 +121,7 @@ void log_impl(log_data msg) {
 }
 void log_msg(log_level level, const char* msg_cstr) {
     if (log_index + 1 >= desc.max_stored) {
-        arena_pop_to(log_arena, log_arena_start_pos);
+        marena_pop_to(log_arena, log_marena_start_pos);
         log_index = 0;
     }
 
@@ -135,7 +135,7 @@ void log_msg(log_level level, const char* msg_cstr) {
 
 void log_msgf(log_level level, const char* fmt, ...) {
     if (log_index + 1 >= desc.max_stored) {
-        arena_pop_to(log_arena, log_arena_start_pos);
+        marena_pop_to(log_arena, log_marena_start_pos);
         log_index = 0;
     }
 

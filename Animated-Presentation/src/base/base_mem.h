@@ -9,12 +9,12 @@
 // This is adapted from my own library mg_arena.h
 // https://github.com/Magicalbat/mg_arena
 
-typedef struct arena_malloc_node {
-    struct arena_malloc_node* prev;
+typedef struct marena_malloc_node {
+    struct marena_malloc_node* prev;
     u64 size;
     u64 pos;
     u8* data;
-} arena_malloc_node; 
+} marena_malloc_node; 
 
 typedef struct {
     u64 pos;
@@ -24,38 +24,38 @@ typedef struct {
 
     union {
         struct {
-            arena_malloc_node* cur_node;
+            marena_malloc_node* cur_node;
         } malloc_backend;
         struct {
             u64 commit_pos;
         } reserve_backend;
     };
-} arena;
+} marena;
 
 typedef struct {
     u64 desired_max_size;
     u32 desired_block_size;
     u32 align;
-} arena_desc;
+} marena_desc;
 
 typedef struct {
-    arena* arena;
+    marena* arena;
     u64 pos;
-} arena_temp;
+} marena_temp;
 
-arena* arena_create(const arena_desc* desc);
-void   arena_destroy(arena* arena);
-void*  arena_push(arena* arena, u64 size);
-void*  arena_push_zero(arena* arena, u64 size);
-void   arena_pop(arena* arena, u64 size);
-void   arena_pop_to(arena* arena, u64 pos);
-void   arena_reset(arena* arena);
+marena* marena_create(const marena_desc* desc);
+void    marena_destroy(marena* arena);
+void*   marena_push(marena* arena, u64 size);
+void*   marena_push_zero(marena* arena, u64 size);
+void    marena_pop(marena* arena, u64 size);
+void    marena_pop_to(marena* arena, u64 pos);
+void    marena_reset(marena* arena);
 
-arena_temp arena_temp_begin(arena* arena);
-void       arena_temp_end(arena_temp temp);
+marena_temp marena_temp_begin(marena* arena);
+void        marena_temp_end(marena_temp temp);
 
-void arena_scratch_set_desc(arena_desc* desc);
-arena_temp arena_scratch_get(arena** conflicts, u32 num_conflicts);
-void arena_scratch_release(arena_temp scratch);
+void marena_scratch_set_desc(marena_desc* desc);
+marena_temp marena_scratch_get(marena** conflicts, u32 num_conflicts);
+void marena_scratch_release(marena_temp scratch);
 
 #endif // BASE_MEM_H

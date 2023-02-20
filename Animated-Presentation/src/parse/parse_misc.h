@@ -25,11 +25,11 @@ typedef struct {
 
 void parse_deflate(bitstream* bs, u8* out, u64 out_size);
 
-gzip parse_gzip(arena* arena, string8 file);
+gzip parse_gzip(marena* arena, string8 file);
 
-image parse_png(arena* arena, string8 file);
-image parse_qoi(arena* arena, string8 file);
-image parse_image(arena* arena, string8 file);
+image parse_png(marena* arena, string8 file);
+image parse_qoi(marena* arena, string8 file);
+image parse_image(marena* arena, string8 file);
 // TODO: image identifier function / parse image
 
 #endif // PARSE_MISC_H

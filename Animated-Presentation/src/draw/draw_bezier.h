@@ -28,7 +28,7 @@ typedef struct {
     #endif
 } draw_cbezier;
 
-draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity);
+draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity);
 void          draw_cbezier_destroy(draw_cbezier* draw_cb);
 
 //void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col);

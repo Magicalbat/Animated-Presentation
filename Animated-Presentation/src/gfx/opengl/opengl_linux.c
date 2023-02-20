@@ -12,7 +12,7 @@ typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXC
 
 static bool isExtensionSupported(const char *extList, const char *extension);
 
-gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
+gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
     gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
 
     win->glx.display = XOpenDisplay(NULL);
@@ -119,11 +119,11 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
 
     XFreeColormap(win->glx.display, window_attribs.colormap);
 
-    u8* title_cstr = (u8*)arena_push(arena, title.size + 1);
+    u8* title_cstr = (u8*)marena_push(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
     title_cstr[title.size] = '\0';
     XStoreName(win->glx.display, win->glx.window, title.str);
-    arena_pop(arena, title.size + 1);
+    marena_pop(arena, title.size + 1);
     
     win->width = width;
     win->height = height;
@@ -184,15 +184,15 @@ void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     win->height = height;
     XResizeWindow(win->glx.display, win->glx.window, width, height);
 }
-void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
+void gfx_win_set_title(marena* arena, gfx_window* win, string8 title) {
     win->title = title;
-    u8* title_cstr = (u8*)arena_push(arena, title.size + 1);
+    u8* title_cstr = (u8*)marena_push(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
     title_cstr[title.size] = '\0';
     
     XStoreName(win->glx.display, win->glx.window, title_cstr);
     
-    arena_pop(arena, title.size + 1);
+    marena_pop(arena, title.size + 1);
 }
 
 void opengl_load_functions(gfx_window* win) {

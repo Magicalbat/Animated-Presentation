@@ -8,7 +8,7 @@
 
 #define BITS(n) (bs_get_bits(&bs, (n)))
 
-gzip parse_gzip(arena* arena, string8 file) {
+gzip parse_gzip(marena* arena, string8 file) {
     gzip out = { 
         .valid = true
     };

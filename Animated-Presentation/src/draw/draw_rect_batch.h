@@ -43,11 +43,11 @@ typedef struct {
     #endif
 } draw_rectb;
 
-draw_rectb* draw_rectb_create(arena* arena, gfx_window* win, u32 capacity);
+draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity);
 void draw_rectb_destroy(draw_rectb* batch);
 
 u32 draw_rectb_add_tex(draw_rectb* batch, image img);
-u32 draw_rectb_create_tex(arena* arena, draw_rectb* batch, string8 file_path);
+u32 draw_rectb_create_tex(marena* arena, draw_rectb* batch, string8 file_path);
 void draw_rectb_destroy_tex(draw_rectb* batch, u32 tex_id);
 
 // These functions will draw rects to the screen

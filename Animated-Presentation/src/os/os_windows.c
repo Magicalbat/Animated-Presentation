@@ -5,7 +5,7 @@
 
 static u64            w32_ticks_per_second;
 
-static arena*       w32_arena;
+static marena*       w32_arena;
 static string8_list w32_cmd_args;
 
 static string8 win32_error_string(void) {
@@ -44,7 +44,7 @@ static string8 win32_error_string(void) {
 
 
 void os_main_init(int argc, char** argv) {
-    w32_arena = arena_create(&(arena_desc){
+    w32_arena = marena_create(&(marena_desc){
         .desired_max_size = KiB(16)
     });
 
@@ -60,7 +60,7 @@ void os_main_init(int argc, char** argv) {
     }
 }
 void os_main_quit(void) {
-    arena_destroy(w32_arena);
+    marena_destroy(w32_arena);
     timeEndPeriod(1);
 }
 string8_list os_get_cmd_args(void) {
@@ -114,8 +114,8 @@ void os_sleep_milliseconds(u32 t) {
     Sleep(t);
 }
 
-string8 os_file_read(arena* arena, string8 path) {
-    arena_temp temp = arena_temp_begin(w32_arena);
+string8 os_file_read(marena* arena, string8 path) {
+    marena_temp temp = marena_temp_begin(w32_arena);
 
     string16 path16 = str16_from_str8(temp.arena, path);
 
@@ -129,7 +129,7 @@ string8 os_file_read(arena* arena, string8 path) {
         NULL
     );
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
@@ -143,7 +143,7 @@ string8 os_file_read(arena* arena, string8 path) {
     DWORD low_size = GetFileSize(file_handle, &high_size);
     u64 total_size = ((u64)high_size << 32) | low_size;
 
-    arena_temp possible_temp = arena_temp_begin(arena);
+    marena_temp possible_temp = marena_temp_begin(arena);
 
     u8* buffer = CREATE_ARRAY(arena, u8, total_size);
 
@@ -155,7 +155,7 @@ string8 os_file_read(arena* arena, string8 path) {
         DWORD bytes_read = 0;
         if (ReadFile(file_handle, buffer + total_read, to_read, &bytes_read, 0) == FALSE) {
             log_w32_errorf("Failed to read to file \"%.*s\"", (int)path.size, (char*)path.str);
-            arena_temp_end(possible_temp);
+            marena_temp_end(possible_temp);
 
             return (string8){ 0 };
         }
@@ -192,7 +192,7 @@ b32 os_file_write_impl(HANDLE file_handle, string8_list str_list) {
 }
 
 b32 os_file_write(string8 path, string8_list str_list) {
-    arena_temp temp = arena_temp_begin(w32_arena);
+    marena_temp temp = marena_temp_begin(w32_arena);
 
     string16 path16 = str16_from_str8(temp.arena, path);
 
@@ -206,7 +206,7 @@ b32 os_file_write(string8 path, string8_list str_list) {
         NULL
     );
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
@@ -227,7 +227,7 @@ b32 os_file_write(string8 path, string8_list str_list) {
     return out;
 }
 b32 os_file_append(string8 path, string8_list str_list) {
-    arena_temp temp = arena_temp_begin(w32_arena);
+    marena_temp temp = marena_temp_begin(w32_arena);
 
     string16 path16 = str16_from_str8(temp.arena, path);
 
@@ -241,7 +241,7 @@ b32 os_file_append(string8 path, string8_list str_list) {
         NULL
     );
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
@@ -263,7 +263,7 @@ b32 os_file_append(string8 path, string8_list str_list) {
 file_stats os_file_get_stats(string8 path) {
     file_stats stats = { 0 };
 
-    arena_temp temp = arena_temp_begin(w32_arena);
+    marena_temp temp = marena_temp_begin(w32_arena);
 
     string16 path16 = str16_from_str8(temp.arena, path);
 
@@ -277,7 +277,7 @@ file_stats os_file_get_stats(string8 path) {
         log_w32_errorf("Failed to open file \"%.*s\"",  (int)path.size, (char*)path.str);
     }
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     return stats;
 }
@@ -300,7 +300,7 @@ os_file os_file_open(string8 path, file_mode open_mode) {
         default: break;
     }
 
-    arena_temp temp = arena_temp_begin(w32_arena);
+    marena_temp temp = marena_temp_begin(w32_arena);
     
     string16 path16 = str16_from_str8(temp.arena, path);
     
@@ -314,7 +314,7 @@ os_file os_file_open(string8 path, file_mode open_mode) {
         NULL
     );
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (file_handle == INVALID_HANDLE_VALUE) {
         log_w32_errorf("Failed to open file \"%.*s\"", (int)path.size, (char*)path.str);
@@ -351,12 +351,12 @@ void os_file_close(os_file file) {
 }
 
 os_library os_lib_load(string8 path) {
-    arena_temp temp = arena_temp_begin(w32_arena);
+    marena_temp temp = marena_temp_begin(w32_arena);
 
     string16 path16 = str16_from_str8(temp.arena, path);
     HMODULE module = LoadLibraryW((LPCWSTR)path16.str);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (module == NULL) {
         log_w32_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);

@@ -87,15 +87,15 @@ typedef struct {
 #define STATIC_ARR_LEN(arr) ( sizeof(arr) / sizeof(arr[0]) )
 
 #define CREATE_STRUCT(arena, type) \
-    (type*)(arena_push(arena, sizeof(type)))
+    (type*)(marena_push(arena, sizeof(type)))
 #define CREATE_ZERO_STRUCT(arena, var, type)   \
-    (type*)(arena_push(arena, sizeof(type))); \
+    (type*)(marena_push(arena, sizeof(type))); \
     memset(var, 0, sizeof(type))
 
 #define CREATE_ARRAY(arena, type, size) \
-    (type*)(arena_push(arena, sizeof(type) * (size)))
+    (type*)(marena_push(arena, sizeof(type) * (size)))
 #define CREATE_ZERO_ARRAY(arena, var, type, size)     \
-    (type*)(arena_push(arena, sizeof(type) * (size))); \
+    (type*)(marena_push(arena, sizeof(type) * (size))); \
     memset(var, 0, sizeof(type) * (size))
 
 #define FOR_SLL(type, f, var)    for(type* var = f; var != NULL; var=var->next)

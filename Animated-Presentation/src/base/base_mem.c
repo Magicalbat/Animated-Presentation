@@ -20,7 +20,7 @@ typedef struct {
     u32 block_size;
 } init_data;
 
-static init_data init_common(const arena_desc* desc) {
+static init_data init_common(const marena_desc* desc) {
     init_data out = { 0 };
     
     u32 page_size = (u32)os_mem_pagesize();
@@ -37,10 +37,10 @@ static init_data init_common(const arena_desc* desc) {
 
 #ifdef __EMSCRIPTEN__
 
-arena* arena_create(const arena_desc* desc) {
+marena* marena_create(const marena_desc* desc) {
     init_data init_data = init_common(desc);
 
-    arena* out = (arena*)malloc(sizeof(arena));
+    marena* out = (marena*)malloc(sizeof(arena));
 
     if (out == NULL) {
         log_error("Failed to malloc initial memory for arena");
@@ -52,8 +52,8 @@ arena* arena_create(const arena_desc* desc) {
     out->size = init_data.max_size;
     out->block_size = init_data.block_size;
 
-    out->malloc_backend.cur_node = (arena_malloc_node*)malloc(sizeof(arena_malloc_node));
-    *out->malloc_backend.cur_node = (arena_malloc_node){
+    out->malloc_backend.cur_node = (marena_malloc_node*)malloc(sizeof(marena_malloc_node));
+    *out->malloc_backend.cur_node = (marena_malloc_node){
         .prev = NULL,
         .size = out->block_size,
         .pos = 0,
@@ -62,12 +62,12 @@ arena* arena_create(const arena_desc* desc) {
 
     return out;
 }
-void arena_destroy(arena* arena) {
-    arena_malloc_node* node = arena->malloc_backend.cur_node;
+void marena_destroy(marena* arena) {
+    marena_malloc_node* node = arena->malloc_backend.cur_node;
     while (node != NULL) {
         free(node->data);
 
-        arena_malloc_node* temp = node;
+        marena_malloc_node* temp = node;
         node = node->prev;
         free(temp);
     }
@@ -75,13 +75,13 @@ void arena_destroy(arena* arena) {
     free(arena);
 }
 
-void* arena_push(arena* arena, u64 size) {
+void* marena_push(marena* arena, u64 size) {
     if (arena->pos + size > arena->size) {
         log_error("Arena ran out of memory");
         return NULL;
     }
 
-    arena_malloc_node* node = arena->malloc_backend.cur_node;
+    marena_malloc_node* node = arena->malloc_backend.cur_node;
 
     u64 pos = node->pos;
     arena->pos += size;
@@ -92,7 +92,7 @@ void* arena_push(arena* arena, u64 size) {
         u64 max_node_size = arena->size - arena->pos;
         u64 node_size = MIN(unclamped_node_size, max_node_size);
         
-        arena_malloc_node* new_node = (arena_malloc_node*)malloc(sizeof(arena_malloc_node));
+        marena_malloc_node* new_node = (marena_malloc_node*)malloc(sizeof(marena_malloc_node));
         u8* data = (u8*)malloc(node_size);
 
         if (new_node == NULL || data == NULL) {
@@ -119,18 +119,18 @@ void* arena_push(arena* arena, u64 size) {
     return out;
 }
 
-void arena_pop(arena* arena, u64 size) {
+void marena_pop(marena* arena, u64 size) {
     if (size > arena->pos) {
         log_error("Attempted to pop too much memory");
     }
     
     u64 size_left = size;
-    arena_malloc_node* node = arena->malloc_backend.cur_node;
+    marena_malloc_node* node = arena->malloc_backend.cur_node;
 
     while (size_left > node->pos) {
         size_left -= node->pos;
         
-        arena_malloc_node* temp = node;
+        marena_malloc_node* temp = node;
         node = node->prev;
 
         free(temp->data);
@@ -141,18 +141,18 @@ void arena_pop(arena* arena, u64 size) {
     arena->pos -= size_left;
 }
 
-void arena_reset(arena* arena) {
-    arena_pop_to(arena, 0);
+void marena_reset(marena* arena) {
+    marena_pop_to(arena, 0);
 }
 
 #else
 
-static const u32 ARENA_MIN_POS = ALIGN_UP_POW2(sizeof(arena), 64);
+#define ARENA_MIN_POS ALIGN_UP_POW2(sizeof(marena), 64)
 
-arena* arena_create(const arena_desc* desc) {
+marena* marena_create(const marena_desc* desc) {
     init_data init_data = init_common(desc);
     
-    arena* out = os_mem_reserve(init_data.max_size);
+    marena* out = os_mem_reserve(init_data.max_size);
 
     if (!os_mem_commit(out, init_data.block_size)) {
         log_error("Failed to commit initial memory for arena");
@@ -167,11 +167,11 @@ arena* arena_create(const arena_desc* desc) {
 
     return out;
 }
-void arena_destroy(arena* arena) {
+void marena_destroy(marena* arena) {
     os_mem_release(arena, arena->size);
 }
 
-void* arena_push(arena* arena, u64 size) {
+void* marena_push(marena* arena, u64 size) {
     if (arena->pos + size > arena->size) {
         log_error("Arena ran out of memory");
 
@@ -199,7 +199,7 @@ void* arena_push(arena* arena, u64 size) {
     return out;
 }
 
-void arena_pop(arena* arena, u64 size) {
+void marena_pop(marena* arena, u64 size) {
     if (size > arena->pos - ARENA_MIN_POS) {
         log_error("Attempted to pop too much memory");
 
@@ -218,58 +218,58 @@ void arena_pop(arena* arena, u64 size) {
     }
 }
 
-void arena_reset(arena* arena) {
-    arena_pop_to(arena, ARENA_MIN_POS);
+void marena_reset(marena* arena) {
+    marena_pop_to(arena, ARENA_MIN_POS);
 }
 
 #endif
 
-void* arena_push_zero(arena* arena, u64 size) {
-    u8* out = arena_push(arena, size);
+void* marena_push_zero(marena* arena, u64 size) {
+    u8* out = marena_push(arena, size);
     memset(out, 0, size);
     
     return (void*)out;
 }
 
-void arena_pop_to(arena* arena, u64 pos) {
-    arena_pop(arena, arena->pos - pos);
+void marena_pop_to(marena* arena, u64 pos) {
+    marena_pop(arena, arena->pos - pos);
 }
 
-arena_temp arena_temp_begin(arena* arena) {
-    return (arena_temp){
+marena_temp marena_temp_begin(marena* arena) {
+    return (marena_temp){
         .arena = arena,
         .pos = arena->pos
     };
 }
-void arena_temp_end(arena_temp temp) {
-    arena_pop_to(temp.arena, temp.pos);
+void marena_temp_end(marena_temp temp) {
+    marena_pop_to(temp.arena, temp.pos);
 }
 
 #ifndef AP_SCRATCH_COUNT
 #   define AP_SCRATCH_COUNT 2
 #endif
 
-AP_THREAD_VAR static arena_desc scratch_desc = {
+AP_THREAD_VAR static marena_desc scratch_desc = {
     .desired_max_size = MiB(64),
     .desired_block_size = KiB(128)
 };
-AP_THREAD_VAR static arena* scratch_arenas[AP_SCRATCH_COUNT] = { 0 };
+AP_THREAD_VAR static marena* scratch_arenas[AP_SCRATCH_COUNT] = { 0 };
 
-void arena_scratch_set_desc(arena_desc* desc) {
+void marena_scratch_set_desc(marena_desc* desc) {
     if (scratch_arenas[0] == NULL)
         scratch_desc = *desc;
 }
-arena_temp arena_scratch_get(arena** conflicts, u32 num_conflicts) {
+marena_temp marena_scratch_get(marena** conflicts, u32 num_conflicts) {
     if (scratch_arenas[0] == NULL) {
         for (u32 i = 0; i < AP_SCRATCH_COUNT; i++) {
-            scratch_arenas[i] = arena_create(&scratch_desc);
+            scratch_arenas[i] = marena_create(&scratch_desc);
         }
     }
 
-    arena_temp out = { 0 };
+    marena_temp out = { 0 };
 
     for (u32 i = 0; i < AP_SCRATCH_COUNT; i++) {
-        arena* arena = scratch_arenas[i];
+        marena* arena = scratch_arenas[i];
 
         b32 in_conflict = false;
         for (u32 j = 0; j < num_conflicts; j++) {
@@ -280,11 +280,11 @@ arena_temp arena_scratch_get(arena** conflicts, u32 num_conflicts) {
         }
         if (in_conflict) { continue; }
 
-        out = arena_temp_begin(arena);
+        out = marena_temp_begin(arena);
     }
 
     return out;
 }
-void arena_scratch_release(arena_temp scratch) {
-    arena_temp_end(scratch);
+void marena_scratch_release(marena_temp scratch) {
+    marena_temp_end(scratch);
 }

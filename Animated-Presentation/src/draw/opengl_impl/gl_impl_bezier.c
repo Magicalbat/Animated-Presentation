@@ -5,7 +5,7 @@
 static const char* vert_source;
 // gl_impl_color_frag
 
-draw_cbezier* draw_cbezier_create(arena* arena, gfx_window* win, u32 capacity) {
+draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity) {
     draw_cbezier* draw_cb = CREATE_ZERO_STRUCT(arena, draw_cb, draw_cbezier);
 
     draw_cb->capacity = capacity;

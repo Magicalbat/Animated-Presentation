@@ -31,7 +31,7 @@ EM_BOOL on_mouse_up(int event_type, const EmscriptenMouseEvent* e, void* win_ptr
 
 void opengl_load_functions(gfx_window* win) { }
 
-gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
+gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
     gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
 
     EmscriptenWebGLContextAttributes attr;
@@ -73,7 +73,7 @@ void gfx_win_process_events(gfx_window* win) {
 void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     emscripten_set_canvas_element_size("#canvas", width, height);
 }
-void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
+void gfx_win_set_title(marena* arena, gfx_window* win, string8 title) {
     log_error("GFX set title unsupported in wasm");
 }
 

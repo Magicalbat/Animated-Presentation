@@ -5,11 +5,11 @@
 
 #include "os.h"
 
-static arena*       wasm_arena;
+static marena*       wasm_arena;
 static string8_list wasm_cmd_args;
 
 void os_main_init(int argc, char** argv) {
-    wasm_arena = arena_create(&(arena_desc){
+    wasm_arena = marena_create(&(marena_desc){
         .desired_max_size = KiB(16)
     });
 
@@ -19,7 +19,7 @@ void os_main_init(int argc, char** argv) {
     }
 }
 void os_main_quit(void) {
-    arena_destroy(wasm_arena);
+    marena_destroy(wasm_arena);
 }
 string8_list os_get_cmd_args(void) {
     return wasm_cmd_args;
@@ -94,13 +94,13 @@ EM_ASYNC_JS(u8*, os_file_read_impl, (char* file_name), {
     return ptr;
 })
 
-string8 os_file_read(arena* arena, string8 path) {
-    arena_temp temp = arena_temp_begin(arena);
+string8 os_file_read(marena* arena, string8 path) {
+    marena_temp temp = marena_temp_begin(arena);
 
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     u8* data = (u8*)os_file_read_impl((char*)path_cstr);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (data == NULL) {
         log_errorf("Failed to read file from %.*s", (int)path.size, path.str);
@@ -170,13 +170,13 @@ static string8 dl_error_string(void) {
     } while (0)
 
 os_library os_lib_load(string8 path) {
-    arena_temp temp = arena_temp_begin(wasm_arena);
+    marena_temp temp = marena_temp_begin(wasm_arena);
     
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     
     void* handle = dlopen((char*)path_cstr, RTLD_LAZY);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (handle == NULL) {
         log_dl_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);

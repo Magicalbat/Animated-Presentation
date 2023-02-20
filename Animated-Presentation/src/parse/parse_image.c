@@ -50,7 +50,7 @@ typedef struct {
     idat_node* idat_last; 
     u64 idat_total_size;
 
-    arena_temp temp_arena;
+    marena_temp temp_arena;
 
     image png;
 
@@ -78,7 +78,7 @@ static inline u8 pget_byte(pstate* state) {
 
 #define PNG_CHUNK_ID(a, b, c, d) ((u32)(a) << 24 | (u32)(b) << 16 | (u32)(c) << 8 | (u32)(d))
 
-static void parse_png_ihdr(arena* arena, pstate* state) {
+static void parse_png_ihdr(marena* arena, pstate* state) {
     state->png.width = U32();
     state->png.height = U32();
 
@@ -107,10 +107,10 @@ static void parse_png_ihdr(arena* arena, pstate* state) {
     }
 
     state->out = CREATE_ZERO_ARRAY(arena, state->out, u8, state->png.width * state->png.height * bytes_per_pixel[state->color_type]);
-    state->temp_arena = arena_temp_begin(arena);
+    state->temp_arena = marena_temp_begin(arena);
 }
 
-static u8arr png_decompress(arena* arena, pstate* state) {
+static u8arr png_decompress(marena* arena, pstate* state) {
     u8arr out = {
         .size = state->png.width * state->png.height * bytes_per_pixel[state->color_type] + state->png.height
     };
@@ -222,7 +222,7 @@ static void png_defilter(pstate* state, u8arr data) {
     }
 }
 
-static void parse_png_chunk(arena* arena, pstate* state) {
+static void parse_png_chunk(marena* arena, pstate* state) {
     state->chunk_size = U32();
     u32 chunk_id = U32();
     switch (chunk_id) {
@@ -267,7 +267,7 @@ static void parse_png_chunk(arena* arena, pstate* state) {
     }
 }
 
-image parse_png(arena* arena, string8 file) {
+image parse_png(marena* arena, string8 file) {
     if (!str8_equals(png_file_header, str8_substr(file, 0, 8))) {
         log_error("Invalid PNG header, not a PNG file");
         return (image){ .valid = false };
@@ -284,7 +284,7 @@ image parse_png(arena* arena, string8 file) {
     }
 
     if (state.temp_arena.pos)
-        arena_temp_end(state.temp_arena);
+        marena_temp_end(state.temp_arena);
     
     state.png.data = state.out;
     return state.png;
@@ -316,7 +316,7 @@ typedef struct {
     u8 a;
 } qpixel;
 
-image parse_qoi(arena* arena, string8 file) {
+image parse_qoi(marena* arena, string8 file) {
     if (file.size < 14 ||
         !str8_equals(qoi_file_header, str8_substr(file, 0, 4))) {
         log_error("Invalid QOI header. Not a QOI file");
@@ -410,11 +410,11 @@ image parse_qoi(arena* arena, string8 file) {
         }
     }
 
-    arena_pop(arena, 1);
+    marena_pop(arena, 1);
     return out;
 }
 
-image parse_image(arena* arena, string8 file) {
+image parse_image(marena* arena, string8 file) {
     if (file.size >= png_file_header.size && str8_equals(png_file_header, str8_substr(file, 0, png_file_header.size))) {
         return parse_png(arena, file);
     }

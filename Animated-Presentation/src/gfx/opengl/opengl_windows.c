@@ -47,7 +47,7 @@ typedef BOOL WINAPI wglChoosePixelFormatARB_func(HDC hdc, const int *piAttribILi
 static wglCreateContextAttribsARB_func *wglCreateContexAttribsARB = NULL;
 static wglChoosePixelFormatARB_func    *wglChoosePixelFormatARB   = NULL;
 
-gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
+gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
     gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
 
     win->wgl.h_instance = GetModuleHandle(0);
@@ -121,7 +121,7 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
 
     SetPropA(win->wgl.window, "gfx_window", win);
 
-    arena_pop(arena, sizeof(u16) * title16.size);
+    marena_pop(arena, sizeof(u16) * title16.size);
 
     win->wgl.device_context = GetDC(win->wgl.window);
 
@@ -203,14 +203,14 @@ void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
             0, 0, (i32)width, (i32)height,
             SWP_NOMOVE | SWP_DRAWFRAME);// | WS_VISIBLE);
 }
-void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
+void gfx_win_set_title(marena* arena, gfx_window* win, string8 title) {
     win->title = title;
 
     string16 title16 = str16_from_str8(arena, title);
 
     SetWindowText(win->wgl.window, title16.str);
 
-    arena_pop(arena, sizeof(u16) * title16.size);
+    marena_pop(arena, sizeof(u16) * title16.size);
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

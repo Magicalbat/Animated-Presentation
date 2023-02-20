@@ -78,7 +78,7 @@ datetime os_now_localtime(void);
 u64  os_now_microseconds(void);
 void os_sleep_milliseconds(u32 t);
 
-string8    os_file_read(arena* arena, string8 path);
+string8    os_file_read(marena* arena, string8 path);
 b32        os_file_write(string8 path, string8_list str_list);
 b32        os_file_append(string8 path, string8_list str_lit);
 file_stats os_file_get_stats(string8 path);

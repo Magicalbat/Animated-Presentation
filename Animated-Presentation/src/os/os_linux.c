@@ -5,7 +5,7 @@
 
 #include "os.h"
 
-static arena*       lnx_arena;
+static marena*       lnx_arena;
 static string8_list lnx_cmd_args;
 
 static string8 lnx_error_string(void) {
@@ -24,7 +24,7 @@ static string8 lnx_error_string(void) {
 
 
 void os_main_init(int argc, char** argv) {
-    lnx_arena = arena_create(&(arena_desc){
+    lnx_arena = marena_create(&(marena_desc){
         .desired_max_size = KiB(16)
     });
 
@@ -34,7 +34,7 @@ void os_main_init(int argc, char** argv) {
     }
 }
 void os_main_quit(void) {
-    arena_destroy(lnx_arena);
+    marena_destroy(lnx_arena);
 }
 string8_list os_get_cmd_args(void) {
     return lnx_cmd_args;
@@ -85,17 +85,17 @@ void os_sleep_milliseconds(u32 t) {
 
 // TODO: str8_to_cstr function
 int lnx_open_impl(string8 path, int flags, mode_t mode) {
-    arena_temp temp = arena_temp_begin(lnx_arena);
+    marena_temp temp = marena_temp_begin(lnx_arena);
     
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     int fd = open((char*)path_cstr, flags, mode);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     return fd;
 }
 
-string8 os_file_read(arena* arena, string8 path) {
+string8 os_file_read(marena* arena, string8 path) {
     int fd = lnx_open_impl(path, O_RDONLY, 0);
     
     if (fd == -1) {
@@ -111,7 +111,7 @@ string8 os_file_read(arena* arena, string8 path) {
 
     if (S_ISREG(file_stat.st_mode)) {
         out.size = file_stat.st_size;
-        out.str = (u8*)arena_push(arena, (u64)file_stat.st_size);
+        out.str = (u8*)marena_push(arena, (u64)file_stat.st_size);
 
         if (read(fd, out.str, file_stat.st_size) == -1) {
             log_lnx_errorf("Failed to read file \"%.*s\"", (int)path.size, path.str);
@@ -189,14 +189,14 @@ file_flags lnx_file_flags(mode_t mode) {
     return flags;
 }
 file_stats os_file_get_stats(string8 path) {
-    arena_temp temp = arena_temp_begin(lnx_arena);
+    marena_temp temp = marena_temp_begin(lnx_arena);
     
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     
     struct stat file_stat;
     stat((char*)path_cstr, &file_stat);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     return (file_stats){
         .size = file_stat.st_size,
@@ -256,13 +256,13 @@ static string8 dl_error_string(void) {
     } while (0)
 
 os_library os_lib_load(string8 path) {
-    arena_temp temp = arena_temp_begin(lnx_arena);
+    marena_temp temp = marena_temp_begin(lnx_arena);
     
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     
     void* handle = dlopen((char*)path_cstr, RTLD_LAZY);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     if (handle == NULL) {
         log_dl_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);

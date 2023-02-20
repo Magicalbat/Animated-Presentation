@@ -73,8 +73,8 @@ u32 gl_impl_create_buffer(u32 buffer_type, u64 size, void* data, u32 draw_type) 
 
     return buffer;
 }
-u32 gl_impl_create_texture_ex(arena* arena, string8 file_path, impl_gl_filter filter) {
-    arena_temp temp = arena_temp_begin(arena);
+u32 gl_impl_create_texture_ex(marena* arena, string8 file_path, impl_gl_filter filter) {
+    marena_temp temp = marena_temp_begin(arena);
     string8 file = os_file_read(temp.arena, file_path);
     if (file.size == 0) { 
         log_errorf("Failed to load texture at \"%.*s\"", (int)file_path.size, file_path.str);
@@ -107,7 +107,7 @@ u32 gl_impl_create_texture_ex(arena* arena, string8 file_path, impl_gl_filter fi
     glTexImage2D(GL_TEXTURE_2D, 0, color_type, img.width, img.height, 0, color_type, GL_UNSIGNED_BYTE, img.data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    arena_temp_end(temp);
+    marena_temp_end(temp);
 
     return texture;
 }

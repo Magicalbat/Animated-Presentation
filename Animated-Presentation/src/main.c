@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
     
-    arena* perm_arena = arena_create(&(arena_desc){
+    marena* perm_arena = marena_create(&(marena_desc){
         .desired_max_size = MiB(4),
         .desired_block_size = KiB(64)
     });
@@ -155,7 +155,7 @@ int main(int argc, char** argv) {
 
     gfx_win_destroy(win);
     
-    arena_destroy(perm_arena);
+    marena_destroy(perm_arena);
     log_quit();
     os_main_quit();
 

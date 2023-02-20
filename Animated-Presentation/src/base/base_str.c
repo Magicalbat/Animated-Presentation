@@ -12,9 +12,9 @@ string8 str8_from_cstr(u8* cstr) {
     return str8_from_range(cstr, ptr);
 }
 
-string8 str8_copy(arena* arena, string8 str) {
+string8 str8_copy(marena* arena, string8 str) {
     string8 out = { 
-        .str = (u8*)arena_push(arena, str.size),
+        .str = (u8*)marena_push(arena, str.size),
         .size = str.size
     };
 
@@ -22,7 +22,7 @@ string8 str8_copy(arena* arena, string8 str) {
     
     return out;
 }
-u8* str8_to_cstr(arena* arena, string8 str) {
+u8* str8_to_cstr(marena* arena, string8 str) {
     u8* out = CREATE_ARRAY(arena, u8, str.size + 1);
     
     memcpy(out, str.str, str.size);
@@ -118,11 +118,11 @@ void str8_list_push_existing(string8_list* list, string8 str, string8_node* node
     list->node_count++;
     list->total_size += str.size;
 }
-void str8_list_push(arena* arena, string8_list* list, string8 str) {
+void str8_list_push(marena* arena, string8_list* list, string8 str) {
     string8_node* node = CREATE_ZERO_STRUCT(arena, node, string8_node);
     str8_list_push_existing(list, str, node);
 }
-string8_list str8_split(arena* arena, string8 str, string8 split) {
+string8_list str8_split(marena* arena, string8 str, string8 split) {
     string8_list list_out = (string8_list){ .total_size = 0 };
 
     u8* ptr = str.str;
@@ -151,14 +151,14 @@ string8_list str8_split(arena* arena, string8 str, string8 split) {
 
     return list_out;
 }
-string8_list str8_split_char(arena* arena, string8 str, u8 split_char) {
+string8_list str8_split_char(marena* arena, string8 str, u8 split_char) {
     string8 char_str = (string8){ .str=&split_char, .size=1 };
     return str8_split(arena, str, char_str);
 }
 
-string8 str8_concat(arena* arena, string8_list list) {
+string8 str8_concat(marena* arena, string8_list list) {
     string8 out = {
-        .str = (u8*)arena_push(arena, list.total_size),
+        .str = (u8*)marena_push(arena, list.total_size),
         .size = list.total_size
     };
 
@@ -171,11 +171,11 @@ string8 str8_concat(arena* arena, string8_list list) {
 
     return out;
 }
-string8 str8_join(arena* arena, string8_list list, string8_join join) {
+string8 str8_join(marena* arena, string8_list list, string8_join join) {
     u64 out_size = join.pre.size + join.inbetween.size * (list.node_count - 1) + list.total_size + join.post.size + 1;
     
     string8 out = {
-        .str = (u8*)arena_push(arena, out_size),
+        .str = (u8*)marena_push(arena, out_size),
         .size = out_size
     };
 
@@ -201,7 +201,7 @@ string8 str8_join(arena* arena, string8_list list, string8_join join) {
     return out;
 }
 
-string8 str8_pushfv(arena* arena, const char* fmt, va_list args) {
+string8 str8_pushfv(marena* arena, const char* fmt, va_list args) {
     va_list args2;
     va_copy(args2, args);
 
@@ -211,11 +211,11 @@ string8 str8_pushfv(arena* arena, const char* fmt, va_list args) {
 
     string8 out = { 0 };
     if (size < init_size) {
-        arena_pop(arena, init_size - size - 1);
+        marena_pop(arena, init_size - size - 1);
         out = (string8){ buffer, size };
     } else {
         // NOTE: This path may not work
-        arena_pop(arena, init_size);
+        marena_pop(arena, init_size);
         u8* fixed_buff = CREATE_ARRAY(arena, u8, size + 1);
         u64 final_size = vsnprintf((char*)fixed_buff, size + 1, fmt, args);
         out = (string8){ fixed_buff, final_size };
@@ -226,7 +226,7 @@ string8 str8_pushfv(arena* arena, const char* fmt, va_list args) {
     return out;
 }
 
-string8 str8_pushf(arena* arena, const char* fmt, ...) {
+string8 str8_pushf(marena* arena, const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     
@@ -344,7 +344,7 @@ u32 str_encode_utf16(u16* dst, u32 code_point) {
     return size;
 }
 
-string32 str32_from_str8(arena* arena, string8 str) {
+string32 str32_from_str8(marena* arena, string8 str) {
     u32* buff = CREATE_ARRAY(arena, u32, str.size + 1);
 
     u32* ptr_out = buff;
@@ -364,11 +364,11 @@ string32 str32_from_str8(arena* arena, string8 str) {
     u64 alloc_count = str.size + 1;
     u64 string_count = (u64)(ptr_out - buff);
     u64 unused_count = alloc_count - string_count - 1;
-    arena_pop(arena, unused_count * (sizeof(*buff)));
+    marena_pop(arena, unused_count * (sizeof(*buff)));
 
     return (string32){ .str = buff, .size = string_count };
 }
-string8 str8_from_str32(arena* arena, string32 str) {
+string8 str8_from_str32(marena* arena, string32 str) {
     u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);
 
     u8* ptr_out = buff;
@@ -386,11 +386,11 @@ string8 str8_from_str32(arena* arena, string32 str) {
     u64 alloc_count = str.size * 4 + 1;
     u64 string_count = (u64)(ptr_out - buff);
     u64 unused_count = alloc_count - string_count - 1;
-    arena_pop(arena, unused_count * (sizeof(*buff)));
+    marena_pop(arena, unused_count * (sizeof(*buff)));
 
     return (string8){ .str = buff, .size = string_count };
 }
-string16 str16_from_str8(arena* arena, string8 str) {
+string16 str16_from_str8(marena* arena, string8 str) {
     u16* buff = CREATE_ARRAY(arena, u16, str.size * 2 + 1);
 
     u16* ptr_out = buff;
@@ -409,12 +409,12 @@ string16 str16_from_str8(arena* arena, string8 str) {
     u64 alloc_count = str.size * 2 + 1;
     u64 string_count = (u64)(ptr_out - buff);
     u64 unused_count = alloc_count - string_count - 1;
-    arena_pop(arena, unused_count * (sizeof(*buff)));
+    marena_pop(arena, unused_count * (sizeof(*buff)));
 
     return (string16){ .str = buff, .size = string_count };
 
 }
-string8 str8_from_str16(arena* arena, string16 str) {
+string8 str8_from_str16(marena* arena, string16 str) {
     u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);
 
     u8* ptr_out = buff;
@@ -433,7 +433,7 @@ string8 str8_from_str16(arena* arena, string16 str) {
     u64 alloc_count = str.size * 4 + 1;
     u64 string_count = (u64)(ptr_out - buff);
     u64 unused_count = alloc_count - string_count - 1;
-    arena_pop(arena, unused_count * (sizeof(*buff)));
+    marena_pop(arena, unused_count * (sizeof(*buff)));
 
     return (string8){ .str = buff, .size = string_count };
 }
