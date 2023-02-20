@@ -74,7 +74,7 @@ void log_init(log_desc base_desc) {
         .desired_max_size = desc.max_stored * 256 + KiB(4)
     });
 
-    logs = CREATE_ZERO_ARRAY(log_arena, logs, log_data, desc.max_stored);
+    logs = CREATE_ZERO_ARRAY(log_arena, log_data, desc.max_stored);
     log_index = 0;
 
     for (u32 i = 0; i < LOG_LEVEL_COUNT; i++) {

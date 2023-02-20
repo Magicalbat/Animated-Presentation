@@ -13,7 +13,7 @@ typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXC
 static bool isExtensionSupported(const char *extList, const char *extension);
 
 gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
-    gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
+    gfx_window* win = CREATE_ZERO_STRUCT(arena, gfx_window);
 
     win->glx.display = XOpenDisplay(NULL);
     ASSERT(win->glx.display != NULL, "Cannot open display");

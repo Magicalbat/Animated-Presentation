@@ -32,7 +32,7 @@ EM_BOOL on_mouse_up(int event_type, const EmscriptenMouseEvent* e, void* win_ptr
 void opengl_load_functions(gfx_window* win) { }
 
 gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
-    gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
+    gfx_window* win = CREATE_ZERO_STRUCT(arena, gfx_window);
 
     EmscriptenWebGLContextAttributes attr;
     emscripten_webgl_init_context_attributes(&attr);

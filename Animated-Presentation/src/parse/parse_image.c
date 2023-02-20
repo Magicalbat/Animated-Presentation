@@ -106,7 +106,7 @@ static void parse_png_ihdr(marena* arena, pstate* state) {
         return;
     }
 
-    state->out = CREATE_ZERO_ARRAY(arena, state->out, u8, state->png.width * state->png.height * bytes_per_pixel[state->color_type]);
+    state->out = CREATE_ZERO_ARRAY(arena, u8, state->png.width * state->png.height * bytes_per_pixel[state->color_type]);
     state->temp_arena = marena_temp_begin(arena);
 }
 
@@ -335,7 +335,7 @@ image parse_qoi(marena* arena, string8 file) {
     u64 out_pos = 0;
     u64 out_size = out.width * out.height * out.channels;
     // "+ 1" to prevent overflow in WRITE_PIXEL
-    out.data = CREATE_ZERO_ARRAY(arena, out.data, u8, out_size + 1);
+    out.data = CREATE_ZERO_ARRAY(arena, u8, out_size + 1);
 
     qpixel arr[64] = { 0 };
     qpixel pixel = { .a = 255 };

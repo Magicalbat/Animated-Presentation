@@ -6,7 +6,7 @@ static const char* vert_source;
 static const char* frag_source;
 
 draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity) { 
-    draw_rectb* batch = CREATE_ZERO_STRUCT(arena, batch, draw_rectb);
+    draw_rectb* batch = CREATE_ZERO_STRUCT(arena, draw_rectb);
 
     batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;
@@ -48,7 +48,7 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity) {
         GL_ARRAY_BUFFER, sizeof(pos_pattern), &pos_pattern[0], GL_STATIC_DRAW
     );
 
-    draw_rectb_create_tex(arena, batch, STR8_LIT("kodim23.qoi"));
+    draw_rectb_create_tex(batch, STR8_LIT("test_img.png"));
     //u32 color = 0xffffffff;
     //draw_rectb_add_tex(batch, (image){
     //    .width = 1,
@@ -112,25 +112,25 @@ u32 draw_rectb_add_tex(draw_rectb* batch, image img) {
     
     return id;
 }
-u32 draw_rectb_create_tex(marena* arena, draw_rectb* batch, string8 file_path) {
-    marena_temp temp = marena_temp_begin(arena);
+u32 draw_rectb_create_tex(draw_rectb* batch, string8 file_path) {
+    marena_temp scratch = marena_scratch_get(NULL, 0);
 
-    string8 file = os_file_read(temp.arena, file_path);
+    string8 file = os_file_read(scratch.arena, file_path);
     if (file.size == 0) {
-        marena_temp_end(temp);
+        marena_temp_end(scratch);
         return -1;
     }
     
-    image img = parse_image(temp.arena, file);
+    image img = parse_image(scratch.arena, file);
         
     if (!img.valid) {
-        marena_temp_end(temp);
+        marena_temp_end(scratch);
         return -1;
     }
 
     u32 id = draw_rectb_add_tex(batch, img);
 
-    marena_temp_end(temp);
+    marena_scratch_release(scratch);
 
     return id;
 }

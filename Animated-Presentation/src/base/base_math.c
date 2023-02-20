@@ -1,6 +1,72 @@
 #include "base_math.h"
 #include "base_log.h"
 
+// I could try different algorithms if I wanted to
+// With random rectangles it averages about 80% packing density
+rect rect_pack(rect* rects, u32 num_rects) {
+    marena_temp scratch = marena_scratch_get(NULL, 0);
+
+    b32* rect_used = CREATE_ZERO_ARRAY(scratch.arena, b32, num_rects);
+    rect* openings = CREATE_ZERO_ARRAY(scratch.arena, rect, num_rects);
+
+    rect* tallest = &(rect){ 0 };
+    u32 tallest_index = 0;
+    for (u32 j = 0; j < num_rects; j++) {
+        if (rects[j].h > tallest->h) {
+            tallest = &rects[j];
+            tallest_index = j;
+        }
+    }
+    rect_used[tallest_index] = true;
+
+    f32 height = rects[tallest_index].h;
+    f32 width = rects[tallest_index].w;
+
+    for (u32 i = 1; i < num_rects; i++) {
+        rect* widest = &(rect){ 0 };
+        u32 widest_index = 0;
+        for (u32 j = 0; j < num_rects; j++) {
+            if (rects[j].w > widest->w && !rect_used[j]) {
+                widest = &rects[j];
+                widest_index = j;
+            }
+        }
+        rect_used[widest_index] = true;
+
+        b32 opening_found = false;
+        for (u32 j = i; j > 0; j--) {
+            if (widest->h <= openings[j].h && widest->w <= openings[j].w) {
+                widest->x = openings[j].x;
+                widest->y = openings[j].y;
+
+                openings[j].y += widest->h;
+                openings[j].h -= widest->h;
+
+                opening_found = true;
+            }
+        }
+
+        if (opening_found)  continue;
+
+        widest->x = width + 1;
+        widest->y = 0;
+        width += widest->w;
+
+        openings[i] = (rect){
+            .x = widest->x,
+            .y = widest->h + 1,
+            .w = widest->w,
+            .h = height - widest->h
+        };
+    }
+
+    marena_scratch_release(scratch);
+    return (rect){ 
+        .w = width,
+        .h = height
+    };
+}
+
 // https://github.com/python/cpython/blob/3.11/Lib/colorsys.py
 vec3 rgb_to_hsv(vec3 rgb) {
     f32 cmax = MAX(rgb.r, MAX(rgb.g, rgb.b));

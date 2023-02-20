@@ -119,7 +119,7 @@ void str8_list_push_existing(string8_list* list, string8 str, string8_node* node
     list->total_size += str.size;
 }
 void str8_list_push(marena* arena, string8_list* list, string8 str) {
-    string8_node* node = CREATE_ZERO_STRUCT(arena, node, string8_node);
+    string8_node* node = CREATE_ZERO_STRUCT(arena, string8_node);
     str8_list_push_existing(list, str, node);
 }
 string8_list str8_split(marena* arena, string8 str, string8 split) {

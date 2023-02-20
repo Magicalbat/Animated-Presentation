@@ -28,7 +28,7 @@
         type, severity, message);
 }*/
 
-#define WIN_SCALE 3
+#define WIN_SCALE 2
 
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
@@ -58,6 +58,16 @@ int main(int argc, char** argv) {
     
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(opengl_message_callback, 0);
+
+    srand((u32)os_now_microseconds());
+    rect rects[10] = { 0 };
+    for (int i = 0; i < 10; i++) {
+        rects[i] = (rect){
+            .w = (f32)(rand() & 127),
+            .h = (f32)(rand() & 127)
+        };
+    }
+    rect boundary = rect_pack(rects, 10);
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
     //u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
@@ -112,7 +122,20 @@ int main(int argc, char** argv) {
             }
         }*/
 
+        draw_rectb_push(rectb, boundary, (vec3){ 0, 0, 1 });
+        for (u32 i = 0; i < 10; i++) {
+            draw_rectb_push(rectb, rects[i], (vec3){ 1, 1, 1 });
+        }
+
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
+            for (int i = 0; i < 10; i++) {
+                rects[i] = (rect){
+                    .w = (f32)(rand() & 127),
+                    .h = (f32)(rand() & 127)
+                };
+            }
+            boundary = rect_pack(rects, 10);
+
             for (u32 i = 0; i < 4; i++) {
                 if (vec2_len(vec2_sub(win->mouse_pos, bezier.p[i])) <= 12) {
                     cur_point = i;
@@ -128,19 +151,19 @@ int main(int argc, char** argv) {
             bezier.p[cur_point] = win->mouse_pos;
         }
 
-        for (u32 i = 0; i < 4; i++) {
-            draw_rectb_push(rectb, (rect){
-                bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
-            }, (vec3){ 1, 1, 1});
-        }
+        //for (u32 i = 0; i < 4; i++) {
+        //    draw_rectb_push(rectb, (rect){
+        //        bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
+        //    }, (vec3){ 1, 1, 1});
+        //}
 
         draw_rectb_flush(rectb);
 
         draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
         
-        draw_cbezier_push_grad(draw_bezier, &bezier, 4,
-            (vec3){ 0.0f, 0.1f, 0.8f } , (vec3){ 0.8f, 0.1f, 0.2f});
-        draw_cbezier_flush(draw_bezier);
+        //draw_cbezier_push_grad(draw_bezier, &bezier, 4,
+        //    (vec3){ 0.0f, 0.1f, 0.8f } , (vec3){ 0.8f, 0.1f, 0.2f});
+        //draw_cbezier_flush(draw_bezier);
         
         gfx_win_swap_buffers(win);
         gfx_win_process_events(win);

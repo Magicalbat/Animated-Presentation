@@ -48,7 +48,7 @@ static wglCreateContextAttribsARB_func *wglCreateContexAttribsARB = NULL;
 static wglChoosePixelFormatARB_func    *wglChoosePixelFormatARB   = NULL;
 
 gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
-    gfx_window* win = CREATE_ZERO_STRUCT(arena, win, gfx_window);
+    gfx_window* win = CREATE_ZERO_STRUCT(arena, gfx_window);
 
     win->wgl.h_instance = GetModuleHandle(0);
 

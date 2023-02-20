@@ -42,6 +42,8 @@ typedef union {
     vec2 p[4];
 } cbezier;
 
+rect rect_pack(rect* rects, u32 num_rects);
+
 vec3 rgb_to_hsv(vec3 rgb);
 vec3 hsv_to_rgb(vec3 hsv);
 
