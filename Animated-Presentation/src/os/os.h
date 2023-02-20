@@ -66,7 +66,7 @@ void         os_main_quit(void);
 string8_list os_get_cmd_args(void);
 
 void* os_mem_reserve(u64 size);
-void  os_mem_commit(void* ptr, u64 size);
+b32   os_mem_commit(void* ptr, u64 size);
 void  os_mem_decommit(void* ptr, u64 size);
 void  os_mem_release(void* ptr, u64 size);
 

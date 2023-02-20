@@ -44,7 +44,9 @@ static string8 win32_error_string(void) {
 
 
 void os_main_init(int argc, char** argv) {
-    w32_arena = arena_create(KiB(16));
+    w32_arena = arena_create(&(arena_desc){
+        .desired_max_size = KiB(16)
+    });
 
     LARGE_INTEGER perf_freq;
     if (QueryPerformanceFrequency(&perf_freq)) {
@@ -69,8 +71,9 @@ void* os_mem_reserve(u64 size) {
     void* out = VirtualAlloc(0, size, MEM_RESERVE, PAGE_READWRITE);
     return out;
 }
-void os_mem_commit(void* ptr, u64 size) {
-    VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE);
+b32 os_mem_commit(void* ptr, u64 size) {
+    b32 out = (VirtualAlloc(ptr, size, MEM_COMMIT, PAGE_READWRITE) != 0);
+    return out;
 }
 void os_mem_decommit(void* ptr, u64 size) {
     VirtualFree(ptr, size, MEM_DECOMMIT);
@@ -140,7 +143,7 @@ string8 os_file_read(arena* arena, string8 path) {
     DWORD low_size = GetFileSize(file_handle, &high_size);
     u64 total_size = ((u64)high_size << 32) | low_size;
 
-    u64 arena_start_pos = arena->cur;
+    arena_temp possible_temp = arena_temp_begin(arena);
 
     u8* buffer = CREATE_ARRAY(arena, u8, total_size);
 
@@ -152,7 +155,7 @@ string8 os_file_read(arena* arena, string8 path) {
         DWORD bytes_read = 0;
         if (ReadFile(file_handle, buffer + total_read, to_read, &bytes_read, 0) == FALSE) {
             log_w32_errorf("Failed to read to file \"%.*s\"", (int)path.size, (char*)path.str);
-            arena_pop_to(arena, arena_start_pos);
+            arena_temp_end(possible_temp);
 
             return (string8){ 0 };
         }

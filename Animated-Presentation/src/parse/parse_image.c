@@ -283,7 +283,7 @@ image parse_png(arena* arena, string8 file) {
         parse_png_chunk(arena, &state);
     }
 
-    if (state.temp_arena.start_pos)
+    if (state.temp_arena.pos)
         arena_temp_end(state.temp_arena);
     
     state.png.data = state.out;

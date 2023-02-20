@@ -9,7 +9,9 @@ static arena*       wasm_arena;
 static string8_list wasm_cmd_args;
 
 void os_main_init(int argc, char** argv) {
-    wasm_arena = arena_create(KiB(16));
+    wasm_arena = arena_create(&(arena_desc){
+        .desired_max_size = KiB(16)
+    });
 
     for (i32 i = 0; i < argc; i++) {
         string8 str = str8_from_cstr((u8*)argv[i]);
@@ -27,8 +29,9 @@ void* os_mem_reserve(u64 size) {
     void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     return out;
 }
-void os_mem_commit(void* ptr, u64 size) {
-    mprotect(ptr, size, PROT_READ | PROT_WRITE);
+b32 os_mem_commit(void* ptr, u64 size) {
+    b32 out = (mprotect(ptr, size, PROT_READ | PROT_WRITE) == 0);
+    return out;
 }
 void os_mem_decommit(void* ptr, u64 size) {
     mprotect(ptr, size, PROT_NONE);

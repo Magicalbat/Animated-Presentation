@@ -70,7 +70,9 @@ void log_init(log_desc base_desc) {
     }
 #endif
 
-    log_arena = arena_create(desc.max_stored * 256 + KiB(4));
+    log_arena = arena_create(&(arena_desc){
+        .desired_max_size = desc.max_stored * 256 + KiB(4)
+    });
 
     logs = CREATE_ZERO_ARRAY(log_arena, logs, log_data, desc.max_stored);
     log_index = 0;
@@ -79,7 +81,7 @@ void log_init(log_desc base_desc) {
         last_logs[i] = (log_data){ 0 };
     }
 
-    log_arena_start_pos = log_arena->cur;
+    log_arena_start_pos = log_arena->pos;
 }
 void log_quit(void) {
     arena_destroy(log_arena);

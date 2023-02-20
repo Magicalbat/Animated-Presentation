@@ -45,6 +45,20 @@ typedef struct {
 # define BREAK_DEBUGGER() (*(volatile int *)0 = 0)
 #endif
 
+#ifndef AP_THREAD_VAR
+#    if defined(__clang__) || defined(__GNUC__)
+#        define AP_THREAD_VAR __thread
+#    elif defined(_MSC_VER)
+#        define AP_THREAD_VAR __declspec(thread)
+#    elif (__STDC_VERSION__ >= 201112L)
+#        define AP_THREAD_VAR _Thread_local
+#    else
+#        error "Invalid compiler/version for thead variable"
+#    endif
+#endif
+
+
+
 #ifdef AP_ASSERT
 # define ASSERT(a, b) do { \
     if(!(a)) { \
@@ -73,15 +87,15 @@ typedef struct {
 #define STATIC_ARR_LEN(arr) ( sizeof(arr) / sizeof(arr[0]) )
 
 #define CREATE_STRUCT(arena, type) \
-    (type*)(arena_alloc(arena, sizeof(type)))
+    (type*)(arena_push(arena, sizeof(type)))
 #define CREATE_ZERO_STRUCT(arena, var, type)   \
-    (type*)(arena_alloc(arena, sizeof(type))); \
+    (type*)(arena_push(arena, sizeof(type))); \
     memset(var, 0, sizeof(type))
 
 #define CREATE_ARRAY(arena, type, size) \
-    (type*)(arena_alloc(arena, sizeof(type) * (size)))
+    (type*)(arena_push(arena, sizeof(type) * (size)))
 #define CREATE_ZERO_ARRAY(arena, var, type, size)     \
-    (type*)(arena_alloc(arena, sizeof(type) * (size))); \
+    (type*)(arena_push(arena, sizeof(type) * (size))); \
     memset(var, 0, sizeof(type) * (size))
 
 #define FOR_SLL(type, f, var)    for(type* var = f; var != NULL; var=var->next)

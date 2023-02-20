@@ -14,7 +14,7 @@ string8 str8_from_cstr(u8* cstr) {
 
 string8 str8_copy(arena* arena, string8 str) {
     string8 out = { 
-        .str = (u8*)arena_alloc(arena, str.size),
+        .str = (u8*)arena_push(arena, str.size),
         .size = str.size
     };
 
@@ -158,7 +158,7 @@ string8_list str8_split_char(arena* arena, string8 str, u8 split_char) {
 
 string8 str8_concat(arena* arena, string8_list list) {
     string8 out = {
-        .str = (u8*)arena_alloc(arena, list.total_size),
+        .str = (u8*)arena_push(arena, list.total_size),
         .size = list.total_size
     };
 
@@ -175,7 +175,7 @@ string8 str8_join(arena* arena, string8_list list, string8_join join) {
     u64 out_size = join.pre.size + join.inbetween.size * (list.node_count - 1) + list.total_size + join.post.size + 1;
     
     string8 out = {
-        .str = (u8*)arena_alloc(arena, out_size),
+        .str = (u8*)arena_push(arena, out_size),
         .size = out_size
     };
 
@@ -345,7 +345,7 @@ u32 str_encode_utf16(u16* dst, u32 code_point) {
 }
 
 string32 str32_from_str8(arena* arena, string8 str) {
-    u32* buff = CREATE_ARRAY(arena, u32, str.size + 1);//(u32*)arena_alloc(arena, sizeof(u32) * str.size + 1);
+    u32* buff = CREATE_ARRAY(arena, u32, str.size + 1);
 
     u32* ptr_out = buff;
     u8* ptr = str.str;
@@ -369,7 +369,7 @@ string32 str32_from_str8(arena* arena, string8 str) {
     return (string32){ .str = buff, .size = string_count };
 }
 string8 str8_from_str32(arena* arena, string32 str) {
-    u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);//(u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
+    u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);
 
     u8* ptr_out = buff;
     u32* ptr = str.str;
@@ -415,7 +415,7 @@ string16 str16_from_str8(arena* arena, string8 str) {
 
 }
 string8 str8_from_str16(arena* arena, string16 str) {
-    u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);//(u8*)arena_alloc(arena, sizeof(u8) * str.size * 4 + 1);
+    u8* buff = CREATE_ARRAY(arena, u8, str.size * 4 + 1);
 
     u8* ptr_out = buff;
     u16* ptr = str.str;

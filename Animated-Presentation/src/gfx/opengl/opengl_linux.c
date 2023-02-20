@@ -119,7 +119,7 @@ gfx_window* gfx_win_create(arena* arena, u32 width, u32 height, string8 title) {
 
     XFreeColormap(win->glx.display, window_attribs.colormap);
 
-    u8* title_cstr = (u8*)arena_alloc(arena, title.size + 1);
+    u8* title_cstr = (u8*)arena_push(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
     title_cstr[title.size] = '\0';
     XStoreName(win->glx.display, win->glx.window, title.str);
@@ -186,7 +186,7 @@ void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
 }
 void gfx_win_set_title(arena* arena, gfx_window* win, string8 title) {
     win->title = title;
-    u8* title_cstr = (u8*)arena_alloc(arena, title.size + 1);
+    u8* title_cstr = (u8*)arena_push(arena, title.size + 1);
     memcpy(title_cstr, title.str, title.size);
     title_cstr[title.size] = '\0';
     

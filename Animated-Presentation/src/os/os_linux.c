@@ -24,7 +24,9 @@ static string8 lnx_error_string(void) {
 
 
 void os_main_init(int argc, char** argv) {
-    lnx_arena = arena_create(KiB(16));
+    lnx_arena = arena_create(&(arena_desc){
+        .desired_max_size = KiB(16)
+    });
 
     for (i32 i = 0; i < argc; i++) {
         string8 str = str8_from_cstr((u8*)argv[i]);
@@ -43,7 +45,8 @@ void* os_mem_reserve(u64 size) {
     return out;
 }
 void os_mem_commit(void* ptr, u64 size) {
-    mprotect(ptr, size, PROT_READ | PROT_WRITE);
+    b32 out = (mprotect(ptr, size, PROT_READ | PROT_WRITE) == 0);
+    return out;
 }
 void os_mem_decommit(void* ptr, u64 size) {
     mprotect(ptr, size, PROT_NONE);
@@ -108,7 +111,7 @@ string8 os_file_read(arena* arena, string8 path) {
 
     if (S_ISREG(file_stat.st_mode)) {
         out.size = file_stat.st_size;
-        out.str = (u8*)arena_alloc(arena, (u64)file_stat.st_size);
+        out.str = (u8*)arena_push(arena, (u64)file_stat.st_size);
 
         if (read(fd, out.str, file_stat.st_size) == -1) {
             log_lnx_errorf("Failed to read file \"%.*s\"", (int)path.size, path.str);

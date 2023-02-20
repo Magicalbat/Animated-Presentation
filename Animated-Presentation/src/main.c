@@ -6,7 +6,6 @@
 #include "draw/draw.h"
 #include "draw/opengl_impl/gl_impl.h"
 
-// TODO: use gles2 for wasm
 // TODO: enable -Wall and fix warnings
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error
@@ -39,7 +38,10 @@ int main(int argc, char** argv) {
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
     
-    arena* perm_arena = arena_create(MiB(4));
+    arena* perm_arena = arena_create(&(arena_desc){
+        .desired_max_size = MiB(4),
+        .desired_block_size = KiB(64)
+    });
 
     gfx_window* win = gfx_win_create(
         perm_arena,
