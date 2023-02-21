@@ -30,6 +30,8 @@
 
 #define WIN_SCALE 2
 
+typedef int (add_func)(int, int);
+
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
@@ -55,6 +57,13 @@ int main(int argc, char** argv) {
     log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
     log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
     log_infof("GL Version: %s",  glGetString(GL_VERSION));
+
+    os_library testlib = os_lib_load(STR8_LIT("libtest.wasm"));
+
+    add_func* test_add = (add_func*)os_lib_func(testlib, "test_add");
+    log_debugf("%d", test_add(1, 1));
+
+    os_lib_release(testlib);
     
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(opengl_message_callback, 0);

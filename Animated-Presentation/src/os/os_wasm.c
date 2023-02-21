@@ -69,8 +69,6 @@ void os_sleep_milliseconds(u32 t) {
     emscripten_sleep(t);
 }
 
-// TODO: make this work better
-// https://stackoverflow.com/questions/63959571/how-do-i-pass-a-file-blob-from-javascript-to-emscripten-webassembly-c
 EM_ASYNC_JS(u8*, os_file_read_impl, (char* file_name), {
     const response = await fetch(UTF8ToString(file_name));
     if (!response.ok) {
@@ -169,11 +167,32 @@ static string8 dl_error_string(void) {
         log_errorf(fmt ", Linux DL Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
     } while (0)
 
+EM_ASYNC_JS(int, js_load_lib, (char* file_name), {
+    const fileName = UTF8ToString(file_name);
+
+    const response = await fetch(fileName);
+    if (!response.ok) {
+        return 0;
+    }
+
+    const blob = await response.blob();
+    const data = new Uint8Array(await blob.arrayBuffer());
+
+    const stream = FS.open(fileName, "w+");
+    FS.write(stream, data, 0, data.length, 0);
+    FS.close(stream);
+
+    return 1;
+})
+
+// I know that this is a bit stupid and convoluted,
+// but I do not want to think of a better solution right not
 os_library os_lib_load(string8 path) {
     marena_temp temp = marena_temp_begin(wasm_arena);
     
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     
+    js_load_lib((char*)path_cstr);
     void* handle = dlopen((char*)path_cstr, RTLD_LAZY);
 
     marena_temp_end(temp);

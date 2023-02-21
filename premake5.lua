@@ -65,6 +65,11 @@ project "Animated-Presentation"
         toolset "clang"
 
     filter "options:wasm"
+        buildoptions 
+        {
+            "-fPIC"
+        }
+
         linkoptions
         {
             "-sFETCH=1",
@@ -73,10 +78,14 @@ project "Animated-Presentation"
             "-sASYNCIFY=1",
             --"-O2",
 
+            "-sFORCE_FILESYSTEM=1",
+
             "-sFULL_ES3=1",
             "-sOFFSCREEN_FRAMEBUFFER=1",
 
             "-sMIN_WEBGL_VERSION=2",
+            
+            "-sMAIN_MODULE=1"
         }
         links { "m", "GL" }
 
@@ -97,10 +106,3 @@ project "Animated-Presentation"
     filter "configurations:Release"
         optimize "On"
         defines "NDEBUG"
-    
-    -- Emscripten for clangd on my computer
-    filter { "action:ecc", "options:wasm" } 
-        includedirs
-        {
-            "C:/Users/magic/Desktop/Projects/Applications/emsdk/upstream/emscripten/cache/sysroot/include",
-        }

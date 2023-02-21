@@ -40,7 +40,7 @@ static init_data init_common(const marena_desc* desc) {
 marena* marena_create(const marena_desc* desc) {
     init_data init_data = init_common(desc);
 
-    marena* out = (marena*)malloc(sizeof(arena));
+    marena* out = (marena*)malloc(sizeof(marena));
 
     if (out == NULL) {
         log_error("Failed to malloc initial memory for arena");
