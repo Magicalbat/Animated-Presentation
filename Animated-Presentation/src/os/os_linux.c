@@ -44,7 +44,7 @@ void* os_mem_reserve(u64 size) {
     void* out = mmap(NULL, size, PROT_NONE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     return out;
 }
-void os_mem_commit(void* ptr, u64 size) {
+b32 os_mem_commit(void* ptr, u64 size) {
     b32 out = (mprotect(ptr, size, PROT_READ | PROT_WRITE) == 0);
     return out;
 }

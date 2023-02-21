@@ -249,11 +249,11 @@ void marena_temp_end(marena_temp temp) {
 #   define AP_SCRATCH_COUNT 2
 #endif
 
-AP_THREAD_VAR static marena_desc scratch_desc = {
+static AP_THREAD_VAR marena_desc scratch_desc = {
     .desired_max_size = MiB(64),
     .desired_block_size = KiB(128)
 };
-AP_THREAD_VAR static marena* scratch_arenas[AP_SCRATCH_COUNT] = { 0 };
+static AP_THREAD_VAR marena* scratch_arenas[AP_SCRATCH_COUNT] = { 0 };
 
 void marena_scratch_set_desc(marena_desc* desc) {
     if (scratch_arenas[0] == NULL)
