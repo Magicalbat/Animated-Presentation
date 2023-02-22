@@ -26,3 +26,4 @@ infgen.c
 **.html
 **.js
 **.wasm
+emcc-cache

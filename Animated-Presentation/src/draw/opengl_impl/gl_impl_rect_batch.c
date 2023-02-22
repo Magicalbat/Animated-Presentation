@@ -41,7 +41,9 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity) {
         0, 1,
         1, 1,
         0, 0,
-        1, 0
+        1, 1,
+        0, 0,
+        1, 0  
     };
     
     batch->gl.pos_pattern_buffer = gl_impl_create_buffer(
@@ -197,8 +199,8 @@ void draw_rectb_flush(draw_rectb* batch) {
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, batch->size * sizeof(draw_rectb_rect), batch->data);
     
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)batch->size);
-
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)batch->size);
+    
     glVertexAttribDivisor(1, 0);
     glVertexAttribDivisor(2, 0);
     glVertexAttribDivisor(3, 0);
