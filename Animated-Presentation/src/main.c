@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
         .desired_block_size = KiB(64)
     });
 
+    getchar();
+
     gfx_window* win = gfx_win_create(
         perm_arena,
         320 * WIN_SCALE, 180 * WIN_SCALE,
@@ -58,29 +60,13 @@ int main(int argc, char** argv) {
     log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
     log_infof("GL Version: %s",  glGetString(GL_VERSION));
 
-    /*os_library testlib = os_lib_load(STR8_LIT("libtest.wasm"));
-
-    add_func* test_add = (add_func*)os_lib_func(testlib, "test_add");
-    log_debugf("%d", test_add(1, 1));
-
-    os_lib_release(testlib);*/
-    
     //glEnable(GL_DEBUG_OUTPUT);
     //glDebugMessageCallback(opengl_message_callback, 0);
 
-    srand((u32)os_now_microseconds());
-    rect rects[10] = { 0 };
-    for (int i = 0; i < 10; i++) {
-        rects[i] = (rect){
-            .w = (f32)(rand() & 127),
-            .h = (f32)(rand() & 127)
-        };
-    }
-    rect boundary = rect_pack(rects, 10);
-
-    draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024);
-    //u32 monkey = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("monkey 1.png"));
-    //u32 birds = draw_rectb_create_tex(perm_arena, rectb, STR8_LIT("kodim23.qoi"));
+    draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024, 16);
+    u32 monkey = draw_rectb_create_tex(rectb, STR8_LIT("monkey 1.png"));
+    u32 birds = draw_rectb_create_tex(rectb, STR8_LIT("kodim23.qoi"));
+    draw_rectb_finalize_textures(rectb);
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
 
@@ -118,7 +104,7 @@ int main(int argc, char** argv) {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        /*for (u32 x = 0; x < 10; x++) {
+        for (u32 x = 0; x < 10; x++) {
             for (u32 y = 0; y < 10; y++) {
                 draw_rectb_push(rectb, (rect){
                     (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
@@ -129,22 +115,9 @@ int main(int argc, char** argv) {
                 //(x + y) % 2 == 0 ? monkey : birds, 
                 //(rect){ 0, 0, 1, 1 });
             }
-        }*/
-
-        draw_rectb_push(rectb, boundary, (vec3){ 0, 0, 1 });
-        for (u32 i = 0; i < 10; i++) {
-            draw_rectb_push(rectb, rects[i], (vec3){ 1, 1, 1 });
         }
 
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
-            for (int i = 0; i < 10; i++) {
-                rects[i] = (rect){
-                    .w = (f32)(rand() & 127),
-                    .h = (f32)(rand() & 127)
-                };
-            }
-            boundary = rect_pack(rects, 10);
-
             for (u32 i = 0; i < 4; i++) {
                 if (vec2_len(vec2_sub(win->mouse_pos, bezier.p[i])) <= 12) {
                     cur_point = i;
@@ -160,19 +133,19 @@ int main(int argc, char** argv) {
             bezier.p[cur_point] = win->mouse_pos;
         }
 
-        //for (u32 i = 0; i < 4; i++) {
-        //    draw_rectb_push(rectb, (rect){
-        //        bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
-        //    }, (vec3){ 1, 1, 1});
-        //}
+        for (u32 i = 0; i < 4; i++) {
+            draw_rectb_push(rectb, (rect){
+                bezier.p[i].x - 6, bezier.p[i].y - 6, 12, 12
+            }, (vec3){ 1, 1, 1});
+        }
 
         draw_rectb_flush(rectb);
 
         draw_poly_conv_arr(poly, (vec3){ 0, 1, 1 }, win->mouse_pos, points);
         
-        //draw_cbezier_push_grad(draw_bezier, &bezier, 4,
-        //    (vec3){ 0.0f, 0.1f, 0.8f } , (vec3){ 0.8f, 0.1f, 0.2f});
-        //draw_cbezier_flush(draw_bezier);
+        draw_cbezier_push_grad(draw_bezier, &bezier, 4,
+            (vec3){ 0.0f, 0.1f, 0.8f } , (vec3){ 0.8f, 0.1f, 0.2f});
+        draw_cbezier_flush(draw_bezier);
         
         gfx_win_swap_buffers(win);
         gfx_win_process_events(win);
