@@ -28,7 +28,9 @@
         type, severity, message);
 }*/
 
-#define WIN_SCALE 2
+#define WIN_SCALE 1.5
+#define WIDTH (u32)(320 * WIN_SCALE)
+#define HEIGHT (u32)(180 * WIN_SCALE)
 
 typedef int (add_func)(int, int);
 
@@ -45,11 +47,9 @@ int main(int argc, char** argv) {
         .desired_block_size = KiB(64)
     });
 
-    getchar();
-
     gfx_window* win = gfx_win_create(
         perm_arena,
-        320 * WIN_SCALE, 180 * WIN_SCALE,
+        WIDTH, HEIGHT,
         STR8_LIT("Test window")
     );
     
@@ -64,8 +64,10 @@ int main(int argc, char** argv) {
     //glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024, 16);
+    u32 test_img = draw_rectb_create_tex(rectb, STR8_LIT("test_img.png"));
     u32 monkey = draw_rectb_create_tex(rectb, STR8_LIT("monkey 1.png"));
     u32 birds = draw_rectb_create_tex(rectb, STR8_LIT("kodim23.qoi"));
+    
     draw_rectb_finalize_textures(rectb);
 
     draw_polygon* poly = draw_poly_create(perm_arena, win, 256);
@@ -106,14 +108,15 @@ int main(int argc, char** argv) {
 
         for (u32 x = 0; x < 10; x++) {
             for (u32 y = 0; y < 10; y++) {
-                draw_rectb_push(rectb, (rect){
+                draw_rectb_push_ex(rectb, (rect){
                     (f32)x * 30, (f32)y * 30, 25.0f, 25.0f
                 }, (vec3){
                     1.0f, 1.0f, 1.0f
                     //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
-                });
-                //(x + y) % 2 == 0 ? monkey : birds, 
-                //(rect){ 0, 0, 1, 1 });
+                },
+                    (x + y) % 3 == 0 ? birds : ((x + y) % 3 == 1 ? test_img : monkey),
+                    (rect){ 0, 0, 0, 0 }
+                );
             }
         }
 

@@ -45,18 +45,19 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
 
     batch->max_textures = max_textures;
     batch->tex_rects = CREATE_ZERO_ARRAY(arena, rect, max_textures);
+    batch->img_rects = CREATE_ZERO_ARRAY(arena, rect, max_textures);
 
     batch->temp.arena = marena_create(&(marena_desc){ .desired_max_size = MiB(64) });
-    batch->img_rects = CREATE_ZERO_ARRAY(batch->temp.arena, rect, max_textures);
     batch->temp.imgs = CREATE_ZERO_ARRAY(batch->temp.arena, image, max_textures);
 
     //draw_rectb_create_tex(batch, STR8_LIT("test_img.png"));
-    u32 color = 0xffffffff;
+    u32* color = (u32*)marena_push(batch->temp.arena, sizeof(u32));
+    *color = 0xffffffff;
     draw_rectb_add_tex(batch, (image){
         .width = 1,
         .height = 1,
         .channels = 4,
-        .data = (u8*)&color
+        .data = (u8*)color
     });
     
     return batch;
@@ -92,7 +93,7 @@ u32 draw_rectb_create_tex(draw_rectb* batch, string8 file_path) {
         return -1;
     }
     
-    image img = parse_image(batch->temp.arena, file);
+    image img = parse_image(batch->temp.arena, file, 4);
         
     if (!img.valid) {
         return -1;
@@ -105,6 +106,7 @@ u32 draw_rectb_create_tex(draw_rectb* batch, string8 file_path) {
 void draw_rectb_finalize_textures(draw_rectb* batch) {
 
     rect boundary = rect_pack(batch->img_rects, batch->num_textures);
+    
     batch->texture_boundary = boundary;
 
     for (u32 i = 0; i < batch->num_textures; i++) {
@@ -125,7 +127,7 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (GLsizei)boundary.w, (GLsizei)boundary.h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)boundary.w, (GLsizei)boundary.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
     for (u32 i = 0; i < batch->num_textures; i++) {
         image* img = &batch->temp.imgs[i];
@@ -134,8 +136,7 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
         glTexSubImage2D(GL_TEXTURE_2D, 0,
             (GLint)rect->x, (GLint)rect->y,
             (GLsizei)rect->w, (GLsizei)rect->h,
-            img->channels == 3 ? GL_RGB : GL_RGBA,
-            GL_UNSIGNED_BYTE, img->data);
+            GL_RGBA, GL_UNSIGNED_BYTE, img->data);
     }
 
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -148,15 +149,18 @@ void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id,
         draw_rectb_flush(batch);
 
     rect tr = batch->tex_rects[tex_id];
-    if (tex_rect.w != 0) {
-        tr.w = tex_rect.w / batch->img_rects[tex_id].w;
-        tr.h = tex_rect.h / batch->img_rects[tex_id].h;
+    if (tex_rect.x != 0) {
+        tr.x += (tex_rect.x / batch->img_rects[tex_id].w) * tr.w;
+        tr.y += (tex_rect.y / batch->img_rects[tex_id].h) * tr.h;
+        
+        tr.w = (tex_rect.w / batch->img_rects[tex_id].w) * tr.w;
+        tr.h = (tex_rect.h / batch->img_rects[tex_id].h) * tr.h;
     }
     
     batch->data[batch->size++] = (draw_rectb_rect){
         .draw_rect = draw_rect,
         .col = col,
-        .tex_rect = tr
+        .tex_rect = tr//(rect){ 0, 0, 1, 1 }
     };
 }
 void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col) {

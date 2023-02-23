@@ -48,7 +48,7 @@ rect rect_pack(rect* rects, u32 num_rects) {
 
         if (opening_found)  continue;
 
-        widest->x = width + 1;
+        widest->x = width;
         widest->y = 0;
         width += widest->w;
 

@@ -78,13 +78,12 @@ static inline u8 pget_byte(pstate* state) {
 
 #define PNG_CHUNK_ID(a, b, c, d) ((u32)(a) << 24 | (u32)(b) << 16 | (u32)(c) << 8 | (u32)(d))
 
-static void parse_png_ihdr(marena* arena, pstate* state) {
+static void parse_png_ihdr(marena* arena, pstate* state, u32 num_channels) {
     state->png.width = U32();
     state->png.height = U32();
 
     state->bit_depth = BYTE();
     state->color_type = BYTE();
-    state->png.channels = bytes_per_pixel[state->color_type];
 
     u32 compression_method = BYTE();
     u32 filter_method = BYTE();
@@ -106,7 +105,7 @@ static void parse_png_ihdr(marena* arena, pstate* state) {
         return;
     }
 
-    state->out = CREATE_ZERO_ARRAY(arena, u8, state->png.width * state->png.height * bytes_per_pixel[state->color_type]);
+    state->out = CREATE_ZERO_ARRAY(arena, u8, state->png.width * state->png.height * num_channels);
     state->temp_arena = marena_temp_begin(arena);
 }
 
@@ -145,91 +144,131 @@ static i32 paeth_predictor(i32 a, i32 b, i32 c) {
     return c;
 }
 
-#define DF_CORE_SWITCH(loop_start, loop_end, A, B, C, index) \
+#define DF_CORE_SWITCH(for_header, A, B, C, index) \
     switch(filter_type) { \
         case PNG_NONE: \
-            loop_start \
+            for_header { \
                 state->out[state->out_pos] = data.data[index]; \
                 state->out_pos++; \
-            loop_end \
+            } \
             break; \
         case PNG_SUB: \
-            loop_start \
+            for_header { \
                 state->out[state->out_pos] = data.data[index] + A; \
                 state->out_pos++; \
-            loop_end \
+            } \
             break; \
         case PNG_UP: \
-            loop_start \
+            for_header { \
                 state->out[state->out_pos] = data.data[index] + B; \
                 state->out_pos++; \
-            loop_end \
+            } \
             break; \
         case PNG_AVG: \
-            loop_start \
+            for_header { \
                 state->out[state->out_pos] = data.data[index] + ( \
-                    (A + B) / 2); \
+                    (A + B) >> 1); \
                 state->out_pos++; \
-            loop_end \
+            } \
             break; \
         case PNG_PAETH: \
-            loop_start \
+            for_header { \
                 state->out[state->out_pos] = data.data[index] + \
                     paeth_predictor(A, B, C); \
                 state->out_pos++; \
-            loop_end \
+            } \
             break; \
         default: \
             log_errorf("Invalid filter type %u, expected 0 - 4", filter_type); \
             return; \
             break; \
-    }
+    } \
 
 #define PIXEL_BYTES() bytes_per_pixel[state->color_type]
 
-static void png_defilter(pstate* state, u8arr data) {
+static void png_defilter(pstate* state, u8arr data, u32 num_channels) {
     pfilter filter_type = data.data[0];
-    u64 byte_height = state->png.height;// * bytes_per_pixel[state->color_type];
     u64 byte_width = 1 + state->png.width * bytes_per_pixel[state->color_type];
+    u64 real_byte_width = state->png.width * num_channels;
 
-    DF_CORE_SWITCH(
-        for (u32 j = 1; j < 4; j++) {, },
-        0, 0, 0, j
-    );
-
-    DF_CORE_SWITCH(
-        for (u32 j = 4; j < byte_width; j++) {, },
-        state->out[state->out_pos - PIXEL_BYTES()],
-        0, 0, j
-    );
-
-    for (u32 i = 1; i < byte_height; i++) {
-        filter_type = data.data[i * byte_width];
-
+    if (bytes_per_pixel[state->color_type] >= 3 && bytes_per_pixel[state->color_type] == num_channels) {
         DF_CORE_SWITCH(
-            for (u32 j = 1; j < 4; j++) {, },
-            0, state->out[state->out_pos - byte_width + 1], 0,
-            j + i * byte_width
+            for (u32 j = 1; j < PIXEL_BYTES() + 1; j++),
+            0, 0, 0, j
         );
-
+    
         DF_CORE_SWITCH(
-            for (u32 j = 4; j < byte_width; j++) {, },
+            for (u32 j = PIXEL_BYTES() + 1; j < byte_width; j++),
             state->out[state->out_pos - PIXEL_BYTES()],
-            state->out[state->out_pos - byte_width + 1],
-            state->out[state->out_pos - byte_width + 1 - PIXEL_BYTES()],
-            j + i * byte_width
+            0, 0, j
         );
+    
+        for (u32 i = 1; i < state->png.height; i++) {
+            filter_type = data.data[i * byte_width];
+    
+            DF_CORE_SWITCH(
+                for (u32 j = 1; j < PIXEL_BYTES() + 1; j++),
+                0, state->out[state->out_pos - byte_width + 1], 0,
+                j + i * byte_width
+            );
+    
+            DF_CORE_SWITCH(
+                for (u32 j = PIXEL_BYTES() + 1; j < byte_width; j++),
+                state->out[state->out_pos - PIXEL_BYTES()],
+                state->out[state->out_pos - byte_width + 1],
+                state->out[state->out_pos - byte_width + 1 - PIXEL_BYTES()],
+                j + i * byte_width
+            );
+        }
+    } else if (bytes_per_pixel[state->color_type] == 3 && num_channels == 4) {
+        DF_CORE_SWITCH(
+            for (u32 j = 1; j < PIXEL_BYTES() + 1; j++),
+            0, 0, 0, j
+        );
+        state->out[state->out_pos++] = 255;
+
+        u32 third_width = (byte_width - 1) / 3;
+        
+        DF_CORE_SWITCH(
+            for (u32 k = 1; k < third_width; k++, state->out[state->out_pos++] = 255)
+                for (u32 j = k * 3 + 1; j < k * 3 + 1 + PIXEL_BYTES(); j++),
+            state->out[state->out_pos - num_channels],
+            0, 0, j
+        );
+
+        for (u32 i = 1; i < state->png.height; i++) {
+            filter_type = data.data[i * byte_width];
+            //printf("%u %u\n", i, filter_type);
+    
+            DF_CORE_SWITCH(
+                for (u32 j = 1; j < PIXEL_BYTES() + 1; j++),
+                0, state->out[state->out_pos - real_byte_width], 0,
+                j + i * byte_width
+            );
+            state->out[state->out_pos++] = 255;
+    
+            DF_CORE_SWITCH(
+                for (u32 k = 1; k < third_width; k++, state->out[state->out_pos++] = 255)
+                    for (u32 j = k * 3 + 1; j < k * 3 + 1 + PIXEL_BYTES(); j++),
+                state->out[state->out_pos - num_channels],
+                state->out[state->out_pos - real_byte_width],
+                state->out[state->out_pos - real_byte_width - num_channels],
+                j + i * byte_width
+            );
+        }
+    } else {
+        log_error("Unsupported color type");
     }
 }
 
-static void parse_png_chunk(marena* arena, pstate* state) {
+static void parse_png_chunk(marena* arena, pstate* state, u32 num_channels) {
     state->chunk_size = U32();
     u32 chunk_id = U32();
     switch (chunk_id) {
         case PNG_CHUNK_ID('I', 'H', 'D', 'R'):
             state->chunk = PNG_IHDR;
             
-            parse_png_ihdr(arena, state);
+            parse_png_ihdr(arena, state, num_channels);
             state->pos += 4;
             
             break;
@@ -256,7 +295,7 @@ static void parse_png_chunk(marena* arena, pstate* state) {
             state->chunk = PNG_IEND;
 
             u8arr png_data = png_decompress(arena, state);
-            png_defilter(state, png_data);
+            png_defilter(state, png_data, num_channels);
             
             state->pos += state->chunk_size + 4;
             break;
@@ -267,7 +306,7 @@ static void parse_png_chunk(marena* arena, pstate* state) {
     }
 }
 
-image parse_png(marena* arena, string8 file) {
+static image parse_png(marena* arena, string8 file, u32 num_channels) {
     if (!str8_equals(png_file_header, str8_substr(file, 0, 8))) {
         log_error("Invalid PNG header, not a PNG file");
         return (image){ .valid = false };
@@ -280,12 +319,13 @@ image parse_png(marena* arena, string8 file) {
     };
 
     while (state.chunk != PNG_IEND) {
-        parse_png_chunk(arena, &state);
+        parse_png_chunk(arena, &state, num_channels);
     }
 
     if (state.temp_arena.pos)
         marena_temp_end(state.temp_arena);
-    
+
+    state.png.channels = num_channels;
     state.png.data = state.out;
     return state.png;
 }
@@ -316,7 +356,7 @@ typedef struct {
     u8 a;
 } qpixel;
 
-image parse_qoi(marena* arena, string8 file) {
+static image parse_qoi(marena* arena, string8 file, u32 num_channels) {
     if (file.size < 14 ||
         !str8_equals(qoi_file_header, str8_substr(file, 0, 4))) {
         log_error("Invalid QOI header. Not a QOI file");
@@ -329,7 +369,8 @@ image parse_qoi(marena* arena, string8 file) {
 
     out.width = U32();
     out.height = U32();
-    out.channels = BYTE();
+    BYTE();
+    out.channels = num_channels;
     u32 colorspace = BYTE();
 
     u64 out_pos = 0;
@@ -410,19 +451,22 @@ image parse_qoi(marena* arena, string8 file) {
         }
     }
 
-    marena_pop(arena, 1);
+    marena_pop(arena, 4 - num_channels);
     return out;
 }
 
-image parse_image(marena* arena, string8 file) {
+image parse_image(marena* arena, string8 file, u32 num_channels) {
+    marena_temp maybe_temp = marena_temp_begin(arena);
+    image img = { 0 };
+    
     if (file.size >= png_file_header.size && str8_equals(png_file_header, str8_substr(file, 0, png_file_header.size))) {
-        return parse_png(arena, file);
-    }
-    if (file.size >= qoi_file_header.size && str8_equals(qoi_file_header, str8_substr(file, 0, qoi_file_header.size))) {
-        return parse_qoi(arena, file);
+        img = parse_png(maybe_temp.arena, file, num_channels);
+    } else if (file.size >= qoi_file_header.size && str8_equals(qoi_file_header, str8_substr(file, 0, qoi_file_header.size))) {
+        img = parse_qoi(maybe_temp.arena, file, num_channels);
+    } else {
+        log_error("Unsupported image format");
+        return (image){ 0 };
     }
 
-    log_error("Unsupported image format");
-
-    return (image){ 0 };
+    return img;
 }

@@ -73,43 +73,5 @@ u32 gl_impl_create_buffer(u32 buffer_type, u64 size, void* data, u32 draw_type) 
 
     return buffer;
 }
-u32 gl_impl_create_texture_ex(marena* arena, string8 file_path, impl_gl_filter filter) {
-    marena_temp temp = marena_temp_begin(arena);
-    string8 file = os_file_read(temp.arena, file_path);
-    if (file.size == 0) { 
-        log_errorf("Failed to load texture at \"%.*s\"", (int)file_path.size, file_path.str);
-        return -1;
-    }
-    image img = { 0 };
-    
-    img = parse_image(arena, file);
-    if (!img.valid) {
-        log_errorf("Failed to load texture at \"%.*s\"", (int)file_path.size, file_path.str);
-        return -1;
-    }
-    
-    u32 texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    
-    if (filter == IMPL_GL_LINEAR) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    } else if (filter == IMPL_GL_NEAREST) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    }
-    
-    u32 color_type = img.channels == 3 ? GL_RGB : GL_RGBA;
-    glTexImage2D(GL_TEXTURE_2D, 0, color_type, img.width, img.height, 0, color_type, GL_UNSIGNED_BYTE, img.data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    marena_temp_end(temp);
-
-    return texture;
-}
 
 #endif // AP_OPENGL
