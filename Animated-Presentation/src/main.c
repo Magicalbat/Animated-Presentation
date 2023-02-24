@@ -64,9 +64,11 @@ int main(int argc, char** argv) {
     //glDebugMessageCallback(opengl_message_callback, 0);
 
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024, 16);
+    
     u32 test_img = draw_rectb_create_tex(rectb, STR8_LIT("test_img.png"));
     u32 monkey = draw_rectb_create_tex(rectb, STR8_LIT("monkey 1.png"));
     u32 birds = draw_rectb_create_tex(rectb, STR8_LIT("kodim23.qoi"));
+    u32 dice = draw_rectb_create_tex(rectb, STR8_LIT("dice.png"));
     
     draw_rectb_finalize_textures(rectb);
 
@@ -91,6 +93,9 @@ int main(int argc, char** argv) {
         (vec2){ 0.82 * 100, 0.34 * 100 },
         (vec2){ 100, 100 }
     };
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
     
     glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
     glViewport(0, 0, win->width, win->height);
@@ -114,11 +119,15 @@ int main(int argc, char** argv) {
                     1.0f, 1.0f, 1.0f
                     //(f32)(x * 20) / 255.0f, (f32)(y * 20) / 255.0f, 1.0f,
                 },
-                    (x + y) % 3 == 0 ? birds : ((x + y) % 3 == 1 ? test_img : monkey),
+                    (x + y) % 4 + 1,
                     (rect){ 0, 0, 0, 0 }
                 );
             }
         }
+
+        //draw_rectb_push_ex(rectb, (rect){
+        //    WIDTH * 0.1, HEIGHT * 0.1, WIDTH * 0.8, HEIGHT * 0.8
+        //}, (vec3){ 1, 1, 1 }, dice, (rect){ 0 });
 
         if (GFX_MOUSE_JUST_DOWN(win, GFX_MB_LEFT)) {
             for (u32 i = 0; i < 4; i++) {

@@ -238,7 +238,6 @@ static void png_defilter(pstate* state, u8arr data, u32 num_channels) {
 
         for (u32 i = 1; i < state->png.height; i++) {
             filter_type = data.data[i * byte_width];
-            //printf("%u %u\n", i, filter_type);
     
             DF_CORE_SWITCH(
                 for (u32 j = 1; j < PIXEL_BYTES() + 1; j++),
@@ -456,17 +455,12 @@ static image parse_qoi(marena* arena, string8 file, u32 num_channels) {
 }
 
 image parse_image(marena* arena, string8 file, u32 num_channels) {
-    marena_temp maybe_temp = marena_temp_begin(arena);
-    image img = { 0 };
-    
     if (file.size >= png_file_header.size && str8_equals(png_file_header, str8_substr(file, 0, png_file_header.size))) {
-        img = parse_png(maybe_temp.arena, file, num_channels);
+        return parse_png(arena, file, num_channels);
     } else if (file.size >= qoi_file_header.size && str8_equals(qoi_file_header, str8_substr(file, 0, qoi_file_header.size))) {
-        img = parse_qoi(maybe_temp.arena, file, num_channels);
-    } else {
-        log_error("Unsupported image format");
-        return (image){ 0 };
+        return parse_qoi(arena, file, num_channels);
     }
-
-    return img;
+    
+    log_error("Unsupported image format");
+    return (image){ 0 };
 }

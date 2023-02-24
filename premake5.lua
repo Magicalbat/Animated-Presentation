@@ -67,24 +67,18 @@ project "Animated-Presentation"
     filter "options:wasm"
         buildoptions 
         {
-            "-fPIC"
+            "-fPIC",
         }
 
         linkoptions
         {
             "-sFETCH=1",
             "-sWASM=1",
-
+            "-sALLOW_MEMORY_GROWTH=1",
             "-sASYNCIFY=1",
-            --"-O2",
-
             "-sFORCE_FILESYSTEM=1",
-
-            "-sFULL_ES3=1",
             "-sOFFSCREEN_FRAMEBUFFER=1",
-
             "-sMIN_WEBGL_VERSION=2",
-            
             "-sMAIN_MODULE=1"
         }
         links { "m", "GL" }
