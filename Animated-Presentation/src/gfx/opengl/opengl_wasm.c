@@ -57,11 +57,28 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
 }
 void gfx_win_make_current(gfx_window* win) {
     emscripten_webgl_make_context_current(win->wasm.ctx);
+    
+    glViewport(0, 0, win->width, win->height);
 }
 void gfx_win_destroy(gfx_window* win) {
     emscripten_webgl_destroy_context(win->wasm.ctx);
 }
 
+void gfx_win_clear_color(gfx_window* win, vec3 col) {
+    win->clear_col = col;
+    glClearColor(col.x, col.y, col.z, 1.0f);
+}
+void gfx_win_clear(gfx_window* win) {
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
+    if (enable) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    } else {
+        glDisable(GL_BLEND);
+    }
+}
 void gfx_win_swap_buffers(gfx_window* win) {
     emscripten_webgl_commit_frame();
 }
@@ -73,7 +90,7 @@ void gfx_win_process_events(gfx_window* win) {
 void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     emscripten_set_canvas_element_size("#canvas", width, height);
 }
-void gfx_win_set_title(marena* arena, gfx_window* win, string8 title) {
+void gfx_win_set_title( gfx_window* win, string8 title) {
     log_error("GFX set title unsupported in wasm");
 }
 

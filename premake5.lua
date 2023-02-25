@@ -44,10 +44,7 @@ project "Animated-Presentation"
         {
             "m", "X11", "GL", "GLX", "dl"
         }
-        buildoptions
-        {
-            --"-Wall"
-        }
+        buildoptions { }
 
     filter { "system:windows", "options:not wasm" }
         staticruntime "On"

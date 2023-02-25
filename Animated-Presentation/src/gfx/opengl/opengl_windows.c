@@ -164,6 +164,8 @@ void gfx_win_make_current(gfx_window* win) {
     wglMakeCurrent(win->wgl.device_context, win->wgl.context);
 
     ShowWindow(win->wgl.window, SW_SHOW);
+    
+    glViewport(0, 0, win->width, win->height);
 }
 
 void gfx_win_destroy(gfx_window* win) {
@@ -174,6 +176,21 @@ void gfx_win_destroy(gfx_window* win) {
     DestroyWindow(win->wgl.window);
 }
 
+void gfx_win_clear_color(gfx_window* win, vec3 col) {
+    win->clear_col = col;
+    glClearColor(col.x, col.y, col.z, 1.0f);
+}
+void gfx_win_clear(gfx_window* win) {
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
+    if (enable) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    } else {
+        glDisable(GL_BLEND);
+    }
+}
 void gfx_win_swap_buffers(gfx_window* win) {
     SwapBuffers(win->wgl.device_context);
 }
@@ -203,14 +220,16 @@ void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
             0, 0, (i32)width, (i32)height,
             SWP_NOMOVE | SWP_DRAWFRAME);// | WS_VISIBLE);
 }
-void gfx_win_set_title(marena* arena, gfx_window* win, string8 title) {
+void gfx_win_set_title(gfx_window* win, string8 title) {
     win->title = title;
 
-    string16 title16 = str16_from_str8(arena, title);
-
+    marena_temp scratch = marena_scratch_get(NULL, 0);
+    
+    string16 title16 = str16_from_str8(scratch.arena, title);
+    
     SetWindowText(win->wgl.window, title16.str);
 
-    marena_pop(arena, sizeof(u16) * title16.size);
+    marena_scratch_release(scratch);
 }
 
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {

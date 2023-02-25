@@ -39,6 +39,8 @@ typedef struct {
     u32 width;
     u32 height;
 
+    vec3 clear_col;
+
     string8 title;
 
     b8 should_close;
@@ -82,11 +84,14 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title);
 void        gfx_win_make_current(gfx_window* win);
 void        gfx_win_destroy(gfx_window* win);
 
+void gfx_win_clear_color(gfx_window* win, vec3 col);
+void gfx_win_clear(gfx_window* win);
+void gfx_win_alpha_blend(gfx_window* win, b32 enable);
 void gfx_win_swap_buffers(gfx_window* win);
 void gfx_win_process_events(gfx_window* win);
 
 void gfx_win_set_size(gfx_window* win, u32 width, u32 height);
-void gfx_win_set_title(marena* arena, gfx_window* win, string8 title);
+void gfx_win_set_title(gfx_window* win, string8 title);
 
 #define GFX_MOUSE_DOWN(win, mb) ( win->mouse_buttons[mb])
 #define GFX_MOUSE_UP(win, mb)   (!win->mouse_buttons[mb])

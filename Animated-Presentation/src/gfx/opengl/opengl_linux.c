@@ -54,9 +54,9 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
             glXGetFBConfigAttrib(win->glx.display, fbc[i], GLX_SAMPLE_BUFFERS, &samp_buf);
             glXGetFBConfigAttrib(win->glx.display, fbc[i], GLX_SAMPLES       , &samples );
         
-            if (best_fbc_i < 0 || samp_buf && samples > best_num_samp)
+            if (best_fbc_i < 0 || (samp_buf && samples > best_num_samp))
                 best_fbc_i = i, best_num_samp = samples;
-            if (worst_fbc_i < 0 || !samp_buf || samples < worst_num_samp)
+            if (worst_fbc_i < 0 || (!samp_buf || samples < worst_num_samp))
                 worst_fbc_i = i, worst_num_samp = samples;
       }
       XFree(vi);
@@ -119,11 +119,10 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
 
     XFreeColormap(win->glx.display, window_attribs.colormap);
 
-    u8* title_cstr = (u8*)marena_push(arena, title.size + 1);
-    memcpy(title_cstr, title.str, title.size);
-    title_cstr[title.size] = '\0';
-    XStoreName(win->glx.display, win->glx.window, title.str);
-    marena_pop(arena, title.size + 1);
+    marena_temp temp = marena_temp_begin(arena);
+    u8* title_cstr = str8_to_cstr(temp.arena, title);
+    XStoreName(win->glx.display, win->glx.window, (char*)title_cstr);
+    marena_temp_end(temp);
     
     win->width = width;
     win->height = height;
@@ -133,12 +132,30 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
 }
 void gfx_win_make_current(gfx_window* win) {
     glXMakeCurrent(win->glx.display, win->glx.window, win->glx.context);
+    
+    glViewport(0, 0, win->width, win->height);
 }
 void gfx_win_destroy(gfx_window* win) {
     glXDestroyContext(win->glx.display, win->glx.context);
 
     XDestroyWindow(win->glx.display, win->glx.window);
     XCloseDisplay(win->glx.display);
+}
+
+void gfx_win_clear_color(gfx_window* win, vec3 col) {
+    win->clear_col = col;
+    glClearColor(col.x, col.y, col.z, 1.0f);
+}
+void gfx_win_clear(gfx_window* win) {
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
+    if (enable) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
+    } else {
+        glDisable(GL_BLEND);
+    }
 }
 
 void gfx_win_swap_buffers(gfx_window* win) {
@@ -183,16 +200,17 @@ void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     win->width = width;
     win->height = height;
     XResizeWindow(win->glx.display, win->glx.window, width, height);
+    glViewport(0, 0, width, height);
 }
-void gfx_win_set_title(marena* arena, gfx_window* win, string8 title) {
+void gfx_win_set_title(gfx_window* win, string8 title) {
     win->title = title;
-    u8* title_cstr = (u8*)marena_push(arena, title.size + 1);
-    memcpy(title_cstr, title.str, title.size);
-    title_cstr[title.size] = '\0';
+
+    marena_temp scratch = marena_scratch_get(NULL, 0);
+    u8* title_cstr = str8_to_cstr(scratch.arena, title);
     
-    XStoreName(win->glx.display, win->glx.window, title_cstr);
-    
-    marena_pop(arena, title.size + 1);
+    XStoreName(win->glx.display, win->glx.window, (char*)title_cstr);
+
+    marena_scratch_release(scratch);
 }
 
 void opengl_load_functions(gfx_window* win) {
