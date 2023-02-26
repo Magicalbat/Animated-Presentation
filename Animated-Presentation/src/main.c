@@ -41,6 +41,11 @@ int main(int argc, char** argv) {
     gfx_win_alpha_blend(win, true);
     gfx_win_clear_color(win, (vec3){ 0.5f, 0.6f, 0.7f });
 
+    draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024, 16);
+    draw_rectb_finalize_textures(rectb);
+
+    vec2 pos = { 0 };
+
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
 
@@ -48,7 +53,29 @@ int main(int argc, char** argv) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
+        if (GFX_IS_KEY_DOWN(win, GFX_KEY_UP)) {
+            pos.y -= 32.0f * delta;
+        }
+        if (GFX_IS_KEY_DOWN(win, GFX_KEY_DOWN)) {
+            pos.y += 32.0f * delta;
+        }
+        if (GFX_IS_KEY_DOWN(win, GFX_KEY_LEFT)) {
+            pos.x -= 32.0f * delta;
+        }
+        if (GFX_IS_KEY_DOWN(win, GFX_KEY_RIGHT)) {
+            pos.x += 32.0f * delta;
+        }
+
         gfx_win_clear(win);
+
+        draw_rectb_push(
+            rectb, (rect){
+                pos.x, pos.y,
+                WIDTH / 2, HEIGHT / 2
+            }, (vec3){ 1, 1, 1 }
+        );
+
+        draw_rectb_flush(rectb);
 
         gfx_win_swap_buffers(win);
         gfx_win_process_events(win);
@@ -56,6 +83,8 @@ int main(int argc, char** argv) {
         time_prev = time_now;
         os_sleep_milliseconds(16);
     }
+
+    draw_rectb_destroy(rectb);
 
     gfx_win_destroy(win);
     

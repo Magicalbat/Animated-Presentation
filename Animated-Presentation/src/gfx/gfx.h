@@ -93,13 +93,127 @@ void gfx_win_process_events(gfx_window* win);
 void gfx_win_set_size(gfx_window* win, u32 width, u32 height);
 void gfx_win_set_title(gfx_window* win, string8 title);
 
-#define GFX_MOUSE_DOWN(win, mb) ( win->mouse_buttons[mb])
-#define GFX_MOUSE_UP(win, mb)   (!win->mouse_buttons[mb])
-#define GFX_MOUSE_JUST_DOWN(win, mb) (win->mouse_buttons[mb] && !win->prev_mouse_buttons[mb])
-#define GFX_MOUSE_JUST_UP(win, mb) (!win->mouse_buttons[mb] && win->prev_mouse_buttons[mb])
+#define GFX_IS_MOUSE_DOWN(win, mb) ( win->mouse_buttons[mb])
+#define GFX_IS_MOUSE_UP(win, mb)   (!win->mouse_buttons[mb])
+#define GFX_IS_MOUSE_JUST_DOWN(win, mb) (win->mouse_buttons[mb] && !win->prev_mouse_buttons[mb])
+#define GFX_IS_MOUSE_JUST_UP(win, mb) (!win->mouse_buttons[mb] && win->prev_mouse_buttons[mb])
 
-#define GFX_MB_LEFT   0
-#define GFX_MB_MIDDLE 1
-#define GFX_MB_RIGHT  2
+#define GFX_IS_KEY_DOWN(win, key) (win->keys[key])
+#define GFX_IS_KEY_UP(win, key) (!win->keys[key])
+#define GFX_IS_KEY_JUST_DOWN(win, key) (win->keys[key] && !win->prev_keys[key])
+#define GFX_IS_KEY_JUST_UP(win, key) (!win->keys[key] && win->prev_keys[key])
+
+typedef enum {
+    GFX_MB_LEFT,
+    GFX_MB_MIDDLE,
+    GFX_MB_RIGHT 
+} gfx_mouse_button;
+
+#define GFX_KEY_XLIST \
+    X(NONE, = 0) \
+    X(TAB, ) \
+    X(ENTER, ) \
+    X(CAPSLOCK, ) \
+    X(ESCAPE, ) \
+    X(SPACE, ) \
+    X(PAGEUP, ) \
+    X(PAGEDOWN, ) \
+    X(END, ) \
+    X(HOME, ) \
+    X(LEFT, ) \
+    X(UP, ) \
+    X(RIGHT, ) \
+    X(DOWN, ) \
+    X(INSERT, ) \
+    X(DELETE, ) \
+    X(0, = '0') \
+    X(1, = '1') \
+    X(2, = '2') \
+    X(3, = '3') \
+    X(4, = '4') \
+    X(5, = '5') \
+    X(6, = '6') \
+    X(7, = '7') \
+    X(8, = '8') \
+    X(9, = '9') \
+    X(A, = 'A') \
+    X(B, = 'B') \
+    X(C, = 'C') \
+    X(D, = 'D') \
+    X(E, = 'E') \
+    X(F, = 'F') \
+    X(G, = 'G') \
+    X(H, = 'H') \
+    X(I, = 'I') \
+    X(J, = 'J') \
+    X(K, = 'K') \
+    X(L, = 'L') \
+    X(M, = 'M') \
+    X(N, = 'N') \
+    X(O, = 'O') \
+    X(P, = 'P') \
+    X(Q, = 'Q') \
+    X(R, = 'R') \
+    X(S, = 'S') \
+    X(T, = 'T') \
+    X(U, = 'U') \
+    X(V, = 'V') \
+    X(W, = 'W') \
+    X(X, = 'X') \
+    X(Y, = 'Y') \
+    X(Z, = 'Z') \
+    X(NUMPAD9, ) \
+    X(NUMPAD0, ) \
+    X(NUMPAD1, ) \
+    X(NUMPAD2, ) \
+    X(NUMPAD3, ) \
+    X(NUMPAD4, ) \
+    X(NUMPAD5, ) \
+    X(NUMPAD6, ) \
+    X(NUMPAD7, ) \
+    X(NUMPAD8, ) \
+    X(MULTIPLY, ) \
+    X(ADD, ) \
+    X(SEPARATOR, ) \
+    X(SUBTRACT, ) \
+    X(DECIMAL, ) \
+    X(DIVIDE, ) \
+    X(F1, ) \
+    X(F2, ) \
+    X(F3, ) \
+    X(F4, ) \
+    X(F5, ) \
+    X(F6, ) \
+    X(F7, ) \
+    X(F8, ) \
+    X(F9, ) \
+    X(F10, ) \
+    X(F11, ) \
+    X(F12, ) \
+    X(NUMLOCK, ) \
+    X(SCROLLLOCK, ) \
+    X(LSHIFT, ) \
+    X(RSHIFT, ) \
+    X(LCONTROL, ) \
+    X(RCONTROL, ) \
+    X(LALT, ) \
+    X(RALT, ) \
+    X(SEMICOLON, ) \
+    X(PLUS, ) \
+    X(COMMA, ) \
+    X(PERIOD, ) \
+    X(MINUS, ) \
+    X(FORWARDSLASH, ) \
+    X(BACKSLASH, ) \
+    X(BACKTICK, ) \
+    X(LBRACKET, ) \
+    X(RBRACKET, ) \
+    X(APOSTROPHE, )
+
+typedef enum {
+#define X(key, value) GFX_KEY_##key value,
+    GFX_KEY_XLIST
+#undef X
+} gfx_key;
 
 #endif // GFX_H

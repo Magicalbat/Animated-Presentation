@@ -227,7 +227,7 @@ static void png_defilter(pstate* state, u8arr data, u32 num_channels) {
         );
         state->out[state->out_pos++] = 255;
 
-        u32 third_width = (byte_width - 1) / 3;
+        u64 third_width = (byte_width - 1) / 3;
         
         DF_CORE_SWITCH(
             for (u32 k = 1; k < third_width; k++, state->out[state->out_pos++] = 255)
