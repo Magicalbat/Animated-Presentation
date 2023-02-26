@@ -8,6 +8,8 @@ static const char* vert_source;
 draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity) {
     draw_cbezier* draw_cb = CREATE_ZERO_STRUCT(arena, draw_cbezier);
 
+    draw_cb->win = win;
+
     draw_cb->capacity = capacity;
     draw_cb->indices = CREATE_ARRAY(arena, u32, capacity * 6);
     draw_cb->vertices = CREATE_ARRAY(arena, cb_vertex, capacity * 4);
@@ -16,13 +18,8 @@ draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity) 
 
     glUseProgram(draw_cb->gl.shader_program);
     
-    u32 win_mat_loc = glGetUniformLocation(draw_cb->gl.shader_program, "u_win_mat");
-    f32 win_mat[] = {
-        2.0f / (f32)win->width, 0,
-        0, 2.0f / -((f32)win->height)
-    };
-    glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
-
+    draw_cb->gl.win_mat_loc = glGetUniformLocation(draw_cb->gl.shader_program, "u_win_mat");
+    
 #ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &draw_cb->gl.vertex_array);
     glBindVertexArray(draw_cb->gl.vertex_array);
@@ -129,6 +126,7 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 c
 
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glUseProgram(draw_cb->gl.shader_program);
+    gl_impl_view_mat(draw_cb->win, draw_cb->gl.win_mat_loc);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(draw_cb->gl.vertex_array);

@@ -40,6 +40,7 @@ static void* wgl_get_proc_address(const char* name) {
 }
 
 static LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+static void win32_init_keymap(gfx_window* win);
 
 typedef HGLRC WINAPI wglCreateContextAttribsARB_func(HDC hdc, HGLRC hShareContext, const int *attribList);
 typedef BOOL WINAPI wglChoosePixelFormatARB_func(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
@@ -101,7 +102,8 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     win->wgl.window_class = (WNDCLASS){
         .hInstance = win->wgl.h_instance,
         .lpfnWndProc = window_proc,
-        .lpszClassName = L"OpenGL Window Class"
+        .lpszClassName = L"OpenGL Window Class",
+        .hCursor = LoadCursor(NULL, IDC_ARROW)
     };
     ATOM atom = RegisterClass(&win->wgl.window_class);
 
@@ -153,6 +155,8 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     };
 
     win->wgl.context = wglCreateContexAttribsARB(win->wgl.device_context, NULL, gl_attribs);
+
+    win32_init_keymap(win);
 
     win->width = width;
     win->height = height;
@@ -234,8 +238,6 @@ void gfx_win_set_title(gfx_window* win, string8 title) {
     marena_scratch_release(scratch);
 }
 
-gfx_key win32_translate_key(u32 key);
-
 LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     gfx_window* win = (gfx_window*)GetPropA(hwnd, "gfx_window");
 
@@ -259,11 +261,11 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             win->mouse_buttons[GFX_MB_RIGHT] = false; break;
 
         case WM_KEYDOWN:
-            gfx_key down_key = win32_translate_key((u32)wParam);
+            gfx_key down_key = win->wgl.keymap[wParam];
             win->keys[down_key] = true;
             break;
         case WM_KEYUP:
-            gfx_key up_key = win32_translate_key((u32)wParam);
+            gfx_key up_key = win->wgl.keymap[wParam];
             win->keys[up_key] = false;
             break;
 
@@ -291,108 +293,106 @@ void opengl_load_functions(gfx_window* win) {
     #undef X
 }
 
-gfx_key win32_translate_key(u32 key) {
-    switch(key) {
-        case VK_TAB: return GFX_KEY_TAB;
-        case VK_RETURN: return GFX_KEY_ENTER;
-        case VK_CAPITAL: return GFX_KEY_CAPSLOCK;
-        case VK_ESCAPE: return GFX_KEY_ESCAPE;
-        case VK_SPACE: return GFX_KEY_SPACE;
-        case VK_PRIOR: return GFX_KEY_PAGEUP;
-        case VK_NEXT: return GFX_KEY_PAGEDOWN;
-        case VK_END: return GFX_KEY_END;
-        case VK_HOME: return GFX_KEY_HOME;
-        case VK_LEFT: return GFX_KEY_LEFT;
-        case VK_UP: return GFX_KEY_UP;
-        case VK_RIGHT: return GFX_KEY_RIGHT;
-        case VK_DOWN: return GFX_KEY_DOWN;
-        case VK_INSERT: return GFX_KEY_INSERT;
-        case VK_DELETE: return GFX_KEY_DELETE;
-        case 0x30: return GFX_KEY_0;
-        case 0x31: return GFX_KEY_1;
-        case 0x32: return GFX_KEY_2;
-        case 0x33: return GFX_KEY_3;
-        case 0x34: return GFX_KEY_4;
-        case 0x35: return GFX_KEY_5;
-        case 0x36: return GFX_KEY_6;
-        case 0x37: return GFX_KEY_7;
-        case 0x38: return GFX_KEY_8;
-        case 0x39: return GFX_KEY_9;
-        case 0x41: return GFX_KEY_A;
-        case 0x42: return GFX_KEY_B;
-        case 0x43: return GFX_KEY_C;
-        case 0x44: return GFX_KEY_D;
-        case 0x45: return GFX_KEY_E;
-        case 0x46: return GFX_KEY_F;
-        case 0x47: return GFX_KEY_G;
-        case 0x48: return GFX_KEY_H;
-        case 0x49: return GFX_KEY_I;
-        case 0x4A: return GFX_KEY_J;
-        case 0x4B: return GFX_KEY_K;
-        case 0x4C: return GFX_KEY_L;
-        case 0x4D: return GFX_KEY_M;
-        case 0x4E: return GFX_KEY_N;
-        case 0x4F: return GFX_KEY_O;
-        case 0x50: return GFX_KEY_P;
-        case 0x51: return GFX_KEY_Q;
-        case 0x52: return GFX_KEY_R;
-        case 0x53: return GFX_KEY_S;
-        case 0x54: return GFX_KEY_T;
-        case 0x55: return GFX_KEY_U;
-        case 0x56: return GFX_KEY_V;
-        case 0x57: return GFX_KEY_W;
-        case 0x58: return GFX_KEY_X;
-        case 0x59: return GFX_KEY_Y;
-        case 0x5A: return GFX_KEY_Z;
-        case VK_NUMPAD0: return GFX_KEY_NUMPAD0;
-        case VK_NUMPAD1: return GFX_KEY_NUMPAD1;
-        case VK_NUMPAD2: return GFX_KEY_NUMPAD2;
-        case VK_NUMPAD3: return GFX_KEY_NUMPAD3;
-        case VK_NUMPAD4: return GFX_KEY_NUMPAD4;
-        case VK_NUMPAD5: return GFX_KEY_NUMPAD5;
-        case VK_NUMPAD6: return GFX_KEY_NUMPAD6;
-        case VK_NUMPAD7: return GFX_KEY_NUMPAD7;
-        case VK_NUMPAD8: return GFX_KEY_NUMPAD8;
-        case VK_NUMPAD9: return GFX_KEY_NUMPAD9;
-        case VK_MULTIPLY: return GFX_KEY_MULTIPLY;
-        case VK_ADD: return GFX_KEY_ADD;
-        case VK_SUBTRACT: return GFX_KEY_SUBTRACT;
-        case VK_DECIMAL: return GFX_KEY_DECIMAL;
-        case VK_DIVIDE: return GFX_KEY_DIVIDE;
-        case VK_F1: return GFX_KEY_F1;
-        case VK_F2: return GFX_KEY_F2;
-        case VK_F3: return GFX_KEY_F3;
-        case VK_F4: return GFX_KEY_F4;
-        case VK_F5: return GFX_KEY_F5;
-        case VK_F6: return GFX_KEY_F6;
-        case VK_F7: return GFX_KEY_F7;
-        case VK_F8: return GFX_KEY_F8;
-        case VK_F9: return GFX_KEY_F9;
-        case VK_F10: return GFX_KEY_F10;
-        case VK_F11: return GFX_KEY_F11;
-        case VK_F12: return GFX_KEY_F12;
-        case VK_NUMLOCK: return GFX_KEY_NUMLOCK;
-        case VK_SCROLL: return GFX_KEY_SCROLLLOCK;
-        case VK_LSHIFT: return GFX_KEY_LSHIFT;
-        case VK_RSHIFT: return GFX_KEY_RSHIFT;
-        case VK_LCONTROL: return GFX_KEY_LCONTROL;
-        case VK_RCONTROL: return GFX_KEY_RCONTROL;
-        case VK_LMENU: return GFX_KEY_LALT;
-        case VK_RMENU: return GFX_KEY_RALT;
-        case VK_OEM_1: return GFX_KEY_SEMICOLON;
-        case VK_OEM_PLUS: return GFX_KEY_PLUS;
-        case VK_OEM_COMMA: return GFX_KEY_COMMA;
-        case VK_OEM_MINUS: return GFX_KEY_MINUS;
-        case VK_OEM_PERIOD: return GFX_KEY_PERIOD;
-        case VK_OEM_2: return GFX_KEY_FORWARDSLASH;
-        case VK_OEM_3: return GFX_KEY_BACKTICK;
-        case VK_OEM_4: return GFX_KEY_LBRACKET;
-        case VK_OEM_5: return GFX_KEY_BACKSLASH;
-        case VK_OEM_6: return GFX_KEY_RBRACKET;
-        case VK_OEM_7: return GFX_KEY_APOSTROPHE;
-    }
+static void win32_init_keymap(gfx_window* win) {
+    memset(win->wgl.keymap, 0, sizeof(win->wgl.keymap));
 
-    return GFX_KEY_NONE;
+    win->wgl.keymap[VK_TAB] = GFX_KEY_TAB;
+    win->wgl.keymap[VK_RETURN] = GFX_KEY_ENTER;
+    win->wgl.keymap[VK_CAPITAL] = GFX_KEY_CAPSLOCK;
+    win->wgl.keymap[VK_ESCAPE] = GFX_KEY_ESCAPE;
+    win->wgl.keymap[VK_SPACE] = GFX_KEY_SPACE;
+    win->wgl.keymap[VK_PRIOR] = GFX_KEY_PAGEUP;
+    win->wgl.keymap[VK_NEXT] = GFX_KEY_PAGEDOWN;
+    win->wgl.keymap[VK_END] = GFX_KEY_END;
+    win->wgl.keymap[VK_HOME] = GFX_KEY_HOME;
+    win->wgl.keymap[VK_LEFT] = GFX_KEY_LEFT;
+    win->wgl.keymap[VK_UP] = GFX_KEY_UP;
+    win->wgl.keymap[VK_RIGHT] = GFX_KEY_RIGHT;
+    win->wgl.keymap[VK_DOWN] = GFX_KEY_DOWN;
+    win->wgl.keymap[VK_INSERT] = GFX_KEY_INSERT;
+    win->wgl.keymap[VK_DELETE] = GFX_KEY_DELETE;
+    win->wgl.keymap[0x30] = GFX_KEY_0;
+    win->wgl.keymap[0x31] = GFX_KEY_1;
+    win->wgl.keymap[0x32] = GFX_KEY_2;
+    win->wgl.keymap[0x33] = GFX_KEY_3;
+    win->wgl.keymap[0x34] = GFX_KEY_4;
+    win->wgl.keymap[0x35] = GFX_KEY_5;
+    win->wgl.keymap[0x36] = GFX_KEY_6;
+    win->wgl.keymap[0x37] = GFX_KEY_7;
+    win->wgl.keymap[0x38] = GFX_KEY_8;
+    win->wgl.keymap[0x39] = GFX_KEY_9;
+    win->wgl.keymap[0x41] = GFX_KEY_A;
+    win->wgl.keymap[0x42] = GFX_KEY_B;
+    win->wgl.keymap[0x43] = GFX_KEY_C;
+    win->wgl.keymap[0x44] = GFX_KEY_D;
+    win->wgl.keymap[0x45] = GFX_KEY_E;
+    win->wgl.keymap[0x46] = GFX_KEY_F;
+    win->wgl.keymap[0x47] = GFX_KEY_G;
+    win->wgl.keymap[0x48] = GFX_KEY_H;
+    win->wgl.keymap[0x49] = GFX_KEY_I;
+    win->wgl.keymap[0x4A] = GFX_KEY_J;
+    win->wgl.keymap[0x4B] = GFX_KEY_K;
+    win->wgl.keymap[0x4C] = GFX_KEY_L;
+    win->wgl.keymap[0x4D] = GFX_KEY_M;
+    win->wgl.keymap[0x4E] = GFX_KEY_N;
+    win->wgl.keymap[0x4F] = GFX_KEY_O;
+    win->wgl.keymap[0x50] = GFX_KEY_P;
+    win->wgl.keymap[0x51] = GFX_KEY_Q;
+    win->wgl.keymap[0x52] = GFX_KEY_R;
+    win->wgl.keymap[0x53] = GFX_KEY_S;
+    win->wgl.keymap[0x54] = GFX_KEY_T;
+    win->wgl.keymap[0x55] = GFX_KEY_U;
+    win->wgl.keymap[0x56] = GFX_KEY_V;
+    win->wgl.keymap[0x57] = GFX_KEY_W;
+    win->wgl.keymap[0x58] = GFX_KEY_X;
+    win->wgl.keymap[0x59] = GFX_KEY_Y;
+    win->wgl.keymap[0x5A] = GFX_KEY_Z;
+    win->wgl.keymap[VK_NUMPAD0] = GFX_KEY_NUMPAD0;
+    win->wgl.keymap[VK_NUMPAD1] = GFX_KEY_NUMPAD1;
+    win->wgl.keymap[VK_NUMPAD2] = GFX_KEY_NUMPAD2;
+    win->wgl.keymap[VK_NUMPAD3] = GFX_KEY_NUMPAD3;
+    win->wgl.keymap[VK_NUMPAD4] = GFX_KEY_NUMPAD4;
+    win->wgl.keymap[VK_NUMPAD5] = GFX_KEY_NUMPAD5;
+    win->wgl.keymap[VK_NUMPAD6] = GFX_KEY_NUMPAD6;
+    win->wgl.keymap[VK_NUMPAD7] = GFX_KEY_NUMPAD7;
+    win->wgl.keymap[VK_NUMPAD8] = GFX_KEY_NUMPAD8;
+    win->wgl.keymap[VK_NUMPAD9] = GFX_KEY_NUMPAD9;
+    win->wgl.keymap[VK_MULTIPLY] = GFX_KEY_MULTIPLY;
+    win->wgl.keymap[VK_ADD] = GFX_KEY_ADD;
+    win->wgl.keymap[VK_SUBTRACT] = GFX_KEY_SUBTRACT;
+    win->wgl.keymap[VK_DECIMAL] = GFX_KEY_DECIMAL;
+    win->wgl.keymap[VK_DIVIDE] = GFX_KEY_DIVIDE;
+    win->wgl.keymap[VK_F1] = GFX_KEY_F1;
+    win->wgl.keymap[VK_F2] = GFX_KEY_F2;
+    win->wgl.keymap[VK_F3] = GFX_KEY_F3;
+    win->wgl.keymap[VK_F4] = GFX_KEY_F4;
+    win->wgl.keymap[VK_F5] = GFX_KEY_F5;
+    win->wgl.keymap[VK_F6] = GFX_KEY_F6;
+    win->wgl.keymap[VK_F7] = GFX_KEY_F7;
+    win->wgl.keymap[VK_F8] = GFX_KEY_F8;
+    win->wgl.keymap[VK_F9] = GFX_KEY_F9;
+    win->wgl.keymap[VK_F10] = GFX_KEY_F10;
+    win->wgl.keymap[VK_F11] = GFX_KEY_F11;
+    win->wgl.keymap[VK_F12] = GFX_KEY_F12;
+    win->wgl.keymap[VK_NUMLOCK] = GFX_KEY_NUMLOCK;
+    win->wgl.keymap[VK_SCROLL] = GFX_KEY_SCROLLLOCK;
+    win->wgl.keymap[VK_LSHIFT] = GFX_KEY_LSHIFT;
+    win->wgl.keymap[VK_RSHIFT] = GFX_KEY_RSHIFT;
+    win->wgl.keymap[VK_LCONTROL] = GFX_KEY_LCONTROL;
+    win->wgl.keymap[VK_RCONTROL] = GFX_KEY_RCONTROL;
+    win->wgl.keymap[VK_LMENU] = GFX_KEY_LALT;
+    win->wgl.keymap[VK_RMENU] = GFX_KEY_RALT;
+    win->wgl.keymap[VK_OEM_1] = GFX_KEY_SEMICOLON;
+    win->wgl.keymap[VK_OEM_PLUS] = GFX_KEY_PLUS;
+    win->wgl.keymap[VK_OEM_COMMA] = GFX_KEY_COMMA;
+    win->wgl.keymap[VK_OEM_MINUS] = GFX_KEY_MINUS;
+    win->wgl.keymap[VK_OEM_PERIOD] = GFX_KEY_PERIOD;
+    win->wgl.keymap[VK_OEM_2] = GFX_KEY_FORWARDSLASH;
+    win->wgl.keymap[VK_OEM_3] = GFX_KEY_BACKTICK;
+    win->wgl.keymap[VK_OEM_4] = GFX_KEY_LBRACKET;
+    win->wgl.keymap[VK_OEM_5] = GFX_KEY_BACKSLASH;
+    win->wgl.keymap[VK_OEM_6] = GFX_KEY_RBRACKET;
+    win->wgl.keymap[VK_OEM_7] = GFX_KEY_APOSTROPHE;
 }
 
 #endif // AP_OPENGL && _WIN32

@@ -5,6 +5,8 @@
 #include "gfx/gfx.h"
 
 typedef struct {
+    gfx_window* win;
+
     u32 max_verts;
 
     vec2* verts;
@@ -13,6 +15,7 @@ typedef struct {
     #if defined (AP_OPENGL)
     struct {
         u32 shader_program;
+        u32 win_mat_loc;
         u32 col_loc;
         u32 offset_loc;
 

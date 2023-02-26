@@ -8,6 +8,8 @@ static const char* vert_source;
 draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts) {
     draw_polygon* poly = CREATE_ZERO_STRUCT(arena, draw_polygon);
 
+    poly->win = win;
+
     poly->max_verts = max_verts;
     poly->verts = CREATE_ARRAY(arena, vec2, max_verts);
     poly->indices = CREATE_ARRAY(arena, u32, max_verts * 3);
@@ -15,13 +17,9 @@ draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts) {
     poly->gl.shader_program = gl_impl_create_shader_program(vert_source, gl_impl_color_frag);
 
     glUseProgram(poly->gl.shader_program);
-    u32 win_mat_loc = glGetUniformLocation(poly->gl.shader_program, "u_win_mat");
-    f32 win_mat[] = {
-        2.0f / (f32)win->width, 0,
-        0, 2.0f / -((f32)win->height)
-    };
-    glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
-    
+
+    poly->gl.win_mat_loc = glGetUniformLocation(poly->gl.shader_program, "u_win_mat");
+        
     poly->gl.col_loc = glGetUniformLocation(poly->gl.shader_program, "u_col");
     glUniform3f(poly->gl.col_loc, 1.0f, 1.0f, 1.0f);
     
@@ -54,6 +52,8 @@ void draw_poly_destroy(draw_polygon* poly) {
 
 static void poly_gl_setup(draw_polygon* poly, vec3 col, vec2 offset) {
     glUseProgram(poly->gl.shader_program);
+
+    gl_impl_view_mat(poly->win, poly->gl.win_mat_loc);
     glUniform3f(poly->gl.col_loc, col.x, col.y, col.z);
     glUniform2f(poly->gl.offset_loc, offset.x, offset.y);
 

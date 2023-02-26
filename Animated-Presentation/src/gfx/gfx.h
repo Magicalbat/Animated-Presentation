@@ -62,6 +62,8 @@ typedef struct {
                 HWND window;
                 HDC device_context;
                 HGLRC context;
+
+                u32 keymap[256];
             } wgl;
         #elif defined(__EMSCRIPTEN__)
             struct {

@@ -45,6 +45,8 @@ int main(int argc, char** argv) {
     draw_rectb_finalize_textures(rectb);
 
     vec2 pos = { 0 };
+    vec3 col = { 1, 1, 1 };
+    f32 speed = 64.0f;
 
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
@@ -54,16 +56,23 @@ int main(int argc, char** argv) {
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
         if (GFX_IS_KEY_DOWN(win, GFX_KEY_UP)) {
-            pos.y -= 32.0f * delta;
+            pos.y -= speed * delta;
         }
         if (GFX_IS_KEY_DOWN(win, GFX_KEY_DOWN)) {
-            pos.y += 32.0f * delta;
+            pos.y += speed * delta;
         }
         if (GFX_IS_KEY_DOWN(win, GFX_KEY_LEFT)) {
-            pos.x -= 32.0f * delta;
+            pos.x -= speed * delta;
         }
         if (GFX_IS_KEY_DOWN(win, GFX_KEY_RIGHT)) {
-            pos.x += 32.0f * delta;
+            pos.x += speed * delta;
+        }
+
+        if (GFX_IS_KEY_JUST_DOWN(win, GFX_KEY_SPACE)) {
+            col = vec3_sub(col, (vec3){ 0.1f, 0.1f, 0.1f });
+        }
+        if (GFX_IS_KEY_JUST_UP(win, GFX_KEY_SPACE)) {
+            col = vec3_add(col, (vec3){ 0.1f, 0.1f, 0.1f });
         }
 
         gfx_win_clear(win);
@@ -71,8 +80,8 @@ int main(int argc, char** argv) {
         draw_rectb_push(
             rectb, (rect){
                 pos.x, pos.y,
-                WIDTH / 2, HEIGHT / 2
-            }, (vec3){ 1, 1, 1 }
+                32, 32
+            }, col
         );
 
         draw_rectb_flush(rectb);

@@ -8,6 +8,8 @@ static const char* frag_source;
 draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, draw_rectb);
 
+    batch->win = win;
+
     batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;
     
@@ -15,12 +17,7 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
 
     glUseProgram(batch->gl.shader_program);
     
-    u32 win_mat_loc = glGetUniformLocation(batch->gl.shader_program, "u_win_mat");
-    f32 win_mat[] = {
-        2.0f / ((f32)win->width), 0,
-        0, 2.0f / -((f32)win->height)
-    };
-    glUniformMatrix2fv(win_mat_loc, 1, GL_FALSE, &win_mat[0]);
+    batch->gl.win_mat_loc = glGetUniformLocation(batch->gl.shader_program, "u_win_mat");
 
 #ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &batch->gl.vertex_array);
@@ -169,6 +166,7 @@ void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col) {
 
 void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
+    gl_impl_view_mat(batch->win, batch->gl.win_mat_loc);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(batch->gl.vertex_array);

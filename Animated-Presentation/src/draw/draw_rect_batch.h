@@ -12,6 +12,8 @@ typedef struct {
 } draw_rectb_rect;
 
 typedef struct {
+    gfx_window* win;
+
     draw_rectb_rect* data;
     u32 capacity;
     u32 size;
@@ -30,6 +32,7 @@ typedef struct {
     #ifdef AP_OPENGL
         struct {
             u32 shader_program;
+            u32 win_mat_loc;
     
             u32 vertex_array;
             u32 vertex_buffer;

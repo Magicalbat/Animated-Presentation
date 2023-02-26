@@ -10,6 +10,8 @@ typedef struct {
 } cb_vertex;
 
 typedef struct {
+    gfx_window* win;
+
     u32* indices;
     cb_vertex* vertices;
     u32 capacity;
@@ -20,6 +22,7 @@ typedef struct {
     #if defined(AP_OPENGL)
     struct {
         u32 shader_program;
+        u32 win_mat_loc;
 
         u32 vertex_array;
         u32 vertex_buffer;
