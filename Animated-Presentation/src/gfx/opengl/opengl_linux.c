@@ -161,6 +161,8 @@ void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
 void gfx_win_swap_buffers(gfx_window* win) {
     glXSwapBuffers(win->glx.display, win->glx.window);
 }
+
+static gfx_key x11_translate_key(XKeyEvent* e);
 void gfx_win_process_events(gfx_window* win) {
     memcpy(win->prev_mouse_buttons, win->mouse_buttons, GFX_NUM_MOUSE_BUTTONS);
     memcpy(win->prev_keys, win->keys, GFX_NUM_KEYS);
@@ -180,10 +182,13 @@ void gfx_win_process_events(gfx_window* win) {
                 win->mouse_pos.x = (f32)e.xmotion.x;
                 win->mouse_pos.y = (f32)e.xmotion.y;
                 break;
-            case KeyPress:
-                // TODO: Keyboard input
+            case KeyPress: ;
+                gfx_key keydown = x11_translate_key(&e.xkey);
+                win->keys[keydown] = true;
                 break;
-            case KeyRelease:
+            case KeyRelease: ;
+                gfx_key keyup = x11_translate_key(&e.xkey);
+                win->keys[keyup] = false;
                 break;
             case ClientMessage:
                 if (e.xclient.data.l[0] == win->glx.del_window) {
@@ -219,6 +224,124 @@ void opengl_load_functions(gfx_window* win) {
     #undef X
 }
 
+// Adapted from sokol_app.h
+// https://github.com/floooh/sokol/blob/master/sokol_app.h#L10175 
+static gfx_key x11_translate_key(XKeyEvent* e) {
+    KeySym keysym = XLookupKeysym(e, 0);
+
+    switch (keysym) {
+        case XK_Escape:         return GFX_KEY_ESCAPE;
+        case XK_Tab:            return GFX_KEY_TAB;
+        case XK_Shift_L:        return GFX_KEY_LSHIFT;
+        case XK_Shift_R:        return GFX_KEY_RSHIFT;
+        case XK_Control_L:      return GFX_KEY_LCONTROL;
+        case XK_Control_R:      return GFX_KEY_RCONTROL;
+        case XK_Meta_L:
+        case XK_Alt_L:          return GFX_KEY_LALT;
+        case XK_Mode_switch:    /* Mapped to Alt_R on many keyboards */
+        case XK_ISO_Level3_Shift: /* AltGr on at least some machines */
+        case XK_Meta_R:
+        case XK_Alt_R:          return GFX_KEY_RALT;
+        case XK_Num_Lock:       return GFX_KEY_NUM_LOCK;
+        case XK_Caps_Lock:      return GFX_KEY_CAPSLOCK;
+        case XK_Scroll_Lock:    return GFX_KEY_SCROLL_LOCK;
+        case XK_Delete:         return GFX_KEY_DELETE;
+        case XK_BackSpace:      return GFX_KEY_BACKSPACE;
+        case XK_Return:         return GFX_KEY_ENTER;
+        case XK_Home:           return GFX_KEY_HOME;
+        case XK_End:            return GFX_KEY_END;
+        case XK_Page_Up:        return GFX_KEY_PAGEUP;
+        case XK_Page_Down:      return GFX_KEY_PAGEDOWN;
+        case XK_Insert:         return GFX_KEY_INSERT;
+        case XK_Left:           return GFX_KEY_LEFT;
+        case XK_Right:          return GFX_KEY_RIGHT;
+        case XK_Down:           return GFX_KEY_DOWN;
+        case XK_Up:             return GFX_KEY_UP;
+        case XK_F1:             return GFX_KEY_F1;
+        case XK_F2:             return GFX_KEY_F2;
+        case XK_F3:             return GFX_KEY_F3;
+        case XK_F4:             return GFX_KEY_F4;
+        case XK_F5:             return GFX_KEY_F5;
+        case XK_F6:             return GFX_KEY_F6;
+        case XK_F7:             return GFX_KEY_F7;
+        case XK_F8:             return GFX_KEY_F8;
+        case XK_F9:             return GFX_KEY_F9;
+        case XK_F10:            return GFX_KEY_F10;
+        case XK_F11:            return GFX_KEY_F11;
+        case XK_F12:            return GFX_KEY_F12;
+
+        case XK_KP_Divide:      return GFX_KEY_NUMPAD_DIVIDE;
+        case XK_KP_Multiply:    return GFX_KEY_NUMPAD_MULTIPLY;
+        case XK_KP_Subtract:    return GFX_KEY_NUMPAD_SUBTRACT;
+        case XK_KP_Add:         return GFX_KEY_NUMPAD_ADD;
+
+        case XK_KP_Insert:      return GFX_KEY_NUMPAD_0;
+        case XK_KP_End:         return GFX_KEY_NUMPAD_1;
+        case XK_KP_Down:        return GFX_KEY_NUMPAD_2;
+        case XK_KP_Page_Down:   return GFX_KEY_NUMPAD_3;
+        case XK_KP_Left:        return GFX_KEY_NUMPAD_4;
+        case XK_KP_Begin:       return GFX_KEY_NUMPAD_5;
+        case XK_KP_Right:       return GFX_KEY_NUMPAD_6;
+        case XK_KP_Home:        return GFX_KEY_NUMPAD_7;
+        case XK_KP_Up:          return GFX_KEY_NUMPAD_8;
+        case XK_KP_Page_Up:     return GFX_KEY_NUMPAD_9;
+        case XK_KP_Delete:      return GFX_KEY_NUMPAD_DECIMAL;
+        case XK_KP_Enter:       return GFX_KEY_NUMPAD_ENTER;
+
+        case XK_a:              return GFX_KEY_A;
+        case XK_b:              return GFX_KEY_B;
+        case XK_c:              return GFX_KEY_C;
+        case XK_d:              return GFX_KEY_D;
+        case XK_e:              return GFX_KEY_E;
+        case XK_f:              return GFX_KEY_F;
+        case XK_g:              return GFX_KEY_G;
+        case XK_h:              return GFX_KEY_H;
+        case XK_i:              return GFX_KEY_I;
+        case XK_j:              return GFX_KEY_J;
+        case XK_k:              return GFX_KEY_K;
+        case XK_l:              return GFX_KEY_L;
+        case XK_m:              return GFX_KEY_M;
+        case XK_n:              return GFX_KEY_N;
+        case XK_o:              return GFX_KEY_O;
+        case XK_p:              return GFX_KEY_P;
+        case XK_q:              return GFX_KEY_Q;
+        case XK_r:              return GFX_KEY_R;
+        case XK_s:              return GFX_KEY_S;
+        case XK_t:              return GFX_KEY_T;
+        case XK_u:              return GFX_KEY_U;
+        case XK_v:              return GFX_KEY_V;
+        case XK_w:              return GFX_KEY_W;
+        case XK_x:              return GFX_KEY_X;
+        case XK_y:              return GFX_KEY_Y;
+        case XK_z:              return GFX_KEY_Z;
+        case XK_1:              return GFX_KEY_1;
+        case XK_2:              return GFX_KEY_2;
+        case XK_3:              return GFX_KEY_3;
+        case XK_4:              return GFX_KEY_4;
+        case XK_5:              return GFX_KEY_5;
+        case XK_6:              return GFX_KEY_6;
+        case XK_7:              return GFX_KEY_7;
+        case XK_8:              return GFX_KEY_8;
+        case XK_9:              return GFX_KEY_9;
+        case XK_0:              return GFX_KEY_0;
+        case XK_space:          return GFX_KEY_SPACE;
+        case XK_minus:          return GFX_KEY_MINUS;
+        case XK_equal:          return GFX_KEY_EQUAL;
+        case XK_bracketleft:    return GFX_KEY_LBRACKET;
+        case XK_bracketright:   return GFX_KEY_RBRACKET;
+        case XK_backslash:      return GFX_KEY_BACKSLASH;
+        case XK_semicolon:      return GFX_KEY_SEMICOLON;
+        case XK_apostrophe:     return GFX_KEY_APOSTROPHE;
+        case XK_grave:          return GFX_KEY_BACKTICK;
+        case XK_comma:          return GFX_KEY_COMMA;
+        case XK_period:         return GFX_KEY_PERIOD;
+        case XK_slash:          return GFX_KEY_FORWARDSLASH;
+        default:                return GFX_KEY_NONE;
+    }
+
+    return GFX_KEY_NONE;
+}
+
 // Helper to check for extension string presence.  Adapted from:
 //   http://www.opengl.org/resources/features/OGLextensions/
 static bool isExtensionSupported(const char *extList, const char *extension) {
@@ -234,21 +357,21 @@ static bool isExtensionSupported(const char *extList, const char *extension) {
      OpenGL extensions string. Don't be fooled by sub-strings,
      etc. */
     for (start=extList;;) {
-    where = strstr(start, extension);
+        where = strstr(start, extension);
 
-    if (!where) {
-         break;
-    }
-
-    terminator = where + strlen(extension);
-
-    if ( where == start || *(where - 1) == ' ' ) {
-        if ( *terminator == ' ' || *terminator == '\0' ) {
-            return true;
+        if (!where) {
+             break;
         }
-    }    
 
-    start = terminator;
+        terminator = where + strlen(extension);
+
+        if ( where == start || *(where - 1) == ' ' ) {
+            if ( *terminator == ' ' || *terminator == '\0' ) {
+                return true;
+            }
+        }    
+
+        start = terminator;
     }
 
     return false;

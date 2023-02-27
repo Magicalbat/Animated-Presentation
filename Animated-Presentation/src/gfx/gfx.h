@@ -180,6 +180,7 @@ typedef enum {
     X(NUMPAD_SUBTRACT, ) \
     X(NUMPAD_DECIMAL, ) \
     X(NUMPAD_DIVIDE, ) \
+    X(NUMPAD_ENTER, ) \
     X(F1, ) \
     X(F2, ) \
     X(F3, ) \
