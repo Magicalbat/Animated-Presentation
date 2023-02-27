@@ -34,9 +34,9 @@ int main(int argc, char** argv) {
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
-    //log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
-    //log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
-    //log_infof("GL Version: %s",  glGetString(GL_VERSION));
+    log_infof("GL Vender: %s",   glGetString(GL_VENDOR));
+    log_infof("GL Renderer: %s", glGetString(GL_RENDERER));
+    log_infof("GL Version: %s",  glGetString(GL_VERSION));
 
     gfx_win_alpha_blend(win, true);
     gfx_win_clear_color(win, (vec3){ 0.5f, 0.6f, 0.7f });

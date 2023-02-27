@@ -296,6 +296,7 @@ void opengl_load_functions(gfx_window* win) {
 static void win32_init_keymap(gfx_window* win) {
     memset(win->wgl.keymap, 0, sizeof(win->wgl.keymap));
 
+    win->wgl.keymap[VK_BACK] = GFX_KEY_BACKSPACE;
     win->wgl.keymap[VK_TAB] = GFX_KEY_TAB;
     win->wgl.keymap[VK_RETURN] = GFX_KEY_ENTER;
     win->wgl.keymap[VK_CAPITAL] = GFX_KEY_CAPSLOCK;
@@ -347,21 +348,21 @@ static void win32_init_keymap(gfx_window* win) {
     win->wgl.keymap[0x58] = GFX_KEY_X;
     win->wgl.keymap[0x59] = GFX_KEY_Y;
     win->wgl.keymap[0x5A] = GFX_KEY_Z;
-    win->wgl.keymap[VK_NUMPAD0] = GFX_KEY_NUMPAD0;
-    win->wgl.keymap[VK_NUMPAD1] = GFX_KEY_NUMPAD1;
-    win->wgl.keymap[VK_NUMPAD2] = GFX_KEY_NUMPAD2;
-    win->wgl.keymap[VK_NUMPAD3] = GFX_KEY_NUMPAD3;
-    win->wgl.keymap[VK_NUMPAD4] = GFX_KEY_NUMPAD4;
-    win->wgl.keymap[VK_NUMPAD5] = GFX_KEY_NUMPAD5;
-    win->wgl.keymap[VK_NUMPAD6] = GFX_KEY_NUMPAD6;
-    win->wgl.keymap[VK_NUMPAD7] = GFX_KEY_NUMPAD7;
-    win->wgl.keymap[VK_NUMPAD8] = GFX_KEY_NUMPAD8;
-    win->wgl.keymap[VK_NUMPAD9] = GFX_KEY_NUMPAD9;
-    win->wgl.keymap[VK_MULTIPLY] = GFX_KEY_MULTIPLY;
-    win->wgl.keymap[VK_ADD] = GFX_KEY_ADD;
-    win->wgl.keymap[VK_SUBTRACT] = GFX_KEY_SUBTRACT;
-    win->wgl.keymap[VK_DECIMAL] = GFX_KEY_DECIMAL;
-    win->wgl.keymap[VK_DIVIDE] = GFX_KEY_DIVIDE;
+    win->wgl.keymap[VK_NUMPAD0] = GFX_KEY_NUMPAD_0;
+    win->wgl.keymap[VK_NUMPAD1] = GFX_KEY_NUMPAD_1;
+    win->wgl.keymap[VK_NUMPAD2] = GFX_KEY_NUMPAD_2;
+    win->wgl.keymap[VK_NUMPAD3] = GFX_KEY_NUMPAD_3;
+    win->wgl.keymap[VK_NUMPAD4] = GFX_KEY_NUMPAD_4;
+    win->wgl.keymap[VK_NUMPAD5] = GFX_KEY_NUMPAD_5;
+    win->wgl.keymap[VK_NUMPAD6] = GFX_KEY_NUMPAD_6;
+    win->wgl.keymap[VK_NUMPAD7] = GFX_KEY_NUMPAD_7;
+    win->wgl.keymap[VK_NUMPAD8] = GFX_KEY_NUMPAD_8;
+    win->wgl.keymap[VK_NUMPAD9] = GFX_KEY_NUMPAD_9;
+    win->wgl.keymap[VK_MULTIPLY] = GFX_KEY_NUMPAD_MULTIPLY;
+    win->wgl.keymap[VK_ADD] = GFX_KEY_NUMPAD_ADD;
+    win->wgl.keymap[VK_SUBTRACT] = GFX_KEY_NUMPAD_SUBTRACT;
+    win->wgl.keymap[VK_DECIMAL] = GFX_KEY_NUMPAD_DECIMAL;
+    win->wgl.keymap[VK_DIVIDE] = GFX_KEY_NUMPAD_DIVIDE;
     win->wgl.keymap[VK_F1] = GFX_KEY_F1;
     win->wgl.keymap[VK_F2] = GFX_KEY_F2;
     win->wgl.keymap[VK_F3] = GFX_KEY_F3;
@@ -374,8 +375,8 @@ static void win32_init_keymap(gfx_window* win) {
     win->wgl.keymap[VK_F10] = GFX_KEY_F10;
     win->wgl.keymap[VK_F11] = GFX_KEY_F11;
     win->wgl.keymap[VK_F12] = GFX_KEY_F12;
-    win->wgl.keymap[VK_NUMLOCK] = GFX_KEY_NUMLOCK;
-    win->wgl.keymap[VK_SCROLL] = GFX_KEY_SCROLLLOCK;
+    win->wgl.keymap[VK_NUMLOCK] = GFX_KEY_NUM_LOCK;
+    win->wgl.keymap[VK_SCROLL] = GFX_KEY_SCROLL_LOCK;
     win->wgl.keymap[VK_LSHIFT] = GFX_KEY_LSHIFT;
     win->wgl.keymap[VK_RSHIFT] = GFX_KEY_RSHIFT;
     win->wgl.keymap[VK_LCONTROL] = GFX_KEY_LCONTROL;
@@ -383,7 +384,7 @@ static void win32_init_keymap(gfx_window* win) {
     win->wgl.keymap[VK_LMENU] = GFX_KEY_LALT;
     win->wgl.keymap[VK_RMENU] = GFX_KEY_RALT;
     win->wgl.keymap[VK_OEM_1] = GFX_KEY_SEMICOLON;
-    win->wgl.keymap[VK_OEM_PLUS] = GFX_KEY_PLUS;
+    win->wgl.keymap[VK_OEM_PLUS] = GFX_KEY_EQUAL;
     win->wgl.keymap[VK_OEM_COMMA] = GFX_KEY_COMMA;
     win->wgl.keymap[VK_OEM_MINUS] = GFX_KEY_MINUS;
     win->wgl.keymap[VK_OEM_PERIOD] = GFX_KEY_PERIOD;

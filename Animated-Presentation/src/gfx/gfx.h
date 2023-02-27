@@ -113,6 +113,7 @@ typedef enum {
 
 #define GFX_KEY_XLIST \
     X(NONE, = 0) \
+    X(BACKSPACE, ) \
     X(TAB, ) \
     X(ENTER, ) \
     X(CAPSLOCK, ) \
@@ -164,22 +165,21 @@ typedef enum {
     X(X, = 'X') \
     X(Y, = 'Y') \
     X(Z, = 'Z') \
-    X(NUMPAD9, ) \
-    X(NUMPAD0, ) \
-    X(NUMPAD1, ) \
-    X(NUMPAD2, ) \
-    X(NUMPAD3, ) \
-    X(NUMPAD4, ) \
-    X(NUMPAD5, ) \
-    X(NUMPAD6, ) \
-    X(NUMPAD7, ) \
-    X(NUMPAD8, ) \
-    X(MULTIPLY, ) \
-    X(ADD, ) \
-    X(SEPARATOR, ) \
-    X(SUBTRACT, ) \
-    X(DECIMAL, ) \
-    X(DIVIDE, ) \
+    X(NUMPAD_0, ) \
+    X(NUMPAD_1, ) \
+    X(NUMPAD_2, ) \
+    X(NUMPAD_3, ) \
+    X(NUMPAD_4, ) \
+    X(NUMPAD_5, ) \
+    X(NUMPAD_6, ) \
+    X(NUMPAD_7, ) \
+    X(NUMPAD_8, ) \
+    X(NUMPAD_9, ) \
+    X(NUMPAD_MULTIPLY, ) \
+    X(NUMPAD_ADD, ) \
+    X(NUMPAD_SUBTRACT, ) \
+    X(NUMPAD_DECIMAL, ) \
+    X(NUMPAD_DIVIDE, ) \
     X(F1, ) \
     X(F2, ) \
     X(F3, ) \
@@ -192,8 +192,8 @@ typedef enum {
     X(F10, ) \
     X(F11, ) \
     X(F12, ) \
-    X(NUMLOCK, ) \
-    X(SCROLLLOCK, ) \
+    X(NUM_LOCK, ) \
+    X(SCROLL_LOCK, ) \
     X(LSHIFT, ) \
     X(RSHIFT, ) \
     X(LCONTROL, ) \
@@ -201,7 +201,7 @@ typedef enum {
     X(LALT, ) \
     X(RALT, ) \
     X(SEMICOLON, ) \
-    X(PLUS, ) \
+    X(EQUAL, ) \
     X(COMMA, ) \
     X(PERIOD, ) \
     X(MINUS, ) \
