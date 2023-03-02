@@ -152,7 +152,6 @@ void os_file_close(os_file file) {
 }
 
 
-// TODO: make this work on wasm
 static string8 dl_error_string(void) {
     char* err_cstr = dlerror();
     

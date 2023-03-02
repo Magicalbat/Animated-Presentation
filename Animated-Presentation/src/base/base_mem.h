@@ -6,6 +6,9 @@
 
 #include "base_defs.h"
 
+// TODO: include alignment?
+// will this break some of the marena_pop calls?
+
 // This is adapted from my own library mg_arena.h
 // https://github.com/Magicalbat/mg_arena
 

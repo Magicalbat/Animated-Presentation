@@ -40,6 +40,7 @@ project "Animated-Presentation"
     links { }
 
     filter { "system:linux", "options:not wasm" }
+        toolset "clang"
         links 
         {
             "m", "X11", "GL", "GLX", "dl"
@@ -49,6 +50,7 @@ project "Animated-Presentation"
     filter { "system:windows", "options:not wasm" }
         staticruntime "On"
         systemversion "latest"
+        toolset "clang"
         
         links 
         {
@@ -57,9 +59,6 @@ project "Animated-Presentation"
 
     filter { "system:windows", "action:vs2022" }
         cdialect "C17"
-
-    filter { "system:windows", "action:gmake or gmake2 or win_gmake" }
-        toolset "clang"
 
     filter "options:wasm"
         buildoptions 

@@ -6,7 +6,125 @@
 #include "draw/draw.h"
 #include "draw/opengl_impl/gl_impl.h"
 
-// TODO: enable -Wall and fix warnings
+typedef enum {
+    FIELD_NULL,
+    FIELD_NUM,
+    FIELD_STR,
+    FIELD_BOOL,
+    FIELD_VEC2,
+    FIELD_VEC3,
+    FIELD_VEC4,
+    FIELD_ARR,
+} field_type;
+
+typedef struct field_val {
+    field_type type;
+
+    union {
+        struct { int _unused; } null;
+        f64 num;
+        string8 str;
+        b32 boolean;
+        vec2 vec2;
+        vec3 vec3;
+        vec4 vec4;
+        struct {
+            struct field_val* data;
+            u64 size;
+        } arr;
+    } val;
+} field_val;
+
+typedef void (desc_init_func)(void* custom_data);
+typedef void (desc_destroy_func)(void* custom_data);
+
+typedef void (obj_init_func)(void* obj);
+typedef void (obj_destroy_func)(void* obj);
+typedef void (obj_draw_func)(void* obj);
+typedef void (obj_update_func)(void* obj);
+
+#define MAX_FIELDS 32
+typedef struct {
+    u32 obj_size;
+
+    void* custom_data;
+    desc_init_func* desc_init_func;
+    desc_destroy_func* desc_destroy_func;
+
+    obj_init_func* init_func;
+    obj_destroy_func* destroy_func;
+    obj_draw_func* draw_func;
+    obj_update_func* update_func;
+
+    string8 field_names[MAX_FIELDS];
+    field_type field_types[MAX_FIELDS];
+    u32 field_offsets[MAX_FIELDS];
+} obj_desc;
+
+typedef struct {
+    obj_desc* descs;
+    u32 max_descs;
+    u32 num_descs;
+} obj_register;
+
+typedef struct {
+    u32 max_objs;
+    u32* num_objs;
+    void** objs;
+} obj_pool;
+
+typedef struct {
+    field_type type;
+    void* obj_field;
+
+    u32 num_keys;
+    field_val* keys;
+    f32* times;
+
+    f32 cur_time;
+} anim;
+
+typedef struct {
+    anim* anims;
+    u32 num_anims;
+} anim_pool;
+
+typedef struct slide_node {
+    struct slide_node* next;
+    obj_pool objs;
+    anim_pool anims;
+} slide_node;
+
+typedef struct {
+    obj_register* obj_reg;
+
+    slide_node* first;
+    slide_node* last;
+    u32 num_slides;
+
+    u32 cur_slide;
+} pres;
+
+typedef struct {
+    gfx_window* win;
+
+    draw_rectb* rectb;
+    draw_cbezier* cbezier;
+    draw_polygon* poly;
+
+    pres* pres;
+} ap_app;
+
+obj_register* obj_reg_create(marena* arena);
+void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc);
+void obj_reg_destroy(obj_register* obj_reg);
+
+ap_app* app_create(marena* arena, pres* pres);
+void app_run(ap_app* app);
+void app_destroy(ap_app* app);
+
+void slide_draw(slide_node* slide, ap_app* app);
+void slide_update(slide_node* slide, f32 delta);
 
 #define WIN_SCALE 1.5
 #define WIDTH (u32)(320 * WIN_SCALE)
@@ -44,10 +162,6 @@ int main(int argc, char** argv) {
     draw_rectb* rectb = draw_rectb_create(perm_arena, win, 1024, 16);
     draw_rectb_finalize_textures(rectb);
 
-    vec2 pos = { 0 };
-    vec3 col = { 1, 1, 1 };
-    f32 speed = 64.0f;
-
     // TODO: Better frame independence
     u64 time_prev = os_now_microseconds();
 
@@ -55,34 +169,7 @@ int main(int argc, char** argv) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
-        if (GFX_IS_KEY_DOWN(win, GFX_KEY_UP)) {
-            pos.y -= speed * delta;
-        }
-        if (GFX_IS_KEY_DOWN(win, GFX_KEY_DOWN)) {
-            pos.y += speed * delta;
-        }
-        if (GFX_IS_KEY_DOWN(win, GFX_KEY_LEFT)) {
-            pos.x -= speed * delta;
-        }
-        if (GFX_IS_KEY_DOWN(win, GFX_KEY_RIGHT)) {
-            pos.x += speed * delta;
-        }
-
-        if (GFX_IS_KEY_JUST_DOWN(win, GFX_KEY_SPACE)) {
-            col = vec3_sub(col, (vec3){ 0.1f, 0.1f, 0.1f });
-        }
-        if (GFX_IS_KEY_JUST_UP(win, GFX_KEY_SPACE)) {
-            col = vec3_add(col, (vec3){ 0.1f, 0.1f, 0.1f });
-        }
-
         gfx_win_clear(win);
-
-        draw_rectb_push(
-            rectb, (rect){
-                pos.x, pos.y,
-                32, 32
-            }, col
-        );
 
         draw_rectb_flush(rectb);
 
@@ -99,7 +186,17 @@ int main(int argc, char** argv) {
     
     marena_destroy(perm_arena);
     log_quit();
-    os_main_quit();
-
+    
     return 0;
 }
+
+obj_register* obj_reg_create(marena* arena) { return NULL; }
+void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc) { }
+void obj_reg_destroy(obj_register* obj_reg) { }
+
+ap_app* app_create(marena* arena, pres* pres) { return NULL; } 
+void app_run(ap_app* app) { } 
+void app_destroy(ap_app* app) { }
+
+void slide_draw(slide_node* slide, ap_app* app) { }
+void slide_update(slide_node* slide, f32 delta) { }

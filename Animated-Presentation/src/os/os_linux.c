@@ -11,7 +11,7 @@ static string8_list lnx_cmd_args;
 static string8 lnx_error_string(void) {
     char* err_cstr = strerror(errno);
     
-    return str8_from_cstr(err_cstr);
+    return str8_from_cstr((u8*)err_cstr);
 }
 #define log_lnx_error(msg) do { \
         string8 err = lnx_error_string(); \
@@ -83,7 +83,6 @@ void os_sleep_milliseconds(u32 t) {
     usleep(t * 1000);
 }
 
-// TODO: str8_to_cstr function
 int lnx_open_impl(string8 path, int flags, mode_t mode) {
     marena_temp temp = marena_temp_begin(lnx_arena);
     
