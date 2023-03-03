@@ -114,7 +114,6 @@ static void parse_stored(dstate* state) {
         log_error("Invalid stored block");
         return;
     }
-    log_debugf("%u", len);
 
     u8* out_ptr = state->out;
     u8* bs_ptr = bs_get_ptr(state->bs) + 1;

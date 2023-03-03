@@ -18,7 +18,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     attr.depth = 0;
     attr.stencil = 0;
     attr.explicitSwapControl = true;
-	attr.renderViaOffscreenBackBuffer = true;
+    attr.renderViaOffscreenBackBuffer = true;
 
     win->wasm.ctx = emscripten_webgl_create_context("canvas", &attr);
 
