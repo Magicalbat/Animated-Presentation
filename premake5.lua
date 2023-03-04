@@ -39,6 +39,8 @@ project "Animated-Presentation"
 
     links { }
 
+    buildoptions { "-Wno-missing-braces" }
+
     filter { "system:linux", "options:not wasm" }
         toolset "clang"
         links 

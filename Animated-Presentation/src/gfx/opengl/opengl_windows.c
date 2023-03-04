@@ -59,7 +59,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
             .lpfnWndProc = DefWindowProc,
             .lpszClassName = L"Bootstrap Window Class"
         };
-        ATOM atom = RegisterClass(&bootstrap_wnd_class);
+        RegisterClass(&bootstrap_wnd_class);
 
         HWND bootstrap_window = CreateWindow(
             bootstrap_wnd_class.lpszClassName,
@@ -105,7 +105,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
         .lpszClassName = L"OpenGL Window Class",
         .hCursor = LoadCursor(NULL, IDC_ARROW)
     };
-    ATOM atom = RegisterClass(&win->wgl.window_class);
+    RegisterClass(&win->wgl.window_class);
 
     string16 title16 = str16_from_str8(arena, title);
 
@@ -218,11 +218,11 @@ void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
     win->height = height;
 
     RECT rect = (RECT){ 0, 0, width, height };
-    i32 out = AdjustWindowRect(&rect, GetWindowLong(win->wgl.window, GWL_STYLE), false);
+    AdjustWindowRect(&rect, GetWindowLong(win->wgl.window, GWL_STYLE), false);
 
     SetWindowPos(win->wgl.window, NULL,
             0, 0, (i32)width, (i32)height,
-            SWP_NOMOVE | SWP_DRAWFRAME);// | WS_VISIBLE);
+            SWP_NOMOVE | SWP_DRAWFRAME);
 
     glViewport(0, 0, width, height);
 }

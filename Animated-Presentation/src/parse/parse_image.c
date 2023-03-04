@@ -64,15 +64,15 @@ typedef struct {
     u64 size;
 } u8arr;
 
-static inline u8 ppeek_byte(pstate* state) {
-    return state->data[state->pos];
-}
+//static inline u8 ppeek_byte(pstate* state) {
+//    return state->data[state->pos];
+//}
 
 static inline u8 pget_byte(pstate* state) {
     return state->data[state->pos++];
 }
 
-#define PBYTE() (ppeek_byte(state))
+//#define PBYTE() (ppeek_byte(state))
 #define BYTE()  (pget_byte(state))
 #define U32()   (BYTE() << 24 | BYTE() << 16 | BYTE() << 8 | BYTE())
 
@@ -371,6 +371,7 @@ static image parse_qoi(marena* arena, string8 file, u32 num_channels) {
     BYTE();
     out.channels = num_channels;
     u32 colorspace = BYTE();
+    (void)colorspace;
 
     u64 out_pos = 0;
     u64 out_size = out.width * out.height * out.channels;

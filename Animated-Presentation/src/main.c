@@ -144,8 +144,8 @@ void obj_reg_destroy(obj_register* obj_reg);
 
 obj_pool* obj_pool_create(marena* arena, obj_register* obj_reg, u32 max_objs);
 obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name);
-void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app);
 void obj_pool_update(obj_pool* pool, obj_register* obj_reg, f32 delta);
+void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app);
 void obj_pool_destroy(obj_pool* pool, obj_register* obj_reg);
 
 void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data);
@@ -396,12 +396,23 @@ void app_run(marena* arena, ap_app* app) {
     obj_register* obj_reg = obj_reg_create(arena, 16);
     rect_init_plugin(arena, obj_reg);
 
+    obj_pool* pool = obj_pool_create(arena, obj_reg, 128);
+
+    obj_ref rect_ref = obj_pool_add(pool, obj_reg, STR8_LIT("rectangle"));
+
     u64 time_prev = os_now_microseconds();
     while (!app->win->should_close) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
+        obj_pool_update(pool, obj_reg, delta);
+
         gfx_win_clear(app->win);
+
+        obj_pool_draw(pool, obj_reg, app);
+
+        draw_rectb_flush(app->rectb);
+        draw_cbezier_flush(app->cbezier);
 
         gfx_win_swap_buffers(app->win);
         gfx_win_process_events(app->win);
@@ -411,6 +422,7 @@ void app_run(marena* arena, ap_app* app) {
         os_sleep_milliseconds(sleep_time_ms);
     }
 
+    obj_pool_destroy(pool, obj_reg);
     obj_reg_destroy(obj_reg);
 }
 void app_destroy(ap_app* app) {
@@ -472,6 +484,7 @@ void rect_init_plugin(marena* arena, obj_register* obj_reg) {
     rect_plug_data* data = CREATE_ZERO_STRUCT(arena, rect_plug_data);
 
     obj_reg_add_desc(obj_reg, &(obj_desc){
+        .name = STR8_LIT("rectangle"),
         .obj_size = sizeof(pres_rect),
         .custom_data = (void*)data,
 

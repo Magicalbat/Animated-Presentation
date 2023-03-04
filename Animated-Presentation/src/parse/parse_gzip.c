@@ -57,6 +57,7 @@ gzip parse_gzip(marena* arena, string8 file) {
     BS_FLUSH_BYTE(&bs);
 
     u32 crc = BS_U32(&bs);
+    (void)crc;
     u32 isize2 = BS_U32(&bs);
     log_debugf("%u %u", isize, isize2);
 
