@@ -171,7 +171,7 @@ void rect_init_plugin(marena* arena, obj_register* obj_reg);
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
-    log_init((log_desc){ 
+    log_init(&(log_desc){ 
         .log_time = LOG_NO,
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
@@ -303,48 +303,26 @@ obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name) {
     return out;
 }
 
-// TODO: use macro for these?
-void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app) {
-    for (u32 i = 0; i < obj_reg->num_descs; i++) {
-        if (obj_reg->descs[i].draw_func == NULL)
-            continue;
-
-        u32 obj_size = obj_reg->descs[i].obj_size;
-        void* obj = pool->objs[i];
-
-        for (u32 j = 0; j < pool->num_objs[i]; j++) {
-            obj_reg->descs[i].draw_func(app, obj);
-            obj = (void*)((u8*)obj + obj_size);
-        }
+#define CALL_OBJ_FUNCS(func, ...) \
+    for (u32 i = 0; i < obj_reg->num_descs; i++) { \
+        if (obj_reg->descs[i].func == NULL) \
+            continue; \
+        u32 obj_size = obj_reg->descs[i].obj_size; \
+        void* obj = pool->objs[i]; \
+        for (u32 j = 0; j < pool->num_objs[i]; j++) { \
+            obj_reg->descs[i].func(__VA_ARGS__); \
+            obj = (void*)((u8*)obj + obj_size); \
+        } \
     }
+
+void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app) {
+    CALL_OBJ_FUNCS(draw_func, app, obj);
 }
 void obj_pool_update(obj_pool* pool, obj_register* obj_reg, f32 delta) {
-    for (u32 i = 0; i < obj_reg->num_descs; i++) {
-        if (obj_reg->descs[i].update_func == NULL)
-            continue;
-
-        u32 obj_size = obj_reg->descs[i].obj_size;
-        void* obj = pool->objs[i];
-
-        for (u32 j = 0; j < pool->num_objs[i]; j++) {
-            obj_reg->descs[i].update_func(delta, obj);
-            obj = (void*)((u8*)obj + obj_size);
-        }
-    }
+    CALL_OBJ_FUNCS(update_func, delta, obj);
 }
 void obj_pool_destroy(obj_pool* pool, obj_register* obj_reg) {
-    for (u32 i = 0; i < obj_reg->num_descs; i++) {
-        if (obj_reg->descs[i].destroy_func == NULL)
-            continue;
-
-        u32 obj_size = obj_reg->descs[i].obj_size;
-        void* obj = pool->objs[i];
-
-        for (u32 j = 0; j < pool->num_objs[i]; j++) {
-            obj_reg->descs[i].destroy_func(obj);
-            obj = (void*)((u8*)obj + obj_size);
-        }
-    }
+    CALL_OBJ_FUNCS(destroy_func, obj);
 }
 
 void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data) {

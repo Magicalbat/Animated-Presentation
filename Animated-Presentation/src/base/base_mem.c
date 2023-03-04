@@ -18,6 +18,7 @@ static u32 round_pow2(u32 v) {
 typedef struct {
     u64 max_size;
     u32 block_size;
+    u32 align;
 } init_data;
 
 static init_data init_common(const marena_desc* desc) {
@@ -31,11 +32,13 @@ static init_data init_common(const marena_desc* desc) {
     desired_block_size = ALIGN_UP_POW2(desired_block_size, page_size);
     
     out.block_size = round_pow2(desired_block_size);
+    out.align = desc->align == 0 ? (sizeof(void*)) : desc->align;
     
     return out;
 }
 
-#ifdef __EMSCRIPTEN__
+
+#if __EMSCRIPTEN__
 
 marena* marena_create(const marena_desc* desc) {
     init_data init_data = init_common(desc);
@@ -51,6 +54,7 @@ marena* marena_create(const marena_desc* desc) {
     out->pos = 0;
     out->size = init_data.max_size;
     out->block_size = init_data.block_size;
+    out->align = init_data.align;
 
     out->malloc_backend.cur_node = (marena_malloc_node*)malloc(sizeof(marena_malloc_node));
     *out->malloc_backend.cur_node = (marena_malloc_node){
@@ -83,11 +87,11 @@ void* marena_push(marena* arena, u64 size) {
 
     marena_malloc_node* node = arena->malloc_backend.cur_node;
 
-    u64 pos = node->pos;
-    arena->pos += size;
+    u64 pos_aligned = ALIGN_UP_POW2(node->pos, arena->align);
+    u32 diff = pos_aligned - node->pos;
+    arena->pos += diff + size;
 
     if (arena->pos >= node->size) {
-        
         u64 unclamped_node_size = ALIGN_UP_POW2(size, arena->block_size);
         u64 max_node_size = arena->size - arena->pos;
         u64 node_size = MIN(unclamped_node_size, max_node_size);
@@ -99,7 +103,6 @@ void* marena_push(marena* arena, u64 size) {
             if (new_node != NULL) { free(new_node); }
             if (data != NULL) { free(data); }
             
-            log_error("Failed to malloc new node");
             return NULL;
         }
 
@@ -113,8 +116,8 @@ void* marena_push(marena* arena, u64 size) {
         return (void*)(new_node->data);
     }
     
-    void* out = (void*)((u8*)node->data + pos);
-    node->pos += size;
+    void* out = (void*)((u8*)node->data + pos_aligned);
+    node->pos = pos_aligned + size;
 
     return out;
 }
@@ -163,6 +166,7 @@ marena* marena_create(const marena_desc* desc) {
     out->pos = ARENA_MIN_POS;
     out->size = init_data.max_size;
     out->block_size = init_data.block_size;
+    out->align = init_data.align;
     out->reserve_backend.commit_pos = init_data.block_size;
 
     return out;
@@ -178,8 +182,9 @@ void* marena_push(marena* arena, u64 size) {
         return NULL;
     }
 
-    void* out = (void*)((u8*)arena + arena->pos);
-    arena->pos += size;
+    u64 pos_aligned = ALIGN_UP_POW2(arena->pos, arena->align);
+    void* out = (void*)((u8*)arena + pos_aligned);
+    arena->pos = pos_aligned + size;
 
     u64 commit_pos = arena->reserve_backend.commit_pos;
     if (arena->pos > commit_pos) {
@@ -229,6 +234,25 @@ void* marena_push_zero(marena* arena, u64 size) {
     memset(out, 0, size);
     
     return (void*)out;
+}
+
+void* marena_push_noalign(marena* arena, u64 size) {
+    u32 real_align = arena->align;
+
+    arena->align = 1;
+    void* out = marena_push(arena, size);
+    arena->align = real_align;
+
+    return out;
+}
+void* marena_push_zero_noalign(marena* arena, u64 size) {
+    u32 real_align = arena->align;
+
+    arena->align = 1;
+    void* out = marena_push_zero(arena, size);
+    arena->align = real_align;
+
+    return out;
 }
 
 void marena_pop_to(marena* arena, u64 pos) {

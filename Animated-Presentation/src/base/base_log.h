@@ -38,7 +38,7 @@ typedef struct {
 
 // log_desc should be made with designated initializers
 // the functions checks for zero values to apply defaults
-void log_init(log_desc desc);
+void log_init(log_desc* desc);
 void log_quit(void);
 void log_msg(log_level level, const char* msg);
 void log_msgf(log_level level, const char* fmt, ...);

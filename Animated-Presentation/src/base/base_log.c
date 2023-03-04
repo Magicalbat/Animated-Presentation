@@ -23,10 +23,10 @@ static log_data* logs;
 static u32 log_index;
 static log_data last_logs[LOG_LEVEL_COUNT];
 
-#define TRY_PROP(prop, val) desc.prop = base_desc.prop ? base_desc.prop : val;
+#define TRY_PROP(prop, val) desc.prop = base_desc->prop ? base_desc->prop : val;
 
-void log_init(log_desc base_desc) {
-    desc = base_desc;
+void log_init(log_desc* base_desc) {
+    desc = *base_desc;
 
     TRY_PROP(log_time, LOG_YES);
     TRY_PROP(new_file, LOG_YES);

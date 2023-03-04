@@ -6,9 +6,6 @@
 
 #include "base_defs.h"
 
-// TODO: include alignment?
-// will this break some of the marena_pop calls?
-
 // This is adapted from my own library mg_arena.h
 // https://github.com/Magicalbat/mg_arena
 
@@ -24,6 +21,7 @@ typedef struct {
 
     u64 size;
     u64 block_size;
+    u32 align;
 
     union {
         struct {
@@ -50,6 +48,8 @@ marena* marena_create(const marena_desc* desc);
 void    marena_destroy(marena* arena);
 void*   marena_push(marena* arena, u64 size);
 void*   marena_push_zero(marena* arena, u64 size);
+void*   marena_push_noalign(marena* arena, u64 size);
+void*   marena_push_zero_noalign(marena* arena, u64 size);
 void    marena_pop(marena* arena, u64 size);
 void    marena_pop_to(marena* arena, u64 pos);
 void    marena_reset(marena* arena);
