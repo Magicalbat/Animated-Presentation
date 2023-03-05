@@ -69,40 +69,40 @@ rect rect_pack(rect* rects, u32 num_rects) {
 
 // https://github.com/python/cpython/blob/3.11/Lib/colorsys.py
 vec3 rgb_to_hsv(vec3 rgb) {
-    f32 cmax = MAX(rgb.r, MAX(rgb.g, rgb.b));
-    f32 cmin = MIN(rgb.r, MIN(rgb.g, rgb.b));
+    f32 cmax = MAX(rgb.x, MAX(rgb.y, rgb.z));
+    f32 cmin = MIN(rgb.x, MIN(rgb.y, rgb.z));
     f32 diff = cmax - cmin;
 
-    vec3 hsv = { .v = cmax };
+    vec3 hsv = { .z = cmax };
 
     if (cmax == cmin) {
         return hsv;
     }
 
-    hsv.s = diff / cmax;
-    if (cmax == rgb.r) {
-        hsv.h = (rgb.g - rgb.b) / diff;
-    } else if (cmax == rgb.g) {
-        hsv.h = 2.0f + (rgb.b - rgb.r) / diff;
+    hsv.y = diff / cmax;
+    if (cmax == rgb.x) {
+        hsv.x = (rgb.y - rgb.z) / diff;
+    } else if (cmax == rgb.y) {
+        hsv.x = 2.0f + (rgb.z - rgb.x) / diff;
     } else {
-        hsv.h = 4.0f + (rgb.r - rgb.g) / diff;
+        hsv.x = 4.0f + (rgb.x - rgb.y) / diff;
     }
     
-    hsv.h = fmodf(hsv.h / 6.0f, 1.0f);
+    hsv.x = fmodf(hsv.x / 6.0f, 1.0f);
 
     return hsv;
 }
 vec3 hsv_to_rgb(vec3 hsv) {
-    if (hsv.s == 0.0f)
-        return (vec3){ hsv.v, hsv.v, hsv.v };
+    if (hsv.y == 0.0f)
+        return (vec3){ hsv.z, hsv.z, hsv.z };
 
-    f32 v = hsv.v;
+    f32 v = hsv.z;
     
-    u32 i = (int)(hsv.h * 6.0f);
-    f32 f = (hsv.h * 6.0f) - i;
-    f32 p = v * (1.0f - hsv.s);
-    f32 q = v * (1.0f - hsv.s * f);
-    f32 t = v * (1.0f - hsv.s * (1.0f - f));
+    u32 i = (int)(hsv.x * 6.0f);
+    f32 f = (hsv.x * 6.0f) - i;
+    f32 p = v * (1.0f - hsv.y);
+    f32 q = v * (1.0f - hsv.y * f);
+    f32 t = v * (1.0f - hsv.y * (1.0f - f));
     
     i %= 6;
 

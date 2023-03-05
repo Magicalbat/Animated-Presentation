@@ -7,21 +7,9 @@
 
 typedef struct { f32 x, y, w, h; } rect;
 
-typedef union {
-    struct { f32 x, y; };
-    struct { f32 u, v; };
-} vec2;
-
-typedef union {
-    struct { f32 x, y, z; };
-    struct { f32 r, g, b; };
-    struct { f32 h, s, v; };
-} vec3;
-
-typedef union {
-    struct { f32 x, y, z, w; };
-    struct { f32 r, g, b, a; };
-} vec4;
+typedef struct { f32 x, y; } vec2;
+typedef struct { f32 x, y, z; } vec3;
+typedef struct { f32 x, y, z, w; } vec4;
 
 typedef union {
     struct {

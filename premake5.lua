@@ -5,6 +5,11 @@ workspace "Animated-Presentation"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 newoption {
+    trigger = "no-clang",
+    description = "Avoids using clang."
+}
+
+newoption {
     trigger = "wasm",
     description = "Choose whether or not to make build files for wasm",
 }
@@ -39,20 +44,19 @@ project "Animated-Presentation"
 
     links { }
 
-    buildoptions { "-Wno-missing-braces" }
+    filter "options:not no-clang"
+        toolset "clang"
 
     filter { "system:linux", "options:not wasm" }
-        toolset "clang"
         links 
         {
             "m", "X11", "GL", "GLX", "dl"
         }
+
         buildoptions { }
 
     filter { "system:windows", "options:not wasm" }
-        staticruntime "On"
         systemversion "latest"
-        toolset "clang"
         
         links 
         {

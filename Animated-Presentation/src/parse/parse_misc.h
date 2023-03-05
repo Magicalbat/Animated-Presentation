@@ -28,6 +28,5 @@ void parse_deflate(bitstream* bs, u8* out, u64 out_size);
 gzip parse_gzip(marena* arena, string8 file);
 
 image parse_image(marena* arena, string8 file, u32 num_channels);
-// TODO: image identifier function / parse image
 
 #endif // PARSE_MISC_H
