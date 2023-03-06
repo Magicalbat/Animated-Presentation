@@ -1,6 +1,10 @@
 #ifndef DRAW_RECT_BATCH_H
 #define DRAW_RECT_BATCH_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 #include "gfx/gfx.h"
 #include "parse/parse.h"
@@ -54,5 +58,9 @@ void draw_rectb_finalize_textures(draw_rectb* batch);
 void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id, rect tex_rect);
 void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col);
 void draw_rectb_flush(draw_rectb* batch);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DRAW_RECT_BATCH_H

@@ -1,6 +1,10 @@
 #ifndef BASE_MATH_H
 #define BASE_MATH_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base_defs.h"
 
 #include <math.h>
@@ -75,5 +79,9 @@ vec2 cbezier_calc(cbezier* b, f32 t);
 f32  cbezier_calcd_x(cbezier* b, f32 t);
 f32  cbezier_calcd_y(cbezier* b, f32 t);
 vec2 cbezier_calcd(cbezier* b, f32 t);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BASE_MATH_H

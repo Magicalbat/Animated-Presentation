@@ -1,6 +1,10 @@
 #ifndef BASE_STR_H
 #define BASE_STR_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -92,5 +96,9 @@ string32 str32_from_str8(marena* arena, string8 str);
 string8  str8_from_str32(marena* arena, string32 str);
 string16 str16_from_str8(marena* arena, string8 str);
 string8  str8_from_str16(marena* arena, string16 str);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BASE_STR_H

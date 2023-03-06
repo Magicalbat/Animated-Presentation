@@ -1,6 +1,10 @@
 #ifndef APP_ANIM_H
 #define APP_ANIM_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 #include "app/app_obj.h"
 
@@ -20,5 +24,8 @@ typedef struct {
     u32 num_anims;
 } anim_pool;
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif // APP_ANIM_H

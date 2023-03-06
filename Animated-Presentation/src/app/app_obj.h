@@ -1,12 +1,16 @@
 #ifndef APP_OBJ_H
 #define APP_OBJ_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 
 typedef enum {
     FIELD_NULL,
-    FIELD_NUM,
-    FIELD_STR,
+    FIELD_F64,
+    FIELD_STR8,
     FIELD_BOOL,
     FIELD_VEC2,
     FIELD_VEC3,
@@ -91,5 +95,9 @@ void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app);
 void obj_pool_destroy(obj_pool* pool, obj_register* obj_reg);
 
 void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // APP_OBJ_H

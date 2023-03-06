@@ -1,6 +1,10 @@
 #ifndef BASE_DEFS_H
 #define BASE_DEFS_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -113,5 +117,9 @@ typedef struct {
 )
 
 #define TIME_REGION(t) for(struct { u64 start; u64 end; } _i_ = { os_now_microseconds(), 0 }; !_i_.end; _i_.end = os_now_microseconds(), t = _i_.end - _i_.start)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BASE_DEFS_H

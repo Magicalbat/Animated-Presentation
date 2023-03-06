@@ -1,6 +1,10 @@
 #ifndef PARSE_MISC_H
 #define PARSE_MISC_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 #include "parse/parse_bitstream.h"
 
@@ -28,5 +32,9 @@ void parse_deflate(bitstream* bs, u8* out, u64 out_size);
 gzip parse_gzip(marena* arena, string8 file);
 
 image parse_image(marena* arena, string8 file, u32 num_channels);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // PARSE_MISC_H

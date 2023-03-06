@@ -1,6 +1,10 @@
 #ifndef BASE_MEM_H
 #define BASE_MEM_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -60,5 +64,9 @@ void        marena_temp_end(marena_temp temp);
 void marena_scratch_set_desc(marena_desc* desc);
 marena_temp marena_scratch_get(marena** conflicts, u32 num_conflicts);
 void marena_scratch_release(marena_temp scratch);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BASE_MEM_H

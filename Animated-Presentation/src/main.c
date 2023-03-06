@@ -109,10 +109,10 @@ void rect_init_plugin(marena* arena, obj_register* obj_reg) {
             STR8_LIT("col"),
         },
         .field_types = {
-            FIELD_NUM,
-            FIELD_NUM,
-            FIELD_NUM,
-            FIELD_NUM,
+            FIELD_F64,
+            FIELD_F64,
+            FIELD_F64,
+            FIELD_F64,
             FIELD_VEC3
         },
         .field_offsets = {

@@ -1,6 +1,10 @@
 #ifndef BASE_LOG_H
 #define BASE_LOG_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base_defs.h"
 #include "base_str.h"
 #include "base_mem.h"
@@ -104,5 +108,9 @@ void log_set_col(log_level level, u32 col);
 #define ANSI_BG_B_MAGENTA 105
 #define ANSI_BG_B_CYAN    106
 #define ANSI_BG_B_WHITE   107
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BASE_LOG_H

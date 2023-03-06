@@ -1,6 +1,10 @@
 #ifndef DRAW_BEZIER_H
 #define DRAW_BEZIER_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 #include "gfx/gfx.h"
 
@@ -39,5 +43,9 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
 void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col);
 
 void draw_cbezier_flush(draw_cbezier* draw_cb);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // DRAW_BEZIER_H

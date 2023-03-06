@@ -1,6 +1,10 @@
 #ifndef OS_H
 #define OS_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 
 #if defined(_WIN32)
@@ -90,5 +94,9 @@ void    os_file_close(os_file file);
 os_library os_lib_load(string8 path);
 void_func  os_lib_func(os_library lib, const char* func_name);
 void       os_lib_release(os_library lib);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // OS_H

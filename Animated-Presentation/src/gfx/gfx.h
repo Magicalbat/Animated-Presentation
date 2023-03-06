@@ -1,6 +1,10 @@
 #ifndef GFX_H
 #define GFX_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 
 #if defined(__linux__)
@@ -218,5 +222,9 @@ typedef enum {
     GFX_KEY_XLIST
 #undef X
 } gfx_key;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // GFX_H

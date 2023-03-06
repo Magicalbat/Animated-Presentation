@@ -1,6 +1,10 @@
 #ifndef APP_PRES_H
 #define APP_PRES_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base.h"
 #include "app/app_obj.h"
 #include "app/app_anim.h"
@@ -26,5 +30,9 @@ typedef struct {
 
 void slide_draw(slide_node* slide, ap_app* app);
 void slide_update(slide_node* slide, f32 delta);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // APP_PRES_H

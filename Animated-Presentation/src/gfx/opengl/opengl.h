@@ -3,6 +3,10 @@
 #ifndef OPENGL_H
 #define OPENGL_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "gfx/gfx.h"
 #include "opengl_defs.h"
 
@@ -32,6 +36,10 @@ void opengl_load_functions(gfx_window* win);
 
 //glEnable(GL_DEBUG_OUTPUT);
 //glDebugMessageCallback(opengl_message_callback, 0);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // OPENGL_H
 #endif // AP_OPENGL

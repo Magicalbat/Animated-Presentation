@@ -1,6 +1,10 @@
 #ifndef PARSE_BITSTREAM_H
 #define PARSE_BITSTREAM_H
 
+#ifdef __cplusplus
+extern "C" { 
+#endif
+
 #include "base/base_defs.h"
 
 typedef struct {
@@ -18,5 +22,9 @@ u8* bs_get_ptr(bitstream* bs);
     0, (bs)->bit_pos += 8 - ((bs)->bit_pos & 7))
 #define BS_I32(bs) ((u32)(bs_get_bits((bs), 16) | (bs_get_bits((bs), 16) << 16)))
 #define BS_U32(bs) ((u32)(bs_get_bits((bs), 16) | (bs_get_bits((bs), 16) << 16)))
+
+#ifdef __cplusplus
+}
+#endif
     
 #endif // PARSE_BITSTREAM_H
