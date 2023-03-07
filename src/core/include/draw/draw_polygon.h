@@ -46,11 +46,11 @@ typedef struct {
     u32 size;
 } vec2_arr;
 
-draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts);
-void          draw_poly_destroy(draw_polygon* poly);
+AP_EXPORT draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts);
+AP_EXPORT void          draw_poly_destroy(draw_polygon* poly);
 
-void draw_poly_conv_list(draw_polygon* poly, vec3 col, vec2 offset, vec2_list list);
-void draw_poly_conv_arr (draw_polygon* poly, vec3 col, vec2 offset, vec2_arr arr);
+AP_EXPORT void draw_poly_conv_list(draw_polygon* poly, vec3 col, vec2 offset, vec2_list list);
+AP_EXPORT void draw_poly_conv_arr (draw_polygon* poly, vec3 col, vec2 offset, vec2_arr arr);
 
 // TODO: write these two functiosn
 // void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list);

@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
     marena_destroy(perm_arena);
     log_quit();
-    
+
     return 0;
 }
 

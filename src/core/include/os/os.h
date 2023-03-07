@@ -65,35 +65,35 @@ typedef struct {
 
 typedef void (*void_func)(void);
 
-void         os_main_init(int argc, char** argv);
-void         os_main_quit(void);
-string8_list os_get_cmd_args(void);
+AP_EXPORT void         os_main_init(int argc, char** argv);
+AP_EXPORT void         os_main_quit(void);
+AP_EXPORT string8_list os_get_cmd_args(void);
 
-void* os_mem_reserve(u64 size);
-b32   os_mem_commit(void* ptr, u64 size);
-void  os_mem_decommit(void* ptr, u64 size);
-void  os_mem_release(void* ptr, u64 size);
+AP_EXPORT void* os_mem_reserve(u64 size);
+AP_EXPORT b32   os_mem_commit(void* ptr, u64 size);
+AP_EXPORT void  os_mem_decommit(void* ptr, u64 size);
+AP_EXPORT void  os_mem_release(void* ptr, u64 size);
 
-u64 os_mem_pagesize(void);
+AP_EXPORT u64 os_mem_pagesize(void);
 
 // TODO: make sure linux and windows timestamps are consistent
-datetime os_now_localtime(void);
+AP_EXPORT datetime os_now_localtime(void);
 
-u64  os_now_microseconds(void);
-void os_sleep_milliseconds(u32 t);
+AP_EXPORT u64  os_now_microseconds(void);
+AP_EXPORT void os_sleep_milliseconds(u32 t);
 
-string8    os_file_read(marena* arena, string8 path);
-b32        os_file_write(string8 path, string8_list str_list);
-b32        os_file_append(string8 path, string8_list str_lit);
-file_stats os_file_get_stats(string8 path);
+AP_EXPORT string8    os_file_read(marena* arena, string8 path);
+AP_EXPORT b32        os_file_write(string8 path, string8_list str_list);
+AP_EXPORT b32        os_file_append(string8 path, string8_list str_lit);
+AP_EXPORT file_stats os_file_get_stats(string8 path);
 
-os_file os_file_open(string8 path, file_mode open_mode);
-b32     os_file_write_open(os_file file, string8 str);
-void    os_file_close(os_file file);
+AP_EXPORT os_file os_file_open(string8 path, file_mode open_mode);
+AP_EXPORT b32     os_file_write_open(os_file file, string8 str);
+AP_EXPORT void    os_file_close(os_file file);
 
-os_library os_lib_load(string8 path);
-void_func  os_lib_func(os_library lib, const char* func_name);
-void       os_lib_release(os_library lib);
+AP_EXPORT os_library os_lib_load(string8 path);
+AP_EXPORT void_func  os_lib_func(os_library lib, const char* func_name);
+AP_EXPORT void       os_lib_release(os_library lib);
 
 #ifdef __cplusplus
 }

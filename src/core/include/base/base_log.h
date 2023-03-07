@@ -42,12 +42,12 @@ typedef struct {
 
 // log_desc should be made with designated initializers
 // the functions checks for zero values to apply defaults
-void log_init(log_desc* desc);
-void log_quit(void);
-void log_msg(log_level level, const char* msg);
-void log_msgf(log_level level, const char* fmt, ...);
-log_data log_get_last(log_level level);
-void log_set_col(log_level level, u32 col);
+AP_EXPORT void log_init(log_desc* desc);
+AP_EXPORT void log_quit(void);
+AP_EXPORT void log_msg(log_level level, const char* msg);
+AP_EXPORT void log_msgf(log_level level, const char* fmt, ...);
+AP_EXPORT log_data log_get_last(log_level level);
+AP_EXPORT void log_set_col(log_level level, u32 col);
 
 #define log_info(msg)        log_msg (LOG_INFO, msg)
 #define log_infof(fmt, ...)  log_msgf(LOG_INFO, fmt, __VA_ARGS__)

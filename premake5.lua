@@ -106,6 +106,7 @@ project "app"
 
     defines { "AP_OPENGL" }
 
+
     filter "options:not wasm"
         architecture "x64"
 
@@ -113,12 +114,21 @@ project "app"
         toolset "clang"
 
     filter { "system:linux", "options:not wasm" }
+        postbuildcommands {
+            "{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/core/libcore.so %{wks.location}/bin/" .. outputdir .. "/app/libcore.so"
+        }
+
+
         links {
             "m", "X11", "GL", "GLX", "dl"
         }
 
     filter { "system:windows", "not options: wasm" }
         systemversion "latest"
+
+        postbuildcommands {
+            "{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/core/core.dll %{wks.location}/bin/" .. outputdir .. "/app/core.dll"
+        }
 
         links {
             "gdi32.lib", "kernel32", "user32", "winmm", "opengl32"

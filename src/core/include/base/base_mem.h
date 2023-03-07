@@ -48,22 +48,22 @@ typedef struct {
     u64 pos;
 } marena_temp;
 
-marena* marena_create(const marena_desc* desc);
-void    marena_destroy(marena* arena);
-void*   marena_push(marena* arena, u64 size);
-void*   marena_push_zero(marena* arena, u64 size);
-void*   marena_push_noalign(marena* arena, u64 size);
-void*   marena_push_zero_noalign(marena* arena, u64 size);
-void    marena_pop(marena* arena, u64 size);
-void    marena_pop_to(marena* arena, u64 pos);
-void    marena_reset(marena* arena);
+AP_EXPORT marena* marena_create(const marena_desc* desc);
+AP_EXPORT void    marena_destroy(marena* arena);
+AP_EXPORT void*   marena_push(marena* arena, u64 size);
+AP_EXPORT void*   marena_push_zero(marena* arena, u64 size);
+AP_EXPORT void*   marena_push_noalign(marena* arena, u64 size);
+AP_EXPORT void*   marena_push_zero_noalign(marena* arena, u64 size);
+AP_EXPORT void    marena_pop(marena* arena, u64 size);
+AP_EXPORT void    marena_pop_to(marena* arena, u64 pos);
+AP_EXPORT void    marena_reset(marena* arena);
 
-marena_temp marena_temp_begin(marena* arena);
-void        marena_temp_end(marena_temp temp);
+AP_EXPORT marena_temp marena_temp_begin(marena* arena);
+AP_EXPORT void        marena_temp_end(marena_temp temp);
 
-void marena_scratch_set_desc(marena_desc* desc);
-marena_temp marena_scratch_get(marena** conflicts, u32 num_conflicts);
-void marena_scratch_release(marena_temp scratch);
+AP_EXPORT void marena_scratch_set_desc(marena_desc* desc);
+AP_EXPORT marena_temp marena_scratch_get(marena** conflicts, u32 num_conflicts);
+AP_EXPORT void marena_scratch_release(marena_temp scratch);
 
 #ifdef __cplusplus
 }
