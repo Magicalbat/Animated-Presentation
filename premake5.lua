@@ -39,14 +39,12 @@ project "core"
     filter "options:not no-clang"
         toolset "clang"
 
-    filter { "options:not wasm" }
-        if os.host() == "linux" then
-            links {
-                "m", "X11", "GL", "GLX", "dl"
-            }
-        end
+    filter { "system:linux", "options:not wasm" }
+        links {
+            "m", "X11", "GL", "GLX", "dl"
+        }
 
-    filter { "system:windows", "options: not wasm" }
+    filter { "system:windows", "not options: wasm" }
         systemversion "latest"
 
         links {
@@ -114,15 +112,17 @@ project "app"
     filter "options:not no-clang"
         toolset "clang"
 
-    filter { "options:not wasm" }
-        if os.host() == "linux" then
-            links {
-                "m", "X11", "GL", "GLX", "dl"
-            }
-        end
+    filter { "system:linux", "options:not wasm" }
+        links {
+            "m", "X11", "GL", "GLX", "dl"
+        }
 
-    filter { "system:windows", "options: not wasm" }
+    filter { "system:windows", "not options: wasm" }
         systemversion "latest"
+
+        links {
+            "gdi32.lib", "kernel32", "user32", "winmm", "opengl32"
+        }
 
     filter "options:wasm"
         buildoptions  {

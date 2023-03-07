@@ -232,7 +232,7 @@ void marena_reset(marena* arena) {
 void* marena_push_zero(marena* arena, u64 size) {
     u8* out = marena_push(arena, size);
     memset(out, 0, size);
-    
+
     return (void*)out;
 }
 
