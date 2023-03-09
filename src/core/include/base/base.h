@@ -10,6 +10,7 @@ extern "C" {
 #include "base_math.h"
 #include "base_mem.h"
 #include "base_str.h"
+#include "base_obj.h"
 
 #ifdef __cplusplus
 }

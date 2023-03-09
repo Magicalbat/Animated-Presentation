@@ -1,47 +1,24 @@
-#include "app/app_obj.h"
+#include "app/app_obj_pool.h"
 
-typedef struct { void* data; u64 size; } null_arr;
+typedef struct { u64 size; f64* data; } null_arr;
 
 static const u32 field_sizes[FIELD_COUNT] = {
     0,
+
     sizeof(f64),
     sizeof(string8),
     sizeof(b32),
     sizeof(vec2),
     sizeof(vec3),
     sizeof(vec4),
-    sizeof(null_arr)
+
+    sizeof(null_arr),
+    sizeof(null_arr),
+    sizeof(null_arr),
+    sizeof(null_arr),
+    sizeof(null_arr),
+    sizeof(null_arr),
 };
-
-obj_register* obj_reg_create(marena* arena, u32 max_descs) {
-    obj_register* obj_reg = CREATE_STRUCT(arena, obj_register);
-
-    *obj_reg = (obj_register){
-        .descs = CREATE_ZERO_ARRAY(arena, obj_desc, max_descs),
-        .max_descs = max_descs,
-        .num_descs = 0
-    };
-    
-    return obj_reg;
-}
-void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc) {
-    if (obj_reg->num_descs >= obj_reg->max_descs) {
-        log_error("Ran out of desc slots");
-        return;
-    }
-
-    memcpy(obj_reg->descs + obj_reg->num_descs, desc, sizeof(obj_desc));
-    obj_reg->num_descs++;
-
-    if (desc->desc_init_func != NULL)
-        desc->desc_init_func(desc->custom_data);
-}
-void obj_reg_destroy(obj_register* obj_reg) {
-    for (u32 i = 0; i < obj_reg->num_descs; i++) {
-        if (obj_reg->descs[i].desc_destroy_func != NULL)
-            obj_reg->descs[i].desc_destroy_func(obj_reg->descs[i].custom_data);
-    }
-}
 
 obj_pool* obj_pool_create(marena* arena, obj_register* obj_reg, u32 max_objs) {
     obj_pool* pool = CREATE_STRUCT(arena, obj_pool);

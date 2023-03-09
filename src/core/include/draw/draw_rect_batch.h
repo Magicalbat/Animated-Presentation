@@ -51,7 +51,8 @@ AP_EXPORT draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capa
 AP_EXPORT void draw_rectb_destroy(draw_rectb* batch);
 
 AP_EXPORT u32 draw_rectb_add_tex(draw_rectb* batch, image img);
-AP_EXPORT u32 draw_rectb_create_tex(draw_rectb* batch, string8 file_path);
+AP_EXPORT u32 draw_rectb_create_tex(draw_rectb* batch, string8 image_file);
+AP_EXPORT u32 draw_rectb_load_tex(draw_rectb* batch, string8 file_path);
 AP_EXPORT void draw_rectb_finalize_textures(draw_rectb* batch);
 
 // These functions will draw rects to the screen

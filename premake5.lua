@@ -20,7 +20,7 @@ project "core"
     language "C"
 
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    targetdir ("bin/" .. outputdir)
 
     files {
         "src/%{prj.name}/**.h",
@@ -64,12 +64,14 @@ project "core"
             "-sFORCE_FILESYSTEM=1",
             "-sOFFSCREEN_FRAMEBUFFER=1",
             "-sMIN_WEBGL_VERSION=2",
-            "-sSIDE_MODULE=1"
+            "-sSIDE_MODULE=2"
         }
         links { "m", "GL" }
 
+        targetextension ".wasm"
+
     filter { "options:wasm", "system:linux" }
-        linkoptions { "--cache \"../emcc-cache\""}
+        linkoptions { "--cache \"../../emcc-cache\""}
 
     filter "configurations:Debug"
         symbols "On"
@@ -88,7 +90,7 @@ project "app"
     language "C"
 
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    targetdir ("bin/" .. outputdir)
 
     files {
         "src/%{prj.name}/**.h",
@@ -106,6 +108,80 @@ project "app"
 
     defines { "AP_OPENGL" }
 
+    filter "options:not wasm"
+        architecture "x64"
+
+    filter "options:not no-clang"
+        toolset "clang"
+
+    filter { "system:linux", "options:not wasm" }
+        --links {
+        --    "m", "X11", "GL", "GLX", "dl"
+        --}
+
+    filter { "system:windows", "not options: wasm" }
+        systemversion "latest"
+
+        links {
+            "gdi32", "kernel32", "user32", "winmm", "opengl32"
+        }
+
+    filter "options:wasm"
+        buildoptions  {
+            "-fPIC",
+        }
+
+        linkoptions {
+            "-sFETCH=1",
+            "-sWASM=1",
+            "-sALLOW_MEMORY_GROWTH=1",
+            "-sASYNCIFY=1",
+            "-sFORCE_FILESYSTEM=1",
+            "-sOFFSCREEN_FRAMEBUFFER=1",
+            "-sMIN_WEBGL_VERSION=2",
+            "-sMAIN_MODULE=2"
+        }
+
+        targetextension ".js"
+
+    filter { "options:wasm", "system:linux" }
+        linkoptions { "--cache \"../../emcc-cache\""}
+
+    filter "configurations:Debug"
+        symbols "On"
+
+        defines {
+            "DEBUG", "AP_ASSERT"
+        }
+
+    filter "configurations:Release"
+        optimize "On"
+        defines { "NDEBUG" }
+
+project "builtin_plugin"
+    location "src/builtin_plugin"
+    kind "SharedLib"
+    language "C"
+
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+    targetdir ("bin/" .. outputdir)
+
+    files {
+        "src/%{prj.name}/**.h",
+        "src/%{prj.name}/**.c",
+    }
+
+    includedirs {
+        "src/%{prj.name}",
+        "src/core/include",
+        "src/app/include"
+    }
+
+    links {
+        "core",
+    }
+
+    defines { "AP_OPENGL" }
 
     filter "options:not wasm"
         architecture "x64"
@@ -114,44 +190,37 @@ project "app"
         toolset "clang"
 
     filter { "system:linux", "options:not wasm" }
-        postbuildcommands {
-            "{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/core/libcore.so %{wks.location}/bin/" .. outputdir .. "/app/libcore.so"
-        }
-
-
-        links {
-            "m", "X11", "GL", "GLX", "dl"
-        }
+        --links {
+        --    "m", "X11", "GL", "GLX", "dl"
+        --}
 
     filter { "system:windows", "not options: wasm" }
         systemversion "latest"
 
-        postbuildcommands {
-            "{COPYFILE} %{wks.location}/bin/" .. outputdir .. "/core/core.dll %{wks.location}/bin/" .. outputdir .. "/app/core.dll"
-        }
-
         links {
-            "gdi32.lib", "kernel32", "user32", "winmm", "opengl32"
+            "gdi32", "kernel32", "user32", "winmm", "opengl32"
         }
 
     filter "options:wasm"
         buildoptions  {
-            --"-fPIC",
+            "-fPIC",
         }
 
         linkoptions {
-            --"-sFETCH=1",
+            "-sFETCH=1",
             "-sWASM=1",
-            --"-sALLOW_MEMORY_GROWTH=1",
-            --"-sASYNCIFY=1",
-            --"-sFORCE_FILESYSTEM=1",
-            --"-sOFFSCREEN_FRAMEBUFFER=1",
-            --"-sMIN_WEBGL_VERSION=2",
-            "-sMAIN_MODULE=1"
+            "-sALLOW_MEMORY_GROWTH=1",
+            "-sASYNCIFY=1",
+            "-sFORCE_FILESYSTEM=1",
+            "-sOFFSCREEN_FRAMEBUFFER=1",
+            "-sMIN_WEBGL_VERSION=2",
+            "-sMAIN_MODULE=2"
         }
 
+        targetextension ".js"
+
     filter { "options:wasm", "system:linux" }
-        linkoptions { "--cache \"../emcc-cache\""}
+        linkoptions { "--cache \"../../emcc-cache\""}
 
     filter "configurations:Debug"
         symbols "On"

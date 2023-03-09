@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "base/base.h"
-#include "app/app_obj.h"
+#include "app/app_obj_pool.h"
 
 typedef struct {
     field_type type;

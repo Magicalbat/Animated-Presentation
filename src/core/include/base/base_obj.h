@@ -1,5 +1,5 @@
-#ifndef APP_OBJ_H
-#define APP_OBJ_H
+#ifndef BASE_OBJ_H
+#define BASE_OBJ_H
 
 #ifdef __cplusplus
 extern "C" { 
@@ -9,13 +9,20 @@ extern "C" {
 
 typedef enum {
     FIELD_NULL,
+
     FIELD_F64,
     FIELD_STR8,
-    FIELD_BOOL,
+    FIELD_BOOL32,
     FIELD_VEC2,
     FIELD_VEC3,
     FIELD_VEC4,
-    FIELD_ARR,
+
+    FIELD_F64_ARR,
+    FIELD_STR8_ARR,
+    FIELD_BOOL_ARR,
+    FIELD_VEC2_ARR,
+    FIELD_VEC3_ARR,
+    FIELD_VEC4_ARR,
 
     FIELD_COUNT
 } field_type;
@@ -25,16 +32,20 @@ typedef struct field_val {
 
     union {
         struct { int _unused; } null;
-        f64 num;
-        string8 str;
-        b32 boolean;
+
+        f64 f64;
+        string8 str8;
+        b32 bool32;
         vec2 vec2;
         vec3 vec3;
         vec4 vec4;
-        struct {
-            struct field_val* data;
-            u64 size;
-        } arr;
+
+        struct { u64 size; f64* data; } f64_arr;
+        struct { u64 size; string8* data; } str8_arr;
+        struct { u64 size; b32* data; } bool32_arr;
+        struct { u64 size; vec2* data; } vec2_arr;
+        struct { u64 size; vec3* data; } vec3_arr;
+        struct { u64 size; vec4* data; } vec4_arr;
     } val;
 } field_val;
 
@@ -54,6 +65,7 @@ typedef struct {
     u32 obj_size;
 
     void* custom_data;
+
     desc_init_func* desc_init_func;
     desc_destroy_func* desc_destroy_func;
 
@@ -73,31 +85,12 @@ typedef struct {
     u32 num_descs;
 } obj_register;
 
-typedef struct {
-    u32 max_objs;
-    u32* num_objs;
-    void** objs;
-} obj_pool;
-
-typedef struct {
-    u32 desc_index;
-    void* obj;
-} obj_ref;
-
 obj_register* obj_reg_create(marena* arena, u32 max_descs);
 void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc);
 void obj_reg_destroy(obj_register* obj_reg);
-
-obj_pool* obj_pool_create(marena* arena, obj_register* obj_reg, u32 max_objs);
-obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name);
-void obj_pool_update(obj_pool* pool, obj_register* obj_reg, f32 delta);
-void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app);
-void obj_pool_destroy(obj_pool* pool, obj_register* obj_reg);
-
-void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // APP_OBJ_H
+#endif // BASE_OBJ_H

@@ -84,7 +84,18 @@ u32 draw_rectb_add_tex(draw_rectb* batch, image img) {
 
     return id;
 }
-u32 draw_rectb_create_tex(draw_rectb* batch, string8 file_path) {
+u32 draw_rectb_create_tex(draw_rectb* batch, string8 image_file) {
+    image img = parse_image(batch->temp.arena, image_file, 4);
+        
+    if (!img.valid) {
+        return -1;
+    }
+
+    u32 id = draw_rectb_add_tex(batch, img);
+
+    return id;
+}
+u32 draw_rectb_load_tex(draw_rectb* batch, string8 file_path) {
     string8 file = os_file_read(batch->temp.arena, file_path);
     if (file.size == 0) {
         return -1;

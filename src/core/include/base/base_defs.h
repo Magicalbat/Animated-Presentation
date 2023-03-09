@@ -38,11 +38,12 @@ typedef struct {
 } datetime;
 
 #if defined(_WIN32)
-#   define AP_EXPORT __declspec(dllexport) 
+#    define AP_EXPORT __declspec(dllexport) 
 #elif defined(__EMSCRIPTEN__)
-#   define AP_EXPORT EMSCRIPTEN_KEEPALIVE
+#    include <emscripten/emscripten.h>
+#    define AP_EXPORT EMSCRIPTEN_KEEPALIVE
 #else
-#   define AP_EXPORT 
+#    define AP_EXPORT 
 #endif
 
 #define STRINGIFY_NX(a) #a

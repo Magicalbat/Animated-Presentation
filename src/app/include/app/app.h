@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "app_app.h"
-#include "app_obj.h"
+#include "app_obj_pool.h"
 #include "app_anim.h"
 #include "app_pres.h"
 

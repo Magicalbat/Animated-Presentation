@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 #include "base/base.h"
-#include "app/app_obj.h"
+#include "app/app_obj_pool.h"
 #include "app/app_anim.h"
 
 typedef struct slide_node {

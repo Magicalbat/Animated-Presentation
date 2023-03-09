@@ -5,7 +5,7 @@
 
 #include "os/os.h"
 
-static marena*       wasm_arena;
+static marena*      wasm_arena;
 static string8_list wasm_cmd_args;
 
 void os_main_init(int argc, char** argv) {
@@ -69,7 +69,7 @@ void os_sleep_milliseconds(u32 t) {
     emscripten_sleep(t);
 }
 
-EM_ASYNC_JS(u8*, os_file_read_impl, (char* file_name), {
+/*EM_ASYNC_JS(u8*, os_file_read_impl, (char* file_name), {
     const response = await fetch(UTF8ToString(file_name));
     if (!response.ok) {
         return 0;
@@ -120,6 +120,11 @@ string8 os_file_read(marena* arena, string8 path) {
     free(data);
 
     return out;
+}*/
+string8 os_file_read(marena* arena, string8 path) {
+    log_error("OS file read unsupported in wasm side module");
+    
+    return (string8){ 0 };
 }
 b32 os_file_write(string8 path, string8_list str_list) {
     log_error("OS file write unsupported in wasm");
@@ -166,7 +171,7 @@ static string8 dl_error_string(void) {
         log_errorf(fmt ", Linux DL Error: %.*s", __VA_ARGS__, (int)err.size, err.str); \
     } while (0)
 
-EM_ASYNC_JS(int, js_load_lib, (char* file_name), {
+/*EM_ASYNC_JS(int, js_load_lib, (char* file_name), {
     const fileName = UTF8ToString(file_name);
 
     const response = await fetch(fileName);
@@ -203,7 +208,12 @@ os_library os_lib_load(string8 path) {
     return (os_library){
         .handle = handle
     };
+}*/
 
+os_library os_lib_load(string8 path) {
+    log_error("OS lib load unsupported in wasm side module");
+    
+    return (os_library){ 0 };
 }
 void_func os_lib_func(os_library lib, const char* func_name) {
     void_func func = (void_func)dlsym(lib.handle, func_name);
