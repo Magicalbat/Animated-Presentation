@@ -2,7 +2,7 @@
 
 #include "os/os.h"
 
-ap_app* app_create(marena* arena, pres* pres, u32 win_width, u32 win_height) {
+ap_app* app_create(marena* arena, apres* pres, u32 win_width, u32 win_height) {
     ap_app* app = CREATE_STRUCT(arena, ap_app);
 
     gfx_window* win = gfx_win_create(arena, win_width, win_height, STR8_LIT("Animated Presentation"));
@@ -58,10 +58,11 @@ void app_run(marena* arena, ap_app* app) {
         u32 sleep_time_ms = MAX(0, 16 - (i64)(delta * 1000));
         os_sleep_milliseconds(sleep_time_ms);
     }
-
+    
     obj_pool_destroy(pool, obj_reg);
-    os_lib_release(test_plugin);
     obj_reg_destroy(obj_reg);
+    
+    os_lib_release(test_plugin);
 }
 
 void app_destroy(ap_app* app) {

@@ -1,5 +1,5 @@
 workspace "Animated-Presentation"
-    configurations {"Debug", "Release"}
+    configurations { "Debug", "Release" }
     startproject "app"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -214,10 +214,10 @@ project "builtin_plugin"
             "-sFORCE_FILESYSTEM=1",
             "-sOFFSCREEN_FRAMEBUFFER=1",
             "-sMIN_WEBGL_VERSION=2",
-            "-sMAIN_MODULE=2"
+            "-sSIDE_MODULE=2"
         }
 
-        targetextension ".js"
+        targetextension ".wasm"
 
     filter { "options:wasm", "system:linux" }
         linkoptions { "--cache \"../../emcc-cache\""}

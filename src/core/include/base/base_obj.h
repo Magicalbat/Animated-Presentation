@@ -85,9 +85,9 @@ typedef struct {
     u32 num_descs;
 } obj_register;
 
-obj_register* obj_reg_create(marena* arena, u32 max_descs);
-void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc);
-void obj_reg_destroy(obj_register* obj_reg);
+AP_EXPORT obj_register* obj_reg_create(marena* arena, u32 max_descs);
+AP_EXPORT void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc);
+AP_EXPORT void obj_reg_destroy(obj_register* obj_reg);
 
 #ifdef __cplusplus
 }

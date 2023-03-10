@@ -46,8 +46,8 @@ void rect_draw(ap_app* app, void* obj) {
 void rect_update(f32 delta, void* obj) {
     pres_rect* r = (pres_rect*)obj;
 
-    r->x += 4.0f * delta;
-    r->y += 3.0f * delta;
+    r->x += 8.0f * delta;
+    r->y += 6.0f * delta;
 }
 
 AP_EXPORT void plugin_init(marena* arena, obj_register* obj_reg) {

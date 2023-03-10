@@ -1,0 +1,27 @@
+plugins = [
+    "builtin_plugin"
+],
+slides = [
+    slide {
+        rectangle {
+            /*col = anim {
+                keys = [ vec3{ 1, 2, 3 }, vec3{ 4, 5, 6 } ],
+                time = 2
+            }*/
+            //x = 50,
+            y = 50,
+            w = 50, h = 50,
+        },
+        test {
+            float = 123.456,
+            str = "Hello World",
+            b1 = true,
+            b2 = false,
+            v2 = vec2{ 0, 1 },
+            v3 = vec3{ 0, 1, 2 },
+            v4 = vec4{ 0, 1, 2, 3 },
+            float_arr = [ 0.1, 0.2, 0.3 ],
+            str_arr = [ "Hello", "there", "world" ]
+        }
+    }
+]
