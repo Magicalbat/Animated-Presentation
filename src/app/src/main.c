@@ -19,6 +19,8 @@ int main(int argc, char** argv) {
         .desired_block_size = KiB(64)
     });
 
+    apres* pres = pres_parse(perm_arena, STR8_LIT("test.pres"));
+
     ap_app* app = app_create(perm_arena, NULL, WIDTH, HEIGHT);
     app_run(perm_arena, app);
     app_destroy(app);
