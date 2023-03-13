@@ -28,13 +28,16 @@ typedef struct {
     slide_node* last;
     u32 num_slides;
 
-    u32 cur_slide;
+    slide_node* cur_slide;
 } apres;
 
-apres* pres_parse(marena* arena, string8 file_path);
+#define PRES_MAX_DESCS 32
 
-void slide_draw(slide_node* slide, ap_app* app);
-void slide_update(slide_node* slide, f32 delta);
+apres* pres_parse(marena* arena, ap_app* app, string8 file_path);
+void pres_delete(apres* pres);
+
+void pres_draw(apres* pres, ap_app* app);
+void pres_update(apres* pres, f32 delta);
 
 #ifdef __cplusplus
 }

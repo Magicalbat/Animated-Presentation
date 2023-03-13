@@ -1,5 +1,5 @@
 plugins = [
-    "builtin_plugin"
+    "builtin_plugin.dll",
 ],
 slides = [
     slide {

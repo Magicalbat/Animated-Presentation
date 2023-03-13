@@ -69,8 +69,8 @@ AP_EXPORT void plugin_init(marena* arena, obj_register* obj_reg) {
         .field_names = {
             STR8_LIT("x"),
             STR8_LIT("y"),
-            STR8_LIT("z"),
             STR8_LIT("w"),
+            STR8_LIT("h"),
             STR8_LIT("col"),
         },
         .field_types = {

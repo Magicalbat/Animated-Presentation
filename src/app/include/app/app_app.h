@@ -19,7 +19,7 @@ typedef struct ap_app {
     apres* pres;
 } ap_app;
 
-ap_app* app_create(marena* arena, apres* pres, u32 win_width, u32 win_height);
+ap_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height);
 void app_run(marena* arena, ap_app* app);
 void app_destroy(ap_app* app);
 
