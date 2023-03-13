@@ -7,7 +7,8 @@ extern "C" {
 
 #include "gfx/gfx.h"
 #include "draw/draw.h"
-#include "app_pres.h"
+
+typedef struct apres apres;
 
 typedef struct ap_app {
     gfx_window* win;

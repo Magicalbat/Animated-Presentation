@@ -109,21 +109,34 @@ typedef struct {
 #define CREATE_ZERO_ARRAY(arena, type, size)     \
     (type*)(marena_push_zero(arena, sizeof(type) * (size)))
 
-#define FOR_SLL(type, f, var)    for(type* var = f; var != NULL; var=var->next)
-
-#define SLL_PUSH_FRONT(f, l, n) ( (f) == 0 ? \
-    ((f) = (l) = (n)) :                      \
-    ((n)->next = (f), (f) = (n))             \
-)
-#define SLL_PUSH_BACK(f, l, n) ( (f) == 0 ? \
+#define SLL_PUSH_FRONT(f, l, n) ((f) == 0 ? \
     ((f) = (l) = (n)) :                     \
-    ((l)->next = (n), (l) = (n)),           \
-    ((n)->next = 0)                         \
-)
-#define SLL_POP_FRONT(f, l) ( (f) == (l) ? \
-    ((f) = (l) = 0) :                      \
-    ((f) = (f)->next)                      \
-)
+    ((n)->next = (f), (f) = (n)))           \
+
+#define SLL_PUSH_BACK(f, l, n) ((f) == 0 ? \
+    ((f) = (l) = (n)) :                    \
+    ((l)->next = (n), (l) = (n)),          \
+    ((n)->next = 0))                       \
+
+#define SLL_POP_FRONT(f, l) ((f) == (l) ? \
+    ((f) = (l) = 0) :                     \
+    ((f) = (f)->next))                    \
+
+#define DLL_PUSH_BACK(f, l, n) ((f) == 0 ? \
+    ((f) = (l) = (n), (n)->next = (n)->prev = 0) :  \
+    ((n)->prev = (l), (l)->next = (n), (l) = (n), (n)->next = 0))
+
+#define DLL_PUSH_FRONT(f, l, n) DLL_PUSH_BACK(l, f, n)
+
+#define DLL_REMOVE(f, l, n) ( \
+    (f) == (n) ? \
+        ((f) == (l) ? \
+            ((f) = (l) = (0)) : \
+            ((f) = (f)->next, (f)->prev = 0)) : \
+        (l) == (n) ? \
+            ((l) = (l)->prev, (l)->next = 0) : \
+            ((n)->next->prev = (n)->prev, \
+            (n)->prev->next = (n)->next))
 
 #define TIME_REGION(t) for(struct { u64 start; u64 end; } _i_ = { os_now_microseconds(), 0 }; !_i_.end; _i_.end = os_now_microseconds(), t = _i_.end - _i_.start)
 

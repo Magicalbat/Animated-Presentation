@@ -7,28 +7,27 @@ extern "C" {
 
 #include "base/base.h"
 #include "os/os.h"
-#include "app/app_obj_pool.h"
-#include "app/app_anim.h"
+#include "app_app.h"
+#include "app_anim.h"
+#include "app_obj_pool.h"
 
 typedef struct slide_node {
     struct slide_node* next;
     struct slide_node* prev;
 
-    obj_pool objs;
-    anim_pool anims;
+    obj_pool* objs;
+    anim_pool* anims;
 } slide_node;
 
-typedef struct {
+typedef struct apres {
     u32 num_plugins;
     os_library* plugins;
 
     obj_register* obj_reg;
 
-    slide_node* first;
-    slide_node* last;
+    slide_node* first_slide;
+    slide_node* last_slide;
     u32 num_slides;
-
-    slide_node* cur_slide;
 } apres;
 
 #define PRES_MAX_DESCS 32

@@ -1,23 +1,12 @@
 plugins = [
-    "builtin_plugin.dll",
+    "./bin/Debug-linux-x86_64/libbuiltin_plugin.so",
 ],
 slides = [
     slide {
         rectangle {
             x = 50,
             y = 50,
-            w = 50, h = 50,
-        },
-        test {
-            float = 123.456,
-            str = "Hello World",
-            b1 = true,
-            b2 = false,
-            v2 = vec2{ 0, 1 },
-            v3 = vec3{ 0, 1, 2 },
-            v4 = vec4{ 0, 1, 2, 3 },
-            float_arr = [ 0.1, 0.2, 0.3 ],
-            str_arr = [ "Hello", "there", "world" ]
+            w = 25, h = 30,
         }
     }
 ]

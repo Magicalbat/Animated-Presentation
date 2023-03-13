@@ -50,10 +50,10 @@ void rect_update(f32 delta, void* obj) {
     r->y += 6.0f * delta;
 }
 
-AP_EXPORT void plugin_init(marena* arena, obj_register* obj_reg) {
+AP_EXPORT void plugin_init(marena* arena, ap_app* app) {
     rect_plug_data* data = CREATE_ZERO_STRUCT(arena, rect_plug_data);
 
-    obj_reg_add_desc(obj_reg, &(obj_desc){
+    obj_reg_add_desc(app->pres->obj_reg, &(obj_desc){
         .name = STR8_LIT("rectangle"),
         .obj_size = sizeof(pres_rect),
         .custom_data = (void*)data,

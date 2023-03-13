@@ -1,4 +1,4 @@
-#include "app/app_app.h"
+#include "app/app.h"
 
 #include "os/os.h"
 
@@ -21,17 +21,6 @@ ap_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_heig
 
 
 void app_run(marena* arena, ap_app* app) {
-    obj_pool* test_pool = obj_pool_create(arena, app->pres->obj_reg, 32);
-
-    obj_ref rect_ref = obj_pool_add(test_pool, app->pres->obj_reg, STR8_LIT("rectangle"));
-
-    f64 prop_data = 50.0;
-    obj_ref_set(rect_ref, app->pres->obj_reg, STR8_LIT("y"), &prop_data);
-    obj_ref_set(rect_ref, app->pres->obj_reg, STR8_LIT("x"), &prop_data);
-    prop_data = 25.0;
-    obj_ref_set(rect_ref, app->pres->obj_reg, STR8_LIT("w"), &prop_data);
-    obj_ref_set(rect_ref, app->pres->obj_reg, STR8_LIT("h"), &prop_data);
-
     draw_rectb_finalize_textures(app->rectb);
 
     gfx_win_alpha_blend(app->win, true);
@@ -43,12 +32,10 @@ void app_run(marena* arena, ap_app* app) {
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
         pres_update(app->pres, delta);
-        obj_pool_update(test_pool, app->pres->obj_reg, delta);
 
         gfx_win_clear(app->win);
 
         pres_draw(app->pres, app);
-        obj_pool_draw(test_pool, app->pres->obj_reg, app);
 
         draw_rectb_flush(app->rectb);
         draw_cbezier_flush(app->cbezier);
@@ -60,8 +47,6 @@ void app_run(marena* arena, ap_app* app) {
         u32 sleep_time_ms = MAX(0, 16 - (i64)(delta * 1000));
         os_sleep_milliseconds(sleep_time_ms);
     }
-
-    obj_pool_destroy(test_pool, app->pres->obj_reg);
 }
 
 void app_destroy(ap_app* app) {
