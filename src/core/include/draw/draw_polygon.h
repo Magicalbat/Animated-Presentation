@@ -30,27 +30,27 @@ typedef struct {
     #endif
 } draw_polygon;
 
-typedef struct vec2_node {
-    vec2 v;
-    struct vec2_node* next;
-} vec2_node;
+typedef struct vec2d_node {
+    vec2d v;
+    struct vec2d_node* next;
+} vec2d_node;
 
 typedef struct {
-    vec2_node* first;
-    vec2_node* last;
+    vec2d_node* first;
+    vec2d_node* last;
     u32 size;
-} vec2_list;
+} vec2d_list;
 
 typedef struct {
-    vec2* data;
+    vec2d* data;
     u32 size;
-} vec2_arr;
+} vec2d_arr;
 
 AP_EXPORT draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts);
 AP_EXPORT void          draw_poly_destroy(draw_polygon* poly);
 
-AP_EXPORT void draw_poly_conv_list(draw_polygon* poly, vec3 col, vec2 offset, vec2_list list);
-AP_EXPORT void draw_poly_conv_arr (draw_polygon* poly, vec3 col, vec2 offset, vec2_arr arr);
+AP_EXPORT void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list list);
+AP_EXPORT void draw_poly_conv_arr (draw_polygon* poly, vec4d col, vec2d offset, vec2d_arr arr);
 
 // TODO: write these two functiosn
 // void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list);

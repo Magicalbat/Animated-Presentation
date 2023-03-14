@@ -11,7 +11,7 @@ extern "C" {
 
 typedef struct {
     rect draw_rect;
-    vec3 col;
+    vec4 col;
     rect tex_rect;
 } draw_rectb_rect;
 
@@ -56,8 +56,8 @@ AP_EXPORT u32 draw_rectb_load_tex(draw_rectb* batch, string8 file_path);
 AP_EXPORT void draw_rectb_finalize_textures(draw_rectb* batch);
 
 // These functions will draw rects to the screen
-AP_EXPORT void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id, rect tex_rect);
-AP_EXPORT void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col);
+AP_EXPORT void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec4d col, i32 tex_id, rect tex_rect);
+AP_EXPORT void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec4d col);
 AP_EXPORT void draw_rectb_flush(draw_rectb* batch);
 
 #ifdef __cplusplus

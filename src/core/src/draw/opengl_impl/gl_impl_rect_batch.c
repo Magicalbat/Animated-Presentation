@@ -152,7 +152,7 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
     marena_destroy(batch->temp.arena);
 }
 
-void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id, rect tex_rect) {
+void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec4d col, i32 tex_id, rect tex_rect) {
     if (batch->size >= batch->capacity)
         draw_rectb_flush(batch);
 
@@ -167,11 +167,11 @@ void draw_rectb_push_ex(draw_rectb* batch, rect draw_rect, vec3 col, i32 tex_id,
     
     batch->data[batch->size++] = (draw_rectb_rect){
         .draw_rect = draw_rect,
-        .col = col,
+        .col = (vec4){ col.x, col.y, col.z, col.w },
         .tex_rect = tr//(rect){ 0, 0, 1, 1 }
     };
 }
-void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec3 col) {
+void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec4d col) {
     draw_rectb_push_ex(batch, draw_rect, col, 0, (rect){ 0.0f, 0.0f, 1.0f, 1.0f }); 
 }
 
@@ -196,7 +196,7 @@ void draw_rectb_flush(draw_rectb* batch) {
     glBindBuffer(GL_ARRAY_BUFFER, batch->gl.vertex_buffer);
     
     glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, draw_rect)));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, col)));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, col)));
     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(draw_rectb_rect), (void*)(offsetof(draw_rectb_rect, tex_rect)));
     
     glVertexAttribDivisor(1, 1);
@@ -232,14 +232,14 @@ static const char* vert_source = ""
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos_pattern;"
     "layout (location = 1) in vec4 a_quad;"
-    "layout (location = 2) in vec3 a_col;"
+    "layout (location = 2) in vec4 a_col;"
     "layout (location = 3) in vec4 a_tex_rect;"
     "out vec4 col;"
     "out vec2 uv;"
 #endif
     "uniform mat2 u_win_mat;"
     "void main() {"
-    "    col = vec4(a_col, 1);"
+    "    col = a_col;"
     "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
     "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"

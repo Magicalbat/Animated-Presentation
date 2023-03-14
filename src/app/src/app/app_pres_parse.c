@@ -2,35 +2,10 @@
 
 #include <ctype.h>
 
-/*
-plugins = [
-    "builtin_plugin"
-]
-slides = [
-    slide {
-        rectangle {
-            x = 50,
-            y = 50,
-            w = 50, h = 50,
-        },
-        test {
-            float = 123.456,
-            str = "Hello World",
-            b1 = true,
-            b2 = false,
-            v2 = vec2{ 0, 1 },
-            v3 = vec3{ 0, 1, 2 },
-            v4 = vec4{ 0, 1, 2, 3 },
-            float_arr = [ 0.1, 0.2, 0.3 ],
-            str_arr = [ "Hello", "there", "world" ]
-        }
-    }
-]
-*/
-
 typedef struct {
     string8 file;
     u64 pos;
+    u64 line;
 } pres_parser;
 
 static void parse_syntax_error(pres_parser* parser);
@@ -50,6 +25,7 @@ static string8 parse_keyword(pres_parser* parser);
         if ((p)->pos + 1 >= (p)->file.size) \
             log_error("Failed to parse presentation, past end of file"); \
         (p)->pos++; \
+        if ((p)->file.str[(p)->pos] == '\n') { (p)->line++; } \
     } while (0)
 #define P_WHITESPACE(p) ((p)->file.str[(p)->pos] == ' '  || (p)->file.str[(p)->pos] == '\t' || (p)->file.str[(p)->pos] == '\n' || (p)->file.str[(p)->pos] == '\r')
 #define P_SKIP_SPACE(p) while (P_WHITESPACE((p))) { P_NEXT_CHAR((p)); }
@@ -68,6 +44,27 @@ static string8 get_line(string8 str, u64 pos) {
     return str8_substr(str, start_line, end_line);
 }
 
+static u32 num_digits (u64 n) {
+    if (n < 10)                 return 1;
+    if (n < 100)                return 2;
+    if (n < 1000)               return 3;
+    if (n < 10000)              return 4;
+    if (n < 100000)             return 5;
+    if (n < 1000000)            return 6;
+    if (n < 10000000)           return 7;
+    if (n < 100000000)          return 8;
+    if (n < 1000000000)         return 9;
+    if (n < 10000000000)        return 10;
+    if (n < 100000000000)       return 11;
+    if (n < 1000000000000)      return 12;
+    if (n < 10000000000000)     return 13;
+    if (n < 100000000000000)    return 14;
+    if (n < 1000000000000000)   return 15;
+    if (n < 10000000000000000)  return 16;
+    if (n < 100000000000000000) return 17;
+    return 18;
+}
+
 static u8 line_indicator[256];
 static void parse_syntax_error(pres_parser* parser) {
     string8 line = get_line(parser->file, parser->pos);
@@ -75,21 +72,22 @@ static void parse_syntax_error(pres_parser* parser) {
     memset(line_indicator, ' ', sizeof(line_indicator));
 
     i64 line_pos = (i64)((parser->file.str + parser->pos) - line.str);
+    u32 offset = num_digits(parser->line) + 1;
     
     for (i32 i = -2; i <= 2; i++) {
-        line_indicator[MAX(0, line_pos + i)] = '^';
+        line_indicator[MAX(0, line_pos + offset + i)] = '^';
     }
-    string8 line_ind_str = (string8) { line_indicator, MIN(line.size + 2, 256) };
+    string8 line_ind_str = (string8) { line_indicator, MIN(line.size + offset + 2, 256) };
 
     if (line.str - parser->file.str > 0) {
         string8 prev_line = get_line(
             parser->file,
             parser->pos - line_pos - 2
         );
-        log_errorf("%.*s", (int)prev_line.size, prev_line.str);
+        log_errorf("%llu: %.*s", parser->line - 1, (int)prev_line.size, prev_line.str);
     }
 
-    log_errorf("%.*s", (int)line.size, line.str);
+    log_errorf("%llu: %.*s", parser->line, (int)line.size, line.str);
     log_errorf("%.*s", (int)line_ind_str.size, line_ind_str.str);
 }
 
@@ -297,7 +295,7 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
             P_SKIP_SPACE(parser);
 
             field_val field = parse_field(arena, parser);
-            obj_ref_set(ref,  pres->obj_reg, field_name, &field.val);
+            obj_ref_set(ref, pres->obj_reg, field_name, &field.val);
 
             P_SKIP_SPACE(parser);
             if (P_CHAR(parser) == ',') { P_NEXT_CHAR(parser); }
@@ -309,8 +307,6 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
         if (P_CHAR(parser) == ',') { P_NEXT_CHAR(parser); }
         P_SKIP_SPACE(parser);
     }
-    
-    //P_NEXT_CHAR(parser);
 }
 
 static field_val parse_field(marena* arena, pres_parser* parser) {
@@ -348,8 +344,57 @@ static field_val parse_field(marena* arena, pres_parser* parser) {
 
     return out;
 }
+
+static field_type vec_types[] = {
+    FIELD_NULL,
+    FIELD_NULL,
+    FIELD_VEC2D,
+    FIELD_VEC3D,
+    FIELD_VEC4D,
+};
 static field_val parse_vec(pres_parser* parser) {
-    return (field_val){ 0 };
+    string8 keyword = parse_keyword(parser);
+    string8 test_str = str8_substr_size(keyword, 0, 3);
+    if (!str8_equals(test_str, STR8_LIT("vec"))) {
+        log_errorf("Invalid keyword \"%.*s\", expected vec", (int)test_str.size, test_str.str);
+        parse_syntax_error(parser);
+        
+        return (field_val){ 0 };
+    }
+    P_SKIP_SPACE(parser);
+    if (P_CHAR(parser) != '{') {
+        log_errorf("Invalid char '%c' for vector, expected '{'", P_CHAR(parser));
+        parse_syntax_error(parser);
+        
+        return (field_val){ 0 };
+    }
+    P_NEXT_CHAR(parser);
+    
+    u32 vec_len = 0;
+    switch (keyword.str[3]) {
+        case '2': vec_len = 2; break;
+        case '3': vec_len = 3; break;
+        case '4': vec_len = 4; break;
+        default: vec_len = 2; break;
+    }
+    field_val out = { .type = vec_types[vec_len] };
+
+    for (u32 i = 0; i < vec_len; i++) {
+        P_SKIP_SPACE(parser);
+        out.val.vec4d.p[i] = parse_f64(parser);
+        P_NEXT_CHAR(parser);
+    }
+    P_SKIP_SPACE(parser);
+    
+    if (P_CHAR(parser) != '}') {
+        log_errorf("Invalid char '%c' after vector, expected '}'", P_CHAR(parser));
+        parse_syntax_error(parser);
+        
+        return (field_val){ 0 };
+    }
+    P_NEXT_CHAR(parser);
+
+    return out;
 }
 static f64 parse_f64(pres_parser* parser) {
     char c = P_CHAR(parser);

@@ -13,16 +13,16 @@ typedef enum {
     FIELD_F64,
     FIELD_STR8,
     FIELD_BOOL32,
-    FIELD_VEC2,
-    FIELD_VEC3,
-    FIELD_VEC4,
+    FIELD_VEC2D,
+    FIELD_VEC3D,
+    FIELD_VEC4D,
 
     FIELD_F64_ARR,
     FIELD_STR8_ARR,
     FIELD_BOOL_ARR,
-    FIELD_VEC2_ARR,
-    FIELD_VEC3_ARR,
-    FIELD_VEC4_ARR,
+    FIELD_VEC2D_ARR,
+    FIELD_VEC3D_ARR,
+    FIELD_VEC4D_ARR,
 
     FIELD_COUNT
 } field_type;
@@ -36,16 +36,16 @@ typedef struct field_val {
         f64 f64;
         string8 str8;
         b32 bool32;
-        vec2 vec2;
-        vec3 vec3;
-        vec4 vec4;
+        vec2d vec2d;
+        vec3d vec3d;
+        vec4d vec4d;
 
         struct { u64 size; f64* data; } f64_arr;
         struct { u64 size; string8* data; } str8_arr;
         struct { u64 size; b32* data; } bool32_arr;
-        struct { u64 size; vec2* data; } vec2_arr;
-        struct { u64 size; vec3* data; } vec3_arr;
-        struct { u64 size; vec4* data; } vec4_arr;
+        struct { u64 size; vec2d* data; } vec2d_arr;
+        struct { u64 size; vec3d* data; } vec3d_arr;
+        struct { u64 size; vec4d* data; } vec4d_arr;
     } val;
 } field_val;
 

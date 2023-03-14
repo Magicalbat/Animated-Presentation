@@ -8,9 +8,9 @@ static const u32 field_sizes[FIELD_COUNT] = {
     sizeof(f64),
     sizeof(string8),
     sizeof(b32),
-    sizeof(vec2),
-    sizeof(vec3),
-    sizeof(vec4),
+    sizeof(vec2d),
+    sizeof(vec3d),
+    sizeof(vec4d),
 
     sizeof(null_arr),
     sizeof(null_arr),

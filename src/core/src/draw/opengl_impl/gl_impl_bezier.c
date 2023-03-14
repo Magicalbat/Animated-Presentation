@@ -44,7 +44,7 @@ void draw_cbezier_destroy(draw_cbezier* draw_cb) {
     glDeleteBuffers(1, &draw_cb->gl.index_buffer);
 }
 
-void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 start_col, vec3 end_col) {
+void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 start_col, vec4 end_col) {
     f32 estimate_len = 
         vec2_len(vec2_sub(bezier->p1, bezier->p0)) +
         vec2_len(vec2_sub(bezier->p2, bezier->p1)) +
@@ -57,14 +57,15 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
         draw_cbezier_flush(draw_cb);
     }
 
-    vec3 scol = rgb_to_hsv(start_col);
-    vec3 ecol = rgb_to_hsv(end_col);
+    vec3 scol = rgb_to_hsv((vec3){ start_col.x, start_col.y, start_col.z });
+    vec3 ecol = rgb_to_hsv((vec3){ end_col.x, end_col.y, end_col.z });
 
     f32 half_width = width * 0.5f;
 
     vec2 pos = cbezier_calc(bezier, 0);
     vec2 perp = vec2_nrm(vec2_prp(cbezier_calcd(bezier, 0)));
-    vec3 col = scol;
+    vec3 col3 = scol;
+    vec4 col = { 0 };
 
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_add(pos, vec2_mul(perp, half_width)),
@@ -80,7 +81,11 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
     for (u32 i = 1; i < num_segs && t < 1.0f; i++, t += step) {
         pos = cbezier_calc(bezier, t);
         perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, t))), half_width);
-        col = hsv_to_rgb(vec3_add(vec3_mul(scol, 1 - t), vec3_mul(ecol, t)));
+        col3 = hsv_to_rgb(vec3_add(vec3_mul(scol, 1 - t), vec3_mul(ecol, t)));
+        col.x = col3.x;
+        col.y = col3.y;
+        col.z = col3.z;
+        col.w = LERP(start_col.w, end_col.w, t);
 
         draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
             .pos = vec2_add(pos, perp),
@@ -120,8 +125,22 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 1;
 }
-void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec3 col) {
+void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 col) {
     draw_cbezier_push_grad(draw_cb, bezier, width, col, col);
+}
+void draw_cbezier_pushd_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d start_col, vec4d end_col) {
+    draw_cbezier_push_grad(
+        draw_cb, bezier, width,
+        (vec4){ start_col.x, start_col.y, start_col.z, start_col.w },
+        (vec4){ end_col.x, end_col.y, end_col.z, end_col.w }
+    );
+}
+void draw_cbezier_pushd(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d col) {
+    draw_cbezier_push_grad(
+        draw_cb, bezier, width,
+        (vec4){ col.x, col.y, col.z, col.w },
+        (vec4){ col.x, col.y, col.z, col.w }
+    );
 }
 
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
@@ -141,7 +160,7 @@ void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(cb_vertex), (void*)(offsetof(cb_vertex, pos)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(cb_vertex), (void*)(offsetof(cb_vertex, col)));
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(cb_vertex), (void*)(offsetof(cb_vertex, col)));
 
     glDrawElements(GL_TRIANGLES, draw_cb->index_pos, GL_UNSIGNED_INT, NULL);
 
@@ -166,11 +185,11 @@ static const char* vert_source = ""
 #else
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos;"
-    "layout (location = 1) in vec3 a_col;"
+    "layout (location = 1) in vec4 a_col;"
     "uniform mat2 u_win_mat;"
     "out vec4 col;"
     "void main() {"
-    "    col = vec4(a_col, 1);"
+    "    col = a_col;"
     "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
 #endif

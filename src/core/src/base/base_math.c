@@ -169,6 +169,56 @@ vec4 vec4_nrm(vec4 v) {
     return (vec4) { v.x * l, v.y * l, v.z * l, v.w * l };
 }
 
+vec2d vec2d_add(vec2d a, vec2d b) { return (vec2d) { a.x + b.x, a.y + b.y }; }
+vec2d vec2d_sub(vec2d a, vec2d b) { return (vec2d) { a.x - b.x, a.y - b.y }; }
+vec2d vec2d_mul(vec2d a, f64   b) { return (vec2d) { a.x * b, a.y * b };     }
+vec2d vec2d_div(vec2d a, f64   b) { return (vec2d) { a.x / b, a.y / b };     }
+f64   vec2d_dot(vec2d a, vec2d b) { return a.x * b.x + a.y * b.y;            }
+f64   vec2d_sql(vec2d          v) { return v.x * v.x + v.y * v.y;            }
+f64   vec2d_len(vec2d          v) { return sqrtf(v.x * v.x + v.y * v.y);     }
+vec2d vec2d_prp(vec2d          v) { return (vec2d) { -v.y, v.x };            }
+vec2d vec2d_nrm(vec2d v) {
+    f64 l = sqrtf(v.x * v.x + v.y * v.y);
+    ASSERT(l != 0.0f, "Cannot normalize vec2d of length 0.");
+    l = 1 / l;
+    return (vec2d) { v.x * l, v.y * l };
+}
+
+vec3d vec3d_add(vec3d a, vec3d b) { return (vec3d) { a.x + b.x, a.y + b.y, a.z + b.z }; }
+vec3d vec3d_sub(vec3d a, vec3d b) { return (vec3d) { a.x - b.x, a.y - b.y, a.z - b.z }; }
+vec3d vec3d_mul(vec3d a, f64   b) { return (vec3d) { a.x * b, a.y * b, a.z * b };       }
+vec3d vec3d_div(vec3d a, f64   b) { return (vec3d) { a.x / b, a.y / b, a.z / b };       }
+f64   vec3d_dot(vec3d a, vec3d b) { return a.x * b.x + a.y * b.y + a.z * b.z;           }
+f64   vec3d_sql(vec3d          v) { return v.x * v.x + v.y * v.y + v.z + v.z;           }
+f64   vec3d_len(vec3d          v) { return sqrtf(v.x * v.x + v.y * v.y + v.z + v.z);    }
+vec3d vec3d_crs(vec3d a, vec3d b) {
+    return (vec3d) {
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    };
+}
+vec3d vec3d_nrm(vec3d v) {
+    f64 l = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+    ASSERT(l != 0, "Cannot normalize vec3d of length 0.");
+    l = 1 / l;
+    return (vec3d) { v.x * l, v.y * l, v.z * l };
+}
+
+vec4d vec4d_add(vec4d a, vec4d b) { return (vec4d) { a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w }; }
+vec4d vec4d_sub(vec4d a, vec4d b) { return (vec4d) { a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w }; }
+vec4d vec4d_mul(vec4d a, f64   b) { return (vec4d) { a.x * b, a.y * b, a.z * b, a.w * b };         }
+vec4d vec4d_div(vec4d a, f64   b) { return (vec4d) { a.x / b, a.y / b, a.z / b, a.w / b };         }
+f64   vec4d_dot(vec4d a, vec4d b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;          }
+f64   vec4d_sql(vec4d          v) { return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;          }
+f64   vec4d_len(vec4d          v) { return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);   }
+vec4d vec4d_nrm(vec4d v) {
+    f64 l = sqrtf(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
+    ASSERT(l != 0, "Cannot normalize vec4d of length 0.");
+    l = 1 / l;
+    return (vec4d) { v.x * l, v.y * l, v.z * l, v.w * l };
+}
+
 f32 qbezier_calc_x(qbezier* b, f32 t) {
     return b->p1.x + (1 - t) * (1 - t) * (b->p0.x - b->p1.x) + t * t * (b->p2.x - b->p1.x);
 }

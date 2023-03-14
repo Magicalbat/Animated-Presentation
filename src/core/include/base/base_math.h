@@ -11,9 +11,31 @@ extern "C" {
 
 typedef struct { f32 x, y, w, h; } rect;
 
-typedef struct { f32 x, y; } vec2;
-typedef struct { f32 x, y, z; } vec3;
-typedef struct { f32 x, y, z, w; } vec4;
+typedef union {
+    struct { f32 x, y; };
+    f32 p[2];
+} vec2;
+typedef union {
+    struct { f32 x, y, z; };
+    f32 p[3];
+} vec3;
+typedef union {
+    struct { f32 x, y, z, w; };
+    f32 p[4];
+} vec4;
+
+typedef union {
+    struct { f64 x, y; };
+    f64 p[2];
+} vec2d;
+typedef union {
+    struct { f64 x, y, z; };
+    f64 p[3];
+} vec3d;
+typedef union {
+    struct { f64 x, y, z, w; };
+    f64 p[4];
+} vec4d;
 
 typedef union {
     struct {
@@ -67,6 +89,35 @@ AP_EXPORT f32  vec4_dot(vec4 a, vec4 b);
 AP_EXPORT f32  vec4_sql(vec4         v);
 AP_EXPORT f32  vec4_len(vec4         v);
 AP_EXPORT vec4 vec4_nrm(vec4         v);
+
+AP_EXPORT vec2d vec2d_add(vec2d a, vec2d b);
+AP_EXPORT vec2d vec2d_sub(vec2d a, vec2d b);
+AP_EXPORT vec2d vec2d_mul(vec2d a, f64   b);
+AP_EXPORT vec2d vec2d_div(vec2d a, f64   b);
+AP_EXPORT f64   vec2d_dot(vec2d a, vec2d b);
+AP_EXPORT f64   vec2d_sql(vec2d          v);
+AP_EXPORT f64   vec2d_len(vec2d          v);
+AP_EXPORT vec2d vec2d_prp(vec2d          v);
+AP_EXPORT vec2d vec2d_nrm(vec2d          v);
+
+AP_EXPORT vec3d vec3d_add(vec3d a, vec3d b);
+AP_EXPORT vec3d vec3d_sub(vec3d a, vec3d b);
+AP_EXPORT vec3d vec3d_mul(vec3d a, f64   b);
+AP_EXPORT vec3d vec3d_div(vec3d a, f64   b);
+AP_EXPORT f64   vec3d_dot(vec3d a, vec3d b);
+AP_EXPORT f64   vec3d_sql(vec3d          v);
+AP_EXPORT f64   vec3d_len(vec3d          v);
+AP_EXPORT vec3d vec3d_crs(vec3d a, vec3d b);
+AP_EXPORT vec3d vec3d_nrm(vec3d v);
+
+AP_EXPORT vec4d vec4d_add(vec4d a, vec4d b);
+AP_EXPORT vec4d vec4d_sub(vec4d a, vec4d b);
+AP_EXPORT vec4d vec4d_mul(vec4d a, f64   b);
+AP_EXPORT vec4d vec4d_div(vec4d a, f64   b);
+AP_EXPORT f64   vec4d_dot(vec4d a, vec4d b);
+AP_EXPORT f64   vec4d_sql(vec4d          v);
+AP_EXPORT f64   vec4d_len(vec4d          v);
+AP_EXPORT vec4d vec4d_nrm(vec4d          v);
 
 AP_EXPORT f32  qbezier_calc_x(qbezier* b, f32 t);
 AP_EXPORT f32  qbezier_calc_y(qbezier* b, f32 t);
