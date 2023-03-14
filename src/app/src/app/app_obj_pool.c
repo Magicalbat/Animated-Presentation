@@ -44,13 +44,13 @@ obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name) {
         }
     }
     if (desc_index == -1) {
-        log_errorf("Failed to locate object %.*s in register", (int)name.size, (char*)name.str);
+        log_errorf("Failed to locate object \"%.*s\" in obj register", (int)name.size, (char*)name.str);
         return (obj_ref){ 0 };
     }
 
 
     u32 index = pool->num_objs[desc_index];
-    void* obj = (void*)((u8*)pool->objs[index] + obj_reg->descs[desc_index].obj_size * index);
+    void* obj = (void*)((u8*)pool->objs[desc_index] + obj_reg->descs[desc_index].obj_size * index);
 
     obj_ref out = {
         .desc_index = (u32)desc_index,

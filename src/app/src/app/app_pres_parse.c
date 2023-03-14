@@ -233,6 +233,10 @@ static void parse_slides(marena* arena, marena_temp scratch, apres* pres, pres_p
 
         P_NEXT_CHAR(parser);
         P_SKIP_SPACE(parser);
+
+        if (P_CHAR(parser) == ',') P_NEXT_CHAR(parser);
+
+        P_SKIP_SPACE(parser);
     }
 }
 
@@ -257,6 +261,13 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
         string8 obj_name = parse_keyword(parser);
         
         obj_ref ref = obj_pool_add(slide->objs, pres->obj_reg, obj_name);
+        if (ref.obj == NULL) {
+            log_errorf("Invalid object name \"%.*s\"", (int)obj_name.size, obj_name.str);
+            parse_syntax_error(parser);
+
+            break;
+        }
+
         P_SKIP_SPACE(parser);
         if (P_CHAR(parser) != '{') {
             log_errorf("Invalid char '%c' at object, expected '{'", P_CHAR(parser));
@@ -293,12 +304,13 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
             P_SKIP_SPACE(parser);
         }
         
+        P_NEXT_CHAR(parser);
         P_SKIP_SPACE(parser);
         if (P_CHAR(parser) == ',') { P_NEXT_CHAR(parser); }
         P_SKIP_SPACE(parser);
     }
     
-    P_NEXT_CHAR(parser);
+    //P_NEXT_CHAR(parser);
 }
 
 static field_val parse_field(marena* arena, pres_parser* parser) {
@@ -312,6 +324,7 @@ static field_val parse_field(marena* arena, pres_parser* parser) {
         out.type = FIELD_STR8;
         out.val.str8 = parse_string(arena, parser);
     } else if (c == 'v') {
+        out = parse_vec(parser);
     } else if (c == 't' || c == 'f') {
         if (str8_equals(str8_substr_size(parser->file, parser->pos, 4), STR8_LIT("true"))) {
             out.type = FIELD_BOOL32;

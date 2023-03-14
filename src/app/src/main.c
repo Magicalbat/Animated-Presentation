@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
         .desired_block_size = KiB(64)
     });
 
-    ap_app* app = app_create(perm_arena, STR8_LIT("test.pres"), WIDTH, HEIGHT);
+    ap_app* app = app_create(perm_arena, STR8_LIT("../../test.pres"), WIDTH, HEIGHT);
     app_run(perm_arena, app);
     app_destroy(app);
 

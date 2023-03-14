@@ -1,11 +1,16 @@
 plugins = [
-    "./bin/Debug-linux-x86_64/libbuiltin_plugin.so",
+    "builtin_plugin.dll",
 ],
 slides = [
     slide {
         rectangle {
             x = 50,
             y = 50,
+            w = 25, h = 30,
+        },
+        rectangle {
+            x = 100,
+            y = 25,
             w = 25, h = 30,
         }
     }
