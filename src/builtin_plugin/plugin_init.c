@@ -2,12 +2,14 @@
 #include "app/app.h"
 
 typedef struct {
-    union { 
-        struct { f64 x, y; };
-        vec2d pos;
-    };
+    f64 x, y;
     f64 w, h;
     vec4d col;
+    b32 visible;
+    struct {
+        u64 size;
+        vec3d* data;
+    } points;
 } pres_rect;
 
 typedef struct {
@@ -32,19 +34,29 @@ void rect_init(void* obj) {
     *r = (pres_rect){
         .w = 50,
         .h = 50,
+        .visible = true,
         .col = (vec4d){ 1, 1, 1, 1 }
     };
     log_debug("rect obj init");
 }
 void rect_destroy(void* obj) {
     pres_rect* r = (pres_rect*)obj;
+
+    printf("[ ");
+    for (u64 i = 0; i < r->points.size; i++) {
+        printf("{ %.1f, %.1f, %.1f }, ", r->points.data[i].x, r->points.data[i].y, r->points.data[i].z);
+    }
+    if (r->points.size != 0)
+        printf("\b\b ");
+    printf("]\n");
+    
     log_debug("rect obj destroy");
 }
 void rect_draw(ap_app* app, void* obj) {
     pres_rect* r = (pres_rect*)obj;
-
-    //log_debugf("%f %f %f %f", r->col.x, r->col.y, r->col.z, r->col.w);
-
+    
+    if (!r->visible) return;
+    
     draw_rectb_push(app->rectb, (rect){
         (f32)r->x, (f32)r->y, (f32)r->w, (f32)r->h
     }, r->col);
@@ -76,26 +88,29 @@ AP_EXPORT void plugin_init(marena* arena, ap_app* app) {
         .field_names = {
             STR8_LIT("x"),
             STR8_LIT("y"),
-            STR8_LIT("pos"),
             STR8_LIT("w"),
             STR8_LIT("h"),
             STR8_LIT("col"),
+            STR8_LIT("visible"),
+            STR8_LIT("points"),
         },
         .field_types = {
             FIELD_F64,
             FIELD_F64,
-            FIELD_VEC2D,
             FIELD_F64,
             FIELD_F64,
-            FIELD_VEC4D
+            FIELD_VEC4D,
+            FIELD_BOOL32,
+            FIELD_VEC3D_ARR,
         },
         .field_offsets = {
             offsetof(pres_rect, x),
             offsetof(pres_rect, y),
-            offsetof(pres_rect, pos),
             offsetof(pres_rect, w),
             offsetof(pres_rect, h),
             offsetof(pres_rect, col),
+            offsetof(pres_rect, visible),
+            offsetof(pres_rect, points),
         }
     });
 }

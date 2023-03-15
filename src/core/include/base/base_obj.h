@@ -7,22 +7,25 @@ extern "C" {
 
 #include "base/base.h"
 
+#define FIELD_XLIST \
+    X(NULL) \
+    X(F64) \
+    X(STR8) \
+    X(BOOL32) \
+    X(VEC2D) \
+    X(VEC3D) \
+    X(VEC4D) \
+    X(F64_ARR) \
+    X(STR8_ARR) \
+    X(BOOL32_ARR) \
+    X(VEC2D_ARR) \
+    X(VEC3D_ARR) \
+    X(VEC4D_ARR)
+
 typedef enum {
-    FIELD_NULL,
-
-    FIELD_F64,
-    FIELD_STR8,
-    FIELD_BOOL32,
-    FIELD_VEC2D,
-    FIELD_VEC3D,
-    FIELD_VEC4D,
-
-    FIELD_F64_ARR,
-    FIELD_STR8_ARR,
-    FIELD_BOOL_ARR,
-    FIELD_VEC2D_ARR,
-    FIELD_VEC3D_ARR,
-    FIELD_VEC4D_ARR,
+#define X(a) FIELD_##a,
+    FIELD_XLIST
+#undef X
 
     FIELD_COUNT
 } field_type;

@@ -30,7 +30,7 @@ obj_pool* obj_pool_create(marena* arena, obj_register* obj_reg, u32 max_objs) {
     };
 
     for (u32 i = 0; i < obj_reg->num_descs; i++) {
-        pool->objs[i] = (void*)marena_push_zero(arena, obj_reg->descs[i].obj_size);
+        pool->objs[i] = (void*)marena_push_zero(arena, obj_reg->descs[i].obj_size * max_objs);
     }
 
     return pool;

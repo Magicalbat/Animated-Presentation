@@ -6,11 +6,17 @@ slides = [
         rectangle {
             x = 50, y = 50,
             w = 25, h = 30,
+            points = [
+                vec3 { 1.1, 2.2, 3.3 },
+                vec3 { 6.6, 5.5, 4.4 },
+                vec3 { 7.7, 8.8, 9.9 },
+            ]
         },
         rectangle {
-            pos = vec2 { 100, 100 },
+            x = 200, y = -20,
             w = 25, h = 30,
-            col = vec4{ 0, 1, 1, 1 }
+            col = vec4{ 0, 1, 1, 1 },
+            visible = true
         }
-    }
+    },
 ]

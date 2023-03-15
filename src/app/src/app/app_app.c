@@ -15,7 +15,7 @@ ap_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_heig
     app->cbezier = draw_cbezier_create(arena, win, 1024);
     app->poly = draw_poly_create(arena, win, 256);
     app->pres = pres_parse(arena, app, pres_path);
-    
+
     return app;
 } 
 

@@ -14,7 +14,8 @@ static void parse_plugins(marena* arena, marena_temp scratch, ap_app* app, apres
 static void parse_slides(marena* arena, marena_temp scratch, apres* pres, pres_parser* parser);
 static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_node* slide, pres_parser* parser);
 
-static field_val parse_field(marena* arena, pres_parser* parser);
+static field_val parse_arr(marena* arena, marena_temp sratch, pres_parser* parser);
+static field_val parse_field(marena* arena, marena_temp scratch, pres_parser* parser);
 static field_val parse_vec(pres_parser* parser);
 static f64 parse_f64(pres_parser* parser);
 static string8 parse_string(marena* arena, pres_parser* parser);
@@ -294,7 +295,7 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
             P_NEXT_CHAR(parser);
             P_SKIP_SPACE(parser);
 
-            field_val field = parse_field(arena, parser);
+            field_val field = parse_field(arena, scratch, parser);
             obj_ref_set(ref, pres->obj_reg, field_name, &field.val);
 
             P_SKIP_SPACE(parser);
@@ -309,7 +310,116 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
     }
 }
 
-static field_val parse_field(marena* arena, pres_parser* parser) {
+typedef struct field_node {
+    field_val field;
+    struct field_node* next;
+} field_node;
+
+typedef struct {
+    field_node* first;
+    field_node* last;
+    u64 size;
+} field_list;
+
+static const field_type arr_types[] = {
+    FIELD_NULL,
+
+    FIELD_F64_ARR,
+    FIELD_STR8_ARR,
+    FIELD_BOOL32_ARR,
+    FIELD_VEC2D_ARR,
+    FIELD_VEC3D_ARR,
+    FIELD_VEC4D_ARR,
+
+    FIELD_NULL,
+    FIELD_NULL,
+    FIELD_NULL,
+    FIELD_NULL,
+    FIELD_NULL,
+    FIELD_NULL,
+};
+static const u32 elem_sizes[] = {
+    0,
+
+    sizeof(f64),
+    sizeof(string8),
+    sizeof(b32),
+    sizeof(vec2d),
+    sizeof(vec3d),
+    sizeof(vec4d),
+};
+const char* field_names[FIELD_COUNT] = {
+#define X(a) #a,
+    FIELD_XLIST
+#undef X
+};
+
+static field_val parse_arr(marena* arena, marena_temp scratch, pres_parser* parser) {
+    if (P_CHAR(parser) != '[') {
+        log_errorf("Invalid '%c' for list, expected '['", P_CHAR(parser));
+        parse_syntax_error(parser);
+        
+        return (field_val){ 0 };
+    }
+    P_NEXT_CHAR(parser);
+    P_SKIP_SPACE(parser);
+
+    marena_temp temp = marena_temp_begin(scratch.arena);
+    field_list list = { 0 };
+
+    field_val out = { 0 };
+    field_type elem_type = FIELD_NULL;
+
+    while (P_CHAR(parser) != ']') {
+        field_val field = parse_field(arena, scratch, parser);
+        if (P_CHAR(parser) == ',') { P_NEXT_CHAR(parser); }
+        
+        if (elem_type == FIELD_NULL) {
+            field_type type = arr_types[field.type];
+            if (type == FIELD_NULL) {
+                log_errorf("Invalid array type %s", field_names[type]);
+                parse_syntax_error(parser);
+                
+                marena_temp_end(temp);
+                return (field_val) { 0 };
+            }
+            elem_type = field.type;
+            out.type = type;
+        } else if (elem_type != field.type) {
+            log_errorf("Invalid field of type %s in %s array", field_names[field.type], field_names[elem_type]);
+            parse_syntax_error(parser);
+            
+            marena_temp_end(temp);
+            return (field_val) { 0 };
+        }
+
+        field_node* node = CREATE_STRUCT(temp.arena, field_node);
+        node->field = field;
+        
+        SLL_PUSH_BACK(list.first, list.last, node);
+        list.size++;
+        
+        P_SKIP_SPACE(parser);
+    }
+    P_NEXT_CHAR(parser);
+
+    // All arrays have the same layout in memory,
+    // so I am using f64 as a proxy
+    out.val.f64_arr.size = list.size;
+    out.val.f64_arr.data = (f64*)marena_push_zero(arena, elem_sizes[elem_type] * list.size);
+    
+    u64 i = 0;
+    for (field_node* node = list.first; node != NULL; node = node->next) {
+        memcpy((u8*)out.val.f64_arr.data + elem_sizes[elem_type] * i, &node->field.val, elem_sizes[elem_type]);
+        i++;
+    }
+
+    marena_temp_end(temp);
+
+    return out;
+}
+
+static field_val parse_field(marena* arena, marena_temp scratch, pres_parser* parser) {
     char c = P_CHAR(parser);
     field_val out = { 0 };
 
@@ -336,7 +446,7 @@ static field_val parse_field(marena* arena, pres_parser* parser) {
             log_error("Invalid value for boolean, expected true or false");
         }
     } else if (c == '[') {
-        // TODO
+        out = parse_arr(arena, scratch, parser);
     } else {
         log_errorf("Invalid char '%c' for field value", c);
         parse_syntax_error(parser);
@@ -345,7 +455,7 @@ static field_val parse_field(marena* arena, pres_parser* parser) {
     return out;
 }
 
-static field_type vec_types[] = {
+static const field_type vec_types[] = {
     FIELD_NULL,
     FIELD_NULL,
     FIELD_VEC2D,
@@ -377,7 +487,13 @@ static field_val parse_vec(pres_parser* parser) {
         case '4': vec_len = 4; break;
         default: vec_len = 2; break;
     }
+
     field_val out = { .type = vec_types[vec_len] };
+    
+    if (out.type == FIELD_NULL) {
+        log_error("Invalid type for vector");
+        parse_syntax_error(parser);
+    }
 
     for (u32 i = 0; i < vec_len; i++) {
         P_SKIP_SPACE(parser);

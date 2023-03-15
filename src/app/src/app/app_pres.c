@@ -1,6 +1,10 @@
 #include "app/app_pres.h"
 
 void pres_delete(apres* pres) {
+    for (slide_node* node = pres->first_slide; node != NULL; node = node->next) {
+        obj_pool_destroy(node->objs, pres->obj_reg);
+    }
+    
     obj_reg_destroy(pres->obj_reg);
     
     for (u32 i = 0; i < pres->num_plugins; i++) {

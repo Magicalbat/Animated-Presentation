@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     
     marena* perm_arena = marena_create(&(marena_desc){
         .desired_max_size = MiB(4),
-        .desired_block_size = KiB(64)
+        .desired_block_size = KiB(256)
     });
 
     ap_app* app = app_create(perm_arena, STR8_LIT("test.pres"), WIDTH, HEIGHT);
