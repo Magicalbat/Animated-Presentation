@@ -44,7 +44,7 @@ void draw_cbezier_destroy(draw_cbezier* draw_cb) {
     glDeleteBuffers(1, &draw_cb->gl.index_buffer);
 }
 
-void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 start_col, vec4 end_col) {
+static void draw_cbezier_push_internal(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 start_col, vec4 end_col) {
     f32 estimate_len = 
         vec2_len(vec2_sub(bezier->p1, bezier->p0)) +
         vec2_len(vec2_sub(bezier->p2, bezier->p1)) +
@@ -125,18 +125,15 @@ void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, v
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 2;
     draw_cb->indices[draw_cb->index_pos++] = draw_cb->vertex_pos - 1;
 }
-void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 col) {
-    draw_cbezier_push_grad(draw_cb, bezier, width, col, col);
-}
-void draw_cbezier_pushd_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d start_col, vec4d end_col) {
-    draw_cbezier_push_grad(
+void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d start_col, vec4d end_col) {
+    draw_cbezier_push_internal(
         draw_cb, bezier, width,
         (vec4){ start_col.x, start_col.y, start_col.z, start_col.w },
         (vec4){ end_col.x, end_col.y, end_col.z, end_col.w }
     );
 }
-void draw_cbezier_pushd(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d col) {
-    draw_cbezier_push_grad(
+void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d col) {
+    draw_cbezier_push_internal(
         draw_cb, bezier, width,
         (vec4){ col.x, col.y, col.z, col.w },
         (vec4){ col.x, col.y, col.z, col.w }

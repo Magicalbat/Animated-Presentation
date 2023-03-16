@@ -36,7 +36,7 @@ apres* pres_parse(marena* arena, ap_app* app, string8 file_path);
 void pres_delete(apres* pres);
 
 void pres_draw(apres* pres, ap_app* app);
-void pres_update(apres* pres, f32 delta);
+void pres_update(apres* pres, ap_app* app, f32 delta);
 
 #ifdef __cplusplus
 }

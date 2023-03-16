@@ -38,10 +38,8 @@ typedef struct {
 AP_EXPORT draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity);
 AP_EXPORT void          draw_cbezier_destroy(draw_cbezier* draw_cb);
 
-AP_EXPORT void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 start_col, vec4 end_col);
-AP_EXPORT void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4 col);
-AP_EXPORT void draw_cbezier_pushd_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d start_col, vec4d end_col);
-AP_EXPORT void draw_cbezier_pushd(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d col);
+AP_EXPORT void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d start_col, vec4d end_col);
+AP_EXPORT void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d col);
 
 AP_EXPORT void draw_cbezier_flush(draw_cbezier* draw_cb);
 

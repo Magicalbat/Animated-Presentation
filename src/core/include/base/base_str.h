@@ -55,6 +55,7 @@ typedef struct {
 } string_decode;
 
 #define STR8_LIT(s) ((string8){ (u8*)(s), sizeof(s)-1 })
+#define STR(s) STR8_LIT(s)
 
 AP_EXPORT string8 str8_create(u8* str, u64 size);
 AP_EXPORT string8 str8_from_range(u8* start, u8* end);

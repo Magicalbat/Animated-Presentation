@@ -16,6 +16,6 @@ void pres_delete(apres* pres) {
 void pres_draw(apres* pres, ap_app* app) {
     obj_pool_draw(pres->first_slide->objs, pres->obj_reg, app);
 }
-void pres_update(apres* pres, f32 delta) {
-    obj_pool_update(pres->first_slide->objs, pres->obj_reg, delta);
+void pres_update(apres* pres, ap_app* app, f32 delta) {
+    obj_pool_update(pres->first_slide->objs, pres->obj_reg, app, delta);
 }

@@ -35,7 +35,7 @@ obj_pool* obj_pool_create(marena* arena, obj_register* obj_reg, u32 max_objs) {
 
     return pool;
 }
-obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name) {
+obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name, marena* arena, ap_app* app) {
     i64 desc_index = -1;
     for (u32 i = 0; i < obj_reg->num_descs; i++) {
         if (str8_equals(name, obj_reg->descs[i].name)){ 
@@ -59,8 +59,8 @@ obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name) {
 
     pool->num_objs[desc_index]++;
 
-    if (obj_reg->descs[desc_index].init_func != NULL) {
-        obj_reg->descs[desc_index].init_func(obj);
+    if (obj_reg->descs[desc_index].default_func != NULL) {
+        obj_reg->descs[desc_index].default_func(arena, app, obj);
     }
 
     return out;
@@ -81,8 +81,8 @@ obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name) {
 void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app) {
     CALL_OBJ_FUNCS(draw_func, app, obj);
 }
-void obj_pool_update(obj_pool* pool, obj_register* obj_reg, f32 delta) {
-    CALL_OBJ_FUNCS(update_func, delta, obj);
+void obj_pool_update(obj_pool* pool, obj_register* obj_reg, ap_app* app, f32 delta) {
+    CALL_OBJ_FUNCS(update_func, app, obj, delta);
 }
 void obj_pool_destroy(obj_pool* pool, obj_register* obj_reg) {
     CALL_OBJ_FUNCS(destroy_func, obj);
@@ -93,9 +93,9 @@ void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data) {
 
     i64 field_index = -1;
     for (u32 i = 0; i < DESC_MAX_FIELDS; i++) {
-        if (desc->field_types[i] == FIELD_NULL) break;
+        if (desc->fields[i].type == FIELD_NULL) break;
 
-        if (str8_equals(prop, desc->field_names[i])) {
+        if (str8_equals(prop, desc->fields[i].name)) {
             field_index = i;
             break;
         }
@@ -106,8 +106,14 @@ void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data) {
         return;
     }
 
-    u32 field_size = field_sizes[desc->field_types[field_index]];
-    void* field_ptr = (void*)((u8*)ref.obj + desc->field_offsets[field_index]);
+    u32 field_size = field_sizes[desc->fields[field_index].type];
+    void* field_ptr = (void*)((u8*)ref.obj + desc->fields[field_index].offset);
 
     memcpy(field_ptr, data, field_size);
+}
+
+void obj_ref_init(obj_ref ref, obj_register* obj_reg, marena* arena, ap_app* app) {
+    if (obj_reg->descs[ref.desc_index].init_func != NULL) {
+        obj_reg->descs[ref.desc_index].init_func(arena, app, ref.obj);
+    }
 }

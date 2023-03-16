@@ -11,8 +11,8 @@ typedef struct {
 static void parse_syntax_error(pres_parser* parser);
 
 static void parse_plugins(marena* arena, marena_temp scratch, ap_app* app, apres* pres, pres_parser* parser);
-static void parse_slides(marena* arena, marena_temp scratch, apres* pres, pres_parser* parser);
-static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_node* slide, pres_parser* parser);
+static void parse_slides(marena* arena, marena_temp scratch, ap_app* app, apres* pres, pres_parser* parser);
+static void parse_slide(marena* arena, marena_temp scratch, ap_app* app, apres* pres, slide_node* slide, pres_parser* parser);
 
 static field_val parse_arr(marena* arena, marena_temp sratch, pres_parser* parser);
 static field_val parse_field(marena* arena, marena_temp scratch, pres_parser* parser);
@@ -129,7 +129,7 @@ apres* pres_parse(marena* arena, ap_app* app, string8 file_path) {
         if (str8_equals(keyword, STR8_LIT("plugins"))) {
             parse_plugins(arena, scratch, app, pres, &parser);
         } else if (str8_equals(keyword, STR8_LIT("slides"))) {
-            parse_slides(arena, scratch, pres, &parser);
+            parse_slides(arena, scratch, app, pres, &parser);
         } else {
             log_errorf("Invalid keyword \"%.*s\"", (int)keyword.size, keyword.str);
             parse_syntax_error(&parser);
@@ -193,7 +193,7 @@ static void parse_plugins(marena* arena, marena_temp scratch, ap_app* app, apres
     marena_temp_end(temp);
 }
 
-static void parse_slides(marena* arena, marena_temp scratch, apres* pres, pres_parser* parser) {
+static void parse_slides(marena* arena, marena_temp scratch, ap_app* app, apres* pres, pres_parser* parser) {
     if (P_CHAR(parser) != '[') {
         log_errorf("Invalid char '%c' at slides, expected '['", P_CHAR(parser));
         parse_syntax_error(parser);
@@ -220,7 +220,7 @@ static void parse_slides(marena* arena, marena_temp scratch, apres* pres, pres_p
         
         DLL_PUSH_BACK(pres->first_slide, pres->last_slide, slide);
 
-        parse_slide(arena, scratch, pres, slide, parser);
+        parse_slide(arena, scratch, app, pres, slide, parser);
 
         P_SKIP_SPACE(parser);
         if (P_CHAR(parser) != '}') {
@@ -239,7 +239,7 @@ static void parse_slides(marena* arena, marena_temp scratch, apres* pres, pres_p
     }
 }
 
-static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_node* slide, pres_parser* parser) {
+static void parse_slide(marena* arena, marena_temp scratch, ap_app* app, apres* pres, slide_node* slide, pres_parser* parser) {
     if (P_CHAR(parser) != '{') {
         log_errorf("Invalid char '%c' at slide, expected '{'", P_CHAR(parser));
         parse_syntax_error(parser);
@@ -259,7 +259,7 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
 
         string8 obj_name = parse_keyword(parser);
         
-        obj_ref ref = obj_pool_add(slide->objs, pres->obj_reg, obj_name);
+        obj_ref ref = obj_pool_add(slide->objs, pres->obj_reg, obj_name, arena, app);
         if (ref.obj == NULL) {
             log_errorf("Invalid object name \"%.*s\"", (int)obj_name.size, obj_name.str);
             parse_syntax_error(parser);
@@ -302,6 +302,8 @@ static void parse_slide(marena* arena, marena_temp scratch, apres* pres, slide_n
             if (P_CHAR(parser) == ',') { P_NEXT_CHAR(parser); }
             P_SKIP_SPACE(parser);
         }
+
+        obj_ref_init(ref, pres->obj_reg, arena, app);
         
         P_NEXT_CHAR(parser);
         P_SKIP_SPACE(parser);

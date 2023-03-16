@@ -31,7 +31,7 @@ void app_run(marena* arena, ap_app* app) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
-        pres_update(app->pres, delta);
+        pres_update(app->pres, app, delta);
 
         gfx_win_clear(app->win);
 
