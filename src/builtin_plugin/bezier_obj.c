@@ -50,7 +50,7 @@ void bezier_draw(ap_app* app, void* obj) {
 }
 
 void bezier_obj_init(marena* arena, ap_app* app) {
-    obj_reg_add_desc(app->pres->obj_reg, &(obj_desc){
+    obj_desc desc = {
         .name = STR("bezier"),
         .obj_size = sizeof(pres_bezier),
 
@@ -68,5 +68,7 @@ void bezier_obj_init(marena* arena, ap_app* app) {
             { STR("start_col"), FIELD_VEC4D, offsetof(pres_bezier, start_col) },
             { STR("end_col"), FIELD_VEC4D, offsetof(pres_bezier, end_col) },
         }
-    });
+    };
+
+    obj_reg_add_desc(app->pres->obj_reg, &desc);
 }

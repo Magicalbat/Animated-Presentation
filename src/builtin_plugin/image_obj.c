@@ -43,7 +43,7 @@ void image_draw(ap_app* app, void* obj) {
 }
 
 void image_obj_init(marena* arena, ap_app* app) {
-    obj_reg_add_desc(app->pres->obj_reg, &(obj_desc){
+    obj_desc desc = {
         .name = STR("image"),
         .obj_size = sizeof(pres_image),
 
@@ -58,5 +58,7 @@ void image_obj_init(marena* arena, ap_app* app) {
             { STR("source"), FIELD_STR8, offsetof(pres_image, source) },
             { STR("col"), FIELD_VEC4D, offsetof(pres_image, col) },
         }
-    });
+    };
+
+    obj_reg_add_desc(app->pres->obj_reg, &desc);
 }

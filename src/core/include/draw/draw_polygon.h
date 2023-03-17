@@ -42,8 +42,8 @@ typedef struct {
 } vec2d_list;
 
 typedef struct {
+    u64 size;
     vec2d* data;
-    u32 size;
 } vec2d_arr;
 
 AP_EXPORT draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts);

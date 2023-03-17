@@ -172,11 +172,11 @@ static const char* vert_source = ""
 #ifdef __EMSCRIPTEN__
     "precision mediump float;"
     "attribute vec2 a_pos;"
-    "attribute vec3 a_col;"
+    "attribute vec4 a_col;"
     "uniform mat2 u_win_mat;"
     "varying vec4 col;"
     "void main() {"
-    "    col = vec4(a_col, 1);"
+    "    col = a_col;"
     "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
     "\n}";
 #else

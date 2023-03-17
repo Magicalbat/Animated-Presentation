@@ -51,7 +51,7 @@ void rect_draw(ap_app* app, void* obj) {
 }
 
 void rectangle_obj_init(marena* arena, ap_app* app) {
-    obj_reg_add_desc(app->pres->obj_reg, &(obj_desc){
+    obj_desc desc = {
         .name = STR("rectangle"),
         .obj_size = sizeof(pres_rect),
 
@@ -70,5 +70,7 @@ void rectangle_obj_init(marena* arena, ap_app* app) {
             { STR("outline_col"), FIELD_VEC4D, offsetof(pres_rect, outline_col) },
             { STR("outline_width"), FIELD_F64, offsetof(pres_rect, outline_width) },
         }
-    });
+    };
+
+    obj_reg_add_desc(app->pres->obj_reg, &desc);
 }
