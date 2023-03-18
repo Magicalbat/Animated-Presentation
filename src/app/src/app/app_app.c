@@ -57,4 +57,4 @@ void app_destroy(ap_app* app) {
     draw_poly_destroy(app->poly);
 
     gfx_win_destroy(app->win);
-}
+    }

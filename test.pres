@@ -1,5 +1,5 @@
 plugins = [
-    "builtin_plugin",
+    "bin/Debug-linux-x86_64/libbuiltin_plugin.so",
 ],
 slides = [
     slide {
@@ -7,6 +7,8 @@ slides = [
             x = 50, y = 50,
             w = 50, h = 50,
             col = vec4{ 0, 0.5, 1, 1 },
+            outline = true,
+            outline_width = 10
         },
         rectangle {
             x = 200, y = 20,
@@ -22,6 +24,11 @@ slides = [
             end_col = vec4{ 0, 1, 1, 1 },
             start_col = vec4{ 1, 1, 0, 0 },
         },
+        image {
+            x = 120, y = 60,
+            source = "monkey 1.png",
+            scale = vec2{ 0.15, 0.15 }
+        }
         polygon {
             x = 10,
             y = 10,
