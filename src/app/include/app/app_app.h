@@ -8,21 +8,21 @@ extern "C" {
 #include "gfx/gfx.h"
 #include "draw/draw.h"
 
-typedef struct apres apres;
+typedef struct app_pres app_pres;
 
-typedef struct ap_app {
+typedef struct app_app {
     gfx_window* win;
 
     draw_rectb* rectb;
     draw_cbezier* cbezier;
     draw_polygon* poly;
 
-    apres* pres;
-} ap_app;
+    app_pres* pres;
+} app_app;
 
-ap_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height);
-void app_run(marena* arena, ap_app* app);
-void app_destroy(ap_app* app);
+app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height);
+void app_run(marena* arena, app_app* app);
+void app_destroy(app_app* app);
 
 #ifdef __cplusplus
 }

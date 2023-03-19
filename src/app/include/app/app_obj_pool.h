@@ -11,21 +11,21 @@ typedef struct {
     u32 max_objs;
     u32* num_objs;
     void** objs;
-} obj_pool;
+} app_obj_pool;
 
 typedef struct {
     u32 desc_index;
     void* obj;
-} obj_ref;
+} app_obj_ref;
 
-obj_pool* obj_pool_create(marena* arena, obj_register* obj_reg, u32 max_objs);
-obj_ref obj_pool_add(obj_pool* pool, obj_register* obj_reg, string8 name, marena* arena, ap_app* app);
-void obj_pool_update(obj_pool* pool, obj_register* obj_reg, ap_app* app, f32 delta);
-void obj_pool_draw(obj_pool* pool, obj_register* obj_reg, ap_app* app);
-void obj_pool_destroy(obj_pool* pool, obj_register* obj_reg);
+app_obj_pool* app_objp_create(marena* arena, obj_register* obj_reg, u32 max_objs);
+app_obj_ref app_objp_add(app_obj_pool* pool, obj_register* obj_reg, string8 name, marena* arena, app_app* app);
+void app_objp_update(app_obj_pool* pool, obj_register* obj_reg, app_app* app, f32 delta);
+void app_objp_draw(app_obj_pool* pool, obj_register* obj_reg, app_app* app);
+void app_objp_destroy(app_obj_pool* pool, obj_register* obj_reg);
 
-void obj_ref_set(obj_ref ref, obj_register* obj_reg, string8 prop, void* data);
-void obj_ref_init(obj_ref ref, obj_register* obj_reg, marena* arena, ap_app* app);
+void app_obj_ref_set(app_obj_ref ref, obj_register* obj_reg, string8 prop, void* data);
+void app_obj_ref_init(app_obj_ref ref, obj_register* obj_reg, marena* arena, app_app* app);
 
 #ifdef __cplusplus
 }

@@ -10,7 +10,7 @@ typedef struct {
     vec4d col;
 } pres_poly;
 
-void poly_default(marena* arena, ap_app* app, void* obj) {
+void poly_default(marena* arena, app_app* app, void* obj) {
     pres_poly* poly = (pres_poly*)obj;
 
     *poly = (pres_poly){
@@ -18,7 +18,7 @@ void poly_default(marena* arena, ap_app* app, void* obj) {
     };
 }
 
-void poly_draw(ap_app* app, void* obj) {
+void poly_draw(app_app* app, void* obj) {
     pres_poly* poly = (pres_poly*)obj;
 
     vec2d_arr points = *(vec2d_arr*)(&poly->points);
@@ -31,7 +31,7 @@ void poly_draw(ap_app* app, void* obj) {
     );
 }
 
-void polygon_obj_init(marena* arena, ap_app* app) {
+void polygon_obj_init(marena* arena, app_app* app) {
     obj_desc desc = {
         .name = STR("polygon"),
         .obj_size = sizeof(pres_poly),

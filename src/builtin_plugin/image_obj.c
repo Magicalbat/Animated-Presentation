@@ -11,7 +11,7 @@ typedef struct {
     u32 rect_img_id;
 } pres_image;
 
-void image_default(marena* arena, ap_app* app, void* obj) {
+void image_default(marena* arena, app_app* app, void* obj) {
     pres_image* img = (pres_image*)obj;
 
     *img = (pres_image){
@@ -22,7 +22,7 @@ void image_default(marena* arena, ap_app* app, void* obj) {
     };
 }
 
-void image_init(marena* arena, ap_app* app, void* obj) {
+void image_init(marena* arena, app_app* app, void* obj) {
     pres_image* img = (pres_image*)obj;
 
     vec2 dim = { 0 };
@@ -32,7 +32,7 @@ void image_init(marena* arena, ap_app* app, void* obj) {
     img->height = dim.y;
 }
 
-void image_draw(ap_app* app, void* obj) {
+void image_draw(app_app* app, void* obj) {
     pres_image* img = (pres_image*)obj;
 
     draw_rectb_push_ex(
@@ -42,7 +42,7 @@ void image_draw(ap_app* app, void* obj) {
     );
 }
 
-void image_obj_init(marena* arena, ap_app* app) {
+void image_obj_init(marena* arena, app_app* app) {
     obj_desc desc = {
         .name = STR("image"),
         .obj_size = sizeof(pres_image),

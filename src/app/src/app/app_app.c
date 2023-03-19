@@ -2,8 +2,8 @@
 
 #include "os/os.h"
 
-ap_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height) {
-    ap_app* app = CREATE_STRUCT(arena, ap_app);
+app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height) {
+    app_app* app = CREATE_STRUCT(arena, app_app);
 
     gfx_window* win = gfx_win_create(arena, win_width, win_height, STR8_LIT("Animated Presentation"));
     
@@ -14,13 +14,13 @@ ap_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_heig
     app->rectb = draw_rectb_create(arena, win, 1024, 32);
     app->cbezier = draw_cbezier_create(arena, win, 1024);
     app->poly = draw_poly_create(arena, win, 256);
-    app->pres = pres_parse(arena, app, pres_path);
+    app->pres = app_pres_parse(arena, app, pres_path);
 
     return app;
 } 
 
 
-void app_run(marena* arena, ap_app* app) {
+void app_run(marena* arena, app_app* app) {
     draw_rectb_finalize_textures(app->rectb);
 
     gfx_win_alpha_blend(app->win, true);
@@ -31,11 +31,11 @@ void app_run(marena* arena, ap_app* app) {
         u64 time_now = os_now_microseconds();
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
-        pres_update(app->pres, app, delta);
+        app_pres_update(app->pres, app, delta);
 
         gfx_win_clear(app->win);
 
-        pres_draw(app->pres, app);
+        app_pres_draw(app->pres, app);
 
         draw_rectb_flush(app->rectb);
         draw_cbezier_flush(app->cbezier);
@@ -49,12 +49,12 @@ void app_run(marena* arena, ap_app* app) {
     }
 }
 
-void app_destroy(ap_app* app) {
-    pres_delete(app->pres);
+void app_destroy(app_app* app) {
+    app_pres_delete(app->pres);
 
     draw_rectb_destroy(app->rectb);
     draw_cbezier_destroy(app->cbezier);
     draw_poly_destroy(app->poly);
 
     gfx_win_destroy(app->win);
-    }
+}

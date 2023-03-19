@@ -12,7 +12,7 @@ typedef struct {
     vec4d end_col;
 } pres_bezier;
 
-void bezier_default(marena* arena, ap_app* app, void* obj){
+void bezier_default(marena* arena, app_app* app, void* obj){
     pres_bezier* bez = (pres_bezier*)obj;
 
     *bez = (pres_bezier){
@@ -21,7 +21,7 @@ void bezier_default(marena* arena, ap_app* app, void* obj){
     };
 }
 
-void bezier_draw(ap_app* app, void* obj) {
+void bezier_draw(app_app* app, void* obj) {
     pres_bezier* bez = (pres_bezier*)obj;
 
     cbezier draw_bez = {
@@ -49,7 +49,7 @@ void bezier_draw(ap_app* app, void* obj) {
     }
 }
 
-void bezier_obj_init(marena* arena, ap_app* app) {
+void bezier_obj_init(marena* arena, app_app* app) {
     obj_desc desc = {
         .name = STR("bezier"),
         .obj_size = sizeof(pres_bezier),

@@ -11,32 +11,35 @@ extern "C" {
 #include "app_anim.h"
 #include "app_obj_pool.h"
 
-typedef struct slide_node {
-    struct slide_node* next;
-    struct slide_node* prev;
+#define PRES_MAX_OBJS 64
+#define PRES_MAX_ANIMS (PRES_MAX_OBJS * 4)
 
-    obj_pool* objs;
-    anim_pool* anims;
-} slide_node;
+typedef struct app_slide_node {
+    struct app_slide_node* next;
+    struct app_slide_node* prev;
 
-typedef struct apres {
+    app_obj_pool* objs;
+    app_anim_pool* anims;
+} app_slide_node;
+
+typedef struct app_pres {
     u32 num_plugins;
     os_library* plugins;
 
     obj_register* obj_reg;
 
-    slide_node* first_slide;
-    slide_node* last_slide;
+    app_slide_node* first_slide;
+    app_slide_node* last_slide;
     u32 num_slides;
-} apres;
+} app_pres;
 
 #define PRES_MAX_DESCS 32
 
-apres* pres_parse(marena* arena, ap_app* app, string8 file_path);
-void pres_delete(apres* pres);
+app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path);
+void app_pres_delete(app_pres* pres);
 
-void pres_draw(apres* pres, ap_app* app);
-void pres_update(apres* pres, ap_app* app, f32 delta);
+void app_pres_draw(app_pres* pres, app_app* app);
+void app_pres_update(app_pres* pres, app_app* app, f32 delta);
 
 #ifdef __cplusplus
 }

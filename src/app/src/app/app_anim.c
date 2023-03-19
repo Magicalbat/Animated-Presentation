@@ -1,105 +1,123 @@
 #include "app/app_anim.h"
 #include "app/app_app.h"
 
-anim_pool* anim_pool_create(marena* arena, u32 max_anims) {
-    anim_pool* apool = CREATE_STRUCT(arena, anim_pool);
+app_anim_pool* app_animp_create(marena* arena, u32 max_anims) {
+    app_anim_pool* apool = CREATE_STRUCT(arena, app_anim_pool);
     
-    *apool = (anim_pool){
+    *apool = (app_anim_pool){
         .max_anims = max_anims,
-        .anims = CREATE_ZERO_ARRAY(arena, anim, max_anims)
+        .anims = CREATE_ZERO_ARRAY(arena, app_anim, max_anims)
     };
 
     return apool;
 }
-void anim_pool_finalize(marena* arena, anim_pool* apool, u32 index) {
-    anim* cur_anim = &apool->anims[index];
-
-    if (cur_anim->num_keys == 0)
-        return;
-    if (cur_anim->keys == NULL) {
-        log_error("Cannot finalize animation without keys");
-        return;
+app_anim* app_animp_next(app_anim_pool* pool) {
+    if (pool->num_anims + 1 > pool->max_anims) {
+        log_error("Cannot get next anim, out of anims");
+        return NULL;
     }
 
-    if (cur_anim->pauses == NULL) {
-        cur_anim->pauses = CREATE_ZERO_ARRAY(arena, b32, cur_anim->num_keys);
-    }
-    if (cur_anim->times == NULL) {
-        cur_anim->times = CREATE_ARRAY(arena, f64, cur_anim->num_keys);
-        
-        for (u32 i = 0; i < cur_anim->num_keys; i++) {
-            cur_anim->times[i] = cur_anim->total_time * ((f64)(i) / (f64)(cur_anim->num_keys - 1));
-        }
+    app_anim* out = &pool->anims[pool->num_anims];
+    pool->num_anims++;
+
+    return out;
+}
+
+static void anim_update_val(app_anim* anim) {
+    f64 t = 
+        (anim->cur_time - anim->times[anim->cur_key]) / 
+        (anim->times[anim->next_key] - anim->times[anim->cur_key]);
+
+    switch (anim->type) {
+        case FIELD_F64: {
+            f64* data = (f64*)anim->obj_field;
+            
+            *data = LERP(
+                ((f64*)anim->keys)[anim->cur_key],
+                ((f64*)anim->keys)[anim->next_key],
+                t
+            );
+        } break;
+        case FIELD_STR8: { } break;
+        case FIELD_BOOL32: { } break;
+        case FIELD_VEC2D: { } break;
+        case FIELD_VEC3D: { } break;
+        case FIELD_VEC4D: { } break;
+        default: {
+            log_errorf("Invalid field type %d for animation", anim->type);
+        } break;
     }
 }
-void anim_pool_update(anim_pool* apool, ap_app* app, f32 delta) {
-    anim* cur_anim = apool->anims;
-    for (u32 i = 0; i < apool->num_anims; i++, cur_anim += 1) {
-        // Check for anims that are finished
-        if (cur_anim->repeat == ANIM_STOP &&  cur_anim->cur_time == cur_anim->times[cur_anim->num_keys - 1]) {
+
+void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
+    app_anim* anim = apool->anims;
+    for (u32 i = 0; i < apool->num_anims; i++, anim += 1) {
+        if (anim->repeat == ANIM_STOP && anim->stopped) {
             continue;
         }
 
         // Check for paused anims
-        if (cur_anim->paused) {
+        if (true || anim->paused) {
             if (GFX_IS_KEY_JUST_DOWN(app->win, GFX_KEY_SPACE)) {
-                cur_anim->paused = false;
+                anim->paused = false;
             }
-            if (cur_anim->paused)
+            if (anim->paused)
                 continue;
         }
 
-        cur_anim->cur_time += (f64)(delta);
-
-        // update value
-        switch (cur_anim->type) {
-            case FIELD_F64: {
-                f64* data = (f64*)cur_anim->obj_field;
-                
-                f64 t = 
-                    (cur_anim->cur_time - cur_anim->times[cur_anim->cur_key]) / 
-                    (cur_anim->times[cur_anim->next_key] - cur_anim->times[cur_anim->cur_key]);
-                
-                *data = LERP(
-                    cur_anim->keys[cur_anim->cur_key].val.f64,
-                    cur_anim->keys[cur_anim->next_key].val.f64,
-                    t
-                );
-            } break;
-            case FIELD_STR8: { } break;
-            case FIELD_BOOL32: { } break;
-            case FIELD_VEC2D: { } break;
-            case FIELD_VEC3D: { } break;
-            case FIELD_VEC4D: { } break;
-            default: {
-                log_errorf("Invalid field type %d for animation", cur_anim->type);
-            } break;
-        }
+        anim->cur_time += (f64)(delta);
 
         // Check for key advance
-        if (cur_anim->cur_time >= cur_anim->times[cur_anim->next_key]) {
-            if (cur_anim->pauses[cur_anim->next_key]) {
-                cur_anim->paused = true;
+        if (anim->cur_time >= anim->times[anim->next_key]) {
+            if (anim->pauses[anim->next_key]) {
+                anim->paused = true;
             }
             
-            cur_anim->cur_time = cur_anim->times[cur_anim->next_key];
-            cur_anim->cur_key++;
-            cur_anim->next_key++;
+            anim->cur_time = anim->times[anim->next_key];
+            anim->cur_key++;
+            anim->next_key++;
                 
-            if (cur_anim->next_key >= cur_anim->num_keys) {
-                switch (cur_anim->repeat) {
+            if (anim->next_key >= anim->num_keys) {
+                switch (anim->repeat) {
                     case ANIM_STOP: {
-                        cur_anim->cur_time = cur_anim->times[cur_anim->num_keys - 1];
+                        anim->cur_time = anim->times[anim->num_keys - 1];
+                        anim->stopped = true;
                     } break;
                     case ANIM_LOOP: {
-                        cur_anim->cur_time = 0;
-                        cur_anim->cur_key = 0;
-                        cur_anim->next_key = 1;
-                        cur_anim->paused = cur_anim->pauses[0];
+                        anim->cur_time = 0;
+                        anim->cur_key = 0;
+                        anim->next_key = 1;
+                        anim->paused = anim->pauses[0];
                     } break;
+                    // TODO: bounce
                     default: break;
                 }
             }
         }
+
+        anim_update_val(anim);
     }
+}
+
+void app_anim_finalize(marena* arena, app_anim* anim) {
+    if (anim->num_keys == 0)
+        return;
+    if (anim->keys == NULL) {
+        log_error("Cannot finalize animation without keys");
+        return;
+    }
+    anim->next_key = 1;
+
+    if (anim->pauses == NULL) {
+        anim->pauses = CREATE_ZERO_ARRAY(arena, b32, anim->num_keys);
+    }
+    if (anim->times == NULL) {
+        anim->times = CREATE_ARRAY(arena, f64, anim->num_keys);
+        
+        for (u32 i = 0; i < anim->num_keys; i++) {
+            anim->times[i] = anim->time * ((f64)(i) / (f64)(anim->num_keys - 1));
+        }
+    }
+
+    anim_update_val(anim);
 }

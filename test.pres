@@ -1,11 +1,18 @@
 plugins = [
-    "bin/Debug-linux-x86_64/libbuiltin_plugin.so",
+    "builtin_plugin.dll",
 ],
 slides = [
     slide {
         rectangle {
-            x = 50, y = 50,
-            w = 50, h = 50,
+            x = anim{
+                keys = [ 25, 75, 50 ],
+                time = 1,
+                pauses = [ false, true, false ],
+                repeat = LOOP
+            },
+            y = 50,
+            w = 50,
+            h = 50,
             col = vec4{ 0, 0.5, 1, 1 },
             outline = true,
             outline_width = 10

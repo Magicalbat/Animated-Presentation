@@ -1,8 +1,8 @@
 #include "app/app_pres.h"
 
-void pres_delete(apres* pres) {
-    for (slide_node* node = pres->first_slide; node != NULL; node = node->next) {
-        obj_pool_destroy(node->objs, pres->obj_reg);
+void app_pres_delete(app_pres* pres) {
+    for (app_slide_node* node = pres->first_slide; node != NULL; node = node->next) {
+        app_objp_destroy(node->objs, pres->obj_reg);
     }
     
     obj_reg_destroy(pres->obj_reg);
@@ -13,9 +13,10 @@ void pres_delete(apres* pres) {
 }
 
 // TODO: make final version
-void pres_draw(apres* pres, ap_app* app) {
-    obj_pool_draw(pres->first_slide->objs, pres->obj_reg, app);
+void app_pres_draw(app_pres* pres, app_app* app) {
+    app_objp_draw(pres->first_slide->objs, pres->obj_reg, app);
 }
-void pres_update(apres* pres, ap_app* app, f32 delta) {
-    obj_pool_update(pres->first_slide->objs, pres->obj_reg, app, delta);
+void app_pres_update(app_pres* pres, app_app* app, f32 delta) {
+    app_animp_update(pres->first_slide->anims, app, delta);
+    app_objp_update(pres->first_slide->objs, pres->obj_reg, app, delta);
 }

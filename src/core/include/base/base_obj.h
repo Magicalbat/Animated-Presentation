@@ -52,16 +52,16 @@ typedef struct field_val {
     } val;
 } field_val;
 
-typedef struct ap_app ap_app;
+typedef struct app_app app_app;
 
 typedef void (desc_init_func)(void* custom_data);
 typedef void (desc_destroy_func)(void* custom_data);
 
-typedef void (obj_create_default_func)(marena* arena, ap_app* app, void* obj);
-typedef void (obj_init_func)(marena* arena, ap_app* app, void* obj);
+typedef void (obj_create_default_func)(marena* arena, app_app* app, void* obj);
+typedef void (obj_init_func)(marena* arena, app_app* app, void* obj);
 typedef void (obj_destroy_func)(void* obj);
-typedef void (obj_draw_func)(ap_app* app, void* obj);
-typedef void (obj_update_func)(ap_app* app, void* obj, f32 delta);
+typedef void (obj_draw_func)(app_app* app, void* obj);
+typedef void (obj_update_func)(app_app* app, void* obj, f32 delta);
 
 typedef struct {
     string8 name;
@@ -69,7 +69,7 @@ typedef struct {
     u32 offset;
 } field_desc;
 
-#define DESC_MAX_FIELDS 32
+#define OBJ_DESC_MAX_FIELDS 32
 typedef struct {
     string8 name;
     u32 obj_size;
@@ -85,7 +85,7 @@ typedef struct {
     obj_draw_func* draw_func;
     obj_update_func* update_func;
 
-    field_desc fields[DESC_MAX_FIELDS];
+    field_desc fields[OBJ_DESC_MAX_FIELDS];
 } obj_desc;
 
 typedef struct {

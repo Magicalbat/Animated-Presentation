@@ -10,7 +10,7 @@ typedef struct {
     f64 outline_width;
 } pres_rect;
 
-void rect_default(marena* arena, ap_app* app, void* obj) {
+void rect_default(marena* arena, app_app* app, void* obj) {
     pres_rect* r = (pres_rect*)obj;
 
     *r = (pres_rect){ 
@@ -21,7 +21,7 @@ void rect_default(marena* arena, ap_app* app, void* obj) {
     };
 }
 
-void rect_draw(ap_app* app, void* obj) {
+void rect_draw(app_app* app, void* obj) {
     pres_rect* r = (pres_rect*)obj;
 
     if (r->fill) {
@@ -50,7 +50,7 @@ void rect_draw(ap_app* app, void* obj) {
     }
 }
 
-void rectangle_obj_init(marena* arena, ap_app* app) {
+void rectangle_obj_init(marena* arena, app_app* app) {
     obj_desc desc = {
         .name = STR("rectangle"),
         .obj_size = sizeof(pres_rect),

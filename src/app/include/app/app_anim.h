@@ -12,17 +12,17 @@ typedef enum {
     ANIM_STOP,
     ANIM_LOOP,
     ANIM_BOUNCE
-} anim_repeat;
+} app_anim_repeat;
 
 typedef struct {
     field_type type;
     void* obj_field;
 
-    f64 total_time;
-    anim_repeat repeat;
+    f64 time;
+    app_anim_repeat repeat;
 
     u32 num_keys;
-    field_val* keys;
+    void* keys;
     f64* times;
     b32* pauses;
 
@@ -30,17 +30,20 @@ typedef struct {
     u32 next_key;
     f64 cur_time;
     b32 paused;
-} anim;
+    b32 stopped;
+} app_anim;
 
 typedef struct {
     u32 max_anims;
     u32 num_anims;
-    anim* anims;
-} anim_pool;
+    app_anim* anims;
+} app_anim_pool;
 
-anim_pool* anim_pool_create(marena* arena, u32 max_anims);
-void anim_pool_finalize(marena* arena, anim_pool* apool, u32 index);
-void anim_pool_update(anim_pool* apool, ap_app* app, f32 delta);
+app_anim_pool* app_animp_create(marena* arena, u32 max_anims);
+app_anim* app_animp_next(app_anim_pool* pool);
+void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta);
+
+void app_anim_finalize(marena* arena, app_anim* anim);
 
 #ifdef __cplusplus
 }
