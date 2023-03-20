@@ -1,6 +1,6 @@
 #include "app/app_pres.h"
 
-void app_pres_delete(app_pres* pres) {
+void app_pres_destroy(app_pres* pres) {
     for (app_slide_node* node = pres->first_slide; node != NULL; node = node->next) {
         app_objp_destroy(node->objs, pres->obj_reg);
     }

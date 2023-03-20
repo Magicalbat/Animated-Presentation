@@ -14,6 +14,15 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     app->rectb = draw_rectb_create(arena, win, 1024, 32);
     app->cbezier = draw_cbezier_create(arena, win, 1024);
     app->poly = draw_poly_create(arena, win, 256);
+    
+    app->temp.arena = marena_create(
+        &(marena_desc){
+            .desired_max_size = MiB(64),
+            .desired_block_size = KiB(256)
+        }
+    );
+    app->temp.file_reg = (string8_registry){ 0 };
+    
     app->pres = app_pres_parse(arena, app, pres_path);
 
     return app;
@@ -21,6 +30,20 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
 
 
 void app_run(marena* arena, app_app* app) {
+    str8_reg_init_arr(arena, &app->temp.file_reg);
+    
+    string8_node* node = app->temp.file_reg.names.first;
+    for(u64 i = 0; node != NULL; node = node->next, i++) {
+        string8 file = os_file_read(arena, node->str);
+        app->temp.file_reg.strings[i] = file;
+    }
+
+    for (app_slide_node* slide = app->pres->first_slide; slide != NULL; slide = slide->next) {
+        app_objp_file(slide->objs, app->pres->obj_reg, app);
+    }
+
+    marena_destroy(app->temp.arena);
+    
     draw_rectb_finalize_textures(app->rectb);
 
     gfx_win_alpha_blend(app->win, true);
@@ -50,7 +73,7 @@ void app_run(marena* arena, app_app* app) {
 }
 
 void app_destroy(app_app* app) {
-    app_pres_delete(app->pres);
+    app_pres_destroy(app->pres);
 
     draw_rectb_destroy(app->rectb);
     draw_cbezier_destroy(app->cbezier);

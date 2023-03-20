@@ -215,8 +215,8 @@ os_library os_lib_load(string8 path) {
     
     return (os_library){ 0 };
 }
-void_func os_lib_func(os_library lib, const char* func_name) {
-    void_func func = (void_func)dlsym(lib.handle, func_name);
+void_func* os_lib_func(os_library lib, const char* func_name) {
+    void_func* func = (void_func*)dlsym(lib.handle, func_name);
     
     if (func == NULL) {
         log_dl_errorf("Failed to load library function \"%s\"", func_name);

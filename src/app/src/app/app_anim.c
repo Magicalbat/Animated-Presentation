@@ -38,11 +38,58 @@ static void anim_update_val(app_anim* anim) {
                 t
             );
         } break;
-        case FIELD_STR8: { } break;
-        case FIELD_BOOL32: { } break;
-        case FIELD_VEC2D: { } break;
-        case FIELD_VEC3D: { } break;
-        case FIELD_VEC4D: { } break;
+        case FIELD_STR8: {
+            string8* data = (string8*)anim->obj_field;
+            
+            string8* target = &((string8*)anim->keys)[anim->cur_key];
+
+            if (t < 0.5) {
+                t = 1.0 - (t * 2.0);
+            } else {
+                t = (t - 0.5) * 2.0;
+                target += 1;
+            }
+
+            data->str = target->str;
+            data->size = (u64)(LERP(
+                0.0, (f64)target->size, t
+            ));
+        } break;
+        case FIELD_BOOL32: {
+            b32* data = (b32*)anim->obj_field;
+
+            *data = ((b32*)anim->keys)[anim->cur_key];
+        } break;
+        case FIELD_VEC2D: {
+            vec2d* data = (vec2d*)anim->obj_field;
+
+            vec2d cur = ((vec2d*)anim->keys)[anim->cur_key];
+            vec2d next = ((vec2d*)anim->keys)[anim->next_key];
+
+            data->x = LERP(cur.x, next.x, t);
+            data->y = LERP(cur.y, next.y, t);
+        } break;
+        case FIELD_VEC3D: {
+            vec3d* data = (vec3d*)anim->obj_field;
+
+            vec3d cur = ((vec3d*)anim->keys)[anim->cur_key];
+            vec3d next = ((vec3d*)anim->keys)[anim->next_key];
+
+            data->x = LERP(cur.x, next.x, t);
+            data->y = LERP(cur.y, next.y, t);
+            data->z = LERP(cur.z, next.z, t);
+        } break;
+        case FIELD_VEC4D: {
+            vec4d* data = (vec4d*)anim->obj_field;
+
+            vec4d cur = ((vec4d*)anim->keys)[anim->cur_key];
+            vec4d next = ((vec4d*)anim->keys)[anim->next_key];
+
+            data->x = LERP(cur.x, next.x, t);
+            data->y = LERP(cur.y, next.y, t);
+            data->z = LERP(cur.z, next.z, t);
+            data->w = LERP(cur.w, next.w, t);
+        } break;
         default: {
             log_errorf("Invalid field type %d for animation", anim->type);
         } break;

@@ -50,6 +50,13 @@ typedef struct {
 } string8_join;
 
 typedef struct {
+    string8_list names;
+
+    u64 num_strings;
+    string8* strings;
+} string8_registry;
+
+typedef struct {
     u32 code_point;
     u32 size;
 } string_decode;
@@ -86,6 +93,10 @@ AP_EXPORT string8 str8_join(marena* arena, string8_list list, string8_join join)
 
 AP_EXPORT string8 str8_pushfv(marena* arena, const char* fmt, va_list args);
 AP_EXPORT string8 str8_pushf(marena* arena, const char* fmt, ...);
+
+AP_EXPORT u64 str8_reg_push(marena* arena, string8_registry* reg, string8 name);
+AP_EXPORT void str8_reg_init_arr(marena* arena, string8_registry* reg);
+AP_EXPORT string8 str8_reg_get(string8_registry* reg, u64 id);
 
 AP_EXPORT string_decode str_decode_utf8(u8* str, u32 cap);
 AP_EXPORT u32           str_encode_utf8(u8* dst, u32 code_point);

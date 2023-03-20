@@ -1,4 +1,5 @@
 #include "base/base_str.h"
+#include "base/base_log.h"
 
 string8 str8_create(u8* str, u64 size) {
     return (string8){ str, size };
@@ -235,6 +236,25 @@ string8 str8_pushf(marena* arena, const char* fmt, ...) {
     va_end(args);
 
     return out;
+}
+
+u64 str8_reg_push(marena* arena, string8_registry* reg, string8 name) {
+    u64 out = reg->names.node_count;
+
+    reg->num_strings += 1;
+    str8_list_push(arena, &reg->names, name);
+    
+    return out;
+}
+void str8_reg_init_arr(marena* arena, string8_registry* reg) {
+    reg->strings = CREATE_ZERO_ARRAY(arena, string8, reg->num_strings);
+}
+string8 str8_reg_get(string8_registry* reg, u64 id) {
+    if (id >= reg->num_strings) {
+        log_errorf("Invalid string8 registry id %llu", id);
+        return (string8){ 0 };
+    }
+    return reg->strings[id];
 }
 
 // https://github.com/skeeto/branchless-utf8/blob/master/utf8.h

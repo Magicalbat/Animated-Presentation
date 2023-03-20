@@ -59,6 +59,7 @@ typedef void (desc_destroy_func)(void* custom_data);
 
 typedef void (obj_create_default_func)(marena* arena, app_app* app, void* obj);
 typedef void (obj_init_func)(marena* arena, app_app* app, void* obj);
+typedef void (obj_file_func)(app_app* app, void* obj);
 typedef void (obj_destroy_func)(void* obj);
 typedef void (obj_draw_func)(app_app* app, void* obj);
 typedef void (obj_update_func)(app_app* app, void* obj, f32 delta);
@@ -81,6 +82,7 @@ typedef struct {
 
     obj_create_default_func* default_func;
     obj_init_func* init_func;
+    obj_file_func* file_func;
     obj_destroy_func* destroy_func;
     obj_draw_func* draw_func;
     obj_update_func* update_func;

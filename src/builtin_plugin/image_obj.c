@@ -8,6 +8,7 @@ typedef struct {
 
     u32 width;
     u32 height;
+    u32 file_id;
     u32 rect_img_id;
 } pres_image;
 
@@ -25,11 +26,21 @@ void image_default(marena* arena, app_app* app, void* obj) {
 void image_init(marena* arena, app_app* app, void* obj) {
     pres_image* img = (pres_image*)obj;
 
-    vec2 dim = { 0 };
-    img->rect_img_id = draw_rectb_load_tex(app->rectb, img->source, &dim);
+    img->file_id = str8_reg_push(arena, &app->temp.file_reg, img->source);
+}
 
-    img->width = dim.x;
-    img->height = dim.y;
+void image_file(app_app* app, void* obj) {
+    pres_image* img = (pres_image*)obj;
+    
+    string8 file = str8_reg_get(&app->temp.file_reg, img->file_id);
+
+    vec2 dim = { 0 };
+    img->rect_img_id = draw_rectb_create_tex(
+        app->rectb, file, &dim
+    );
+
+    img->width = (u32)dim.x;
+    img->height = (u32)dim.y;
 }
 
 void image_draw(app_app* app, void* obj) {
@@ -49,6 +60,7 @@ void image_obj_init(marena* arena, app_app* app) {
 
         .default_func = image_default,
         .init_func = image_init,
+        .file_func = image_file,
         .draw_func = image_draw,
 
         .fields = {

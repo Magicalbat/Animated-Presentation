@@ -366,8 +366,8 @@ os_library os_lib_load(string8 path) {
         .module = module
     };
 }
-void_func os_lib_func(os_library lib, const char* func_name) {
-    void_func func = (void_func)GetProcAddress(lib.module, func_name);
+void_func* os_lib_func(os_library lib, const char* func_name) {
+    void_func* func = (void_func*)GetProcAddress(lib.module, func_name);
 
     if (func == NULL) {
         log_w32_errorf("Failed to load library function \"%s\"", func_name);

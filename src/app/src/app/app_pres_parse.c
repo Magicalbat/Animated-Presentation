@@ -1,7 +1,6 @@
 #include "app/app_pres.h"
 
 #include <ctype.h>
-#include <winuser.h>
 
 typedef struct {
     string8 file;

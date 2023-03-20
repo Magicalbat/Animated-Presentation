@@ -63,7 +63,7 @@ typedef struct {
     #endif
 } os_library;
 
-typedef void (*void_func)(void);
+typedef void (void_func)(void);
 
 AP_EXPORT void         os_main_init(int argc, char** argv);
 AP_EXPORT void         os_main_quit(void);
@@ -92,7 +92,7 @@ AP_EXPORT b32     os_file_write_open(os_file file, string8 str);
 AP_EXPORT void    os_file_close(os_file file);
 
 AP_EXPORT os_library os_lib_load(string8 path);
-AP_EXPORT void_func  os_lib_func(os_library lib, const char* func_name);
+AP_EXPORT void_func*  os_lib_func(os_library lib, const char* func_name);
 AP_EXPORT void       os_lib_release(os_library lib);
 
 #ifdef __cplusplus
