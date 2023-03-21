@@ -172,31 +172,35 @@ void gfx_win_process_events(gfx_window* win) {
         XNextEvent(win->glx.display, &e);
 
         switch(e.type) {
-            case ButtonPress:
+            case Expose: {
+                glViewport(0, 0, e.xexpose.width, e.xexpose.height);
+                win->width = e.xexpose.width;
+                win->height = e.xexpose.height;
+            } break;
+            case ButtonPress: {
                 win->mouse_buttons[e.xbutton.button - 1] = true;
-                break;
-            case ButtonRelease:
+            } break;
+            case ButtonRelease: {
                 win->mouse_buttons[e.xbutton.button - 1] = false;
-                break;
-            case MotionNotify:
+            } break;
+            case MotionNotify: {
                 win->mouse_pos.x = (f32)e.xmotion.x;
                 win->mouse_pos.y = (f32)e.xmotion.y;
-                break;
-            case KeyPress: ;
+            } break;
+            case KeyPress: {
                 gfx_key keydown = x11_translate_key(&e.xkey);
                 win->keys[keydown] = true;
-                break;
-            case KeyRelease: ;
+            } break;
+            case KeyRelease: {
                 gfx_key keyup = x11_translate_key(&e.xkey);
                 win->keys[keyup] = false;
-                break;
-            case ClientMessage:
+            } break;
+            case ClientMessage: {
                 if (e.xclient.data.l[0] == win->glx.del_window) {
                     win->should_close = true;
                 }
-                break;
-            default:
-                break;
+            } break;
+            default: break;
         }
     }
 }

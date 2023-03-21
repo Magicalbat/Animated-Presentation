@@ -16,11 +16,11 @@ typedef struct {
 } draw_rectb_rect;
 
 typedef struct {
-    gfx_window* win;
-
     draw_rectb_rect* data;
     u32 capacity;
     u32 size;
+
+    f32 win_mat[16];
 
     struct {
         marena* arena;

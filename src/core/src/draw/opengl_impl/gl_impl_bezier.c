@@ -3,12 +3,9 @@
 #include "draw/opengl_impl/gl_impl.h"
 
 static const char* vert_source;
-// gl_impl_color_frag
 
 draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity) {
     draw_cbezier* draw_cb = CREATE_ZERO_STRUCT(arena, draw_cbezier);
-
-    draw_cb->win = win;
 
     draw_cb->capacity = capacity;
     draw_cb->indices = CREATE_ARRAY(arena, u32, capacity * 6);
@@ -142,7 +139,8 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d 
 
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glUseProgram(draw_cb->gl.shader_program);
-    gl_impl_view_mat(draw_cb->win, draw_cb->gl.win_mat_loc);
+    //gl_impl_view_mat(draw_cb->win, draw_cb->gl.win_mat_loc);
+    glUniformMatrix4fv(draw_cb->gl.win_mat_loc, 1, GL_FALSE, draw_cb->win_mat);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(draw_cb->gl.vertex_array);
@@ -173,21 +171,21 @@ static const char* vert_source = ""
     "precision mediump float;"
     "attribute vec2 a_pos;"
     "attribute vec4 a_col;"
-    "uniform mat2 u_win_mat;"
+    "uniform mat4 u_win_mat;"
     "varying vec4 col;"
     "void main() {"
     "    col = a_col;"
-    "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "    gl_Position = vec4(a_pos, 0, 1) * u_win_mat;"
     "\n}";
 #else
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos;"
     "layout (location = 1) in vec4 a_col;"
-    "uniform mat2 u_win_mat;"
+    "uniform mat4 u_win_mat;"
     "out vec4 col;"
     "void main() {"
     "    col = a_col;"
-    "    gl_Position = vec4((a_pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "    gl_Position = vec4(a_pos, 0, 1) * u_win_mat;"
     "\n}";
 #endif
 

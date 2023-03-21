@@ -74,12 +74,4 @@ u32 gl_impl_create_buffer(u32 buffer_type, u64 size, void* data, u32 draw_type) 
     return buffer;
 }
 
-void gl_impl_view_mat(gfx_window* win, u32 mat_loc) {
-    f32 win_mat[] = {
-        2.0f / (f32)win->width, 0,
-        0, 2.0f / -((f32)win->height)
-    };
-    glUniformMatrix2fv(mat_loc, 1, GL_FALSE, &win_mat[0]);
-}
-
 #endif // AP_OPENGL

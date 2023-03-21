@@ -123,6 +123,7 @@ project "app"
                 "-sWASM=1",
                 "-sALLOW_MEMORY_GROWTH=1",
                 "-sASYNCIFY=1",
+                "-sASYNCIFY_IMPORTS=os_sleep_milliseconds",
                 "-sFORCE_FILESYSTEM=1",
                 "-sOFFSCREEN_FRAMEBUFFER=1",
                 "-sMIN_WEBGL_VERSION=2",

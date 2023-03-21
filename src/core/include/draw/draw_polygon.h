@@ -9,12 +9,12 @@ extern "C" {
 #include "gfx/gfx.h"
 
 typedef struct {
-    gfx_window* win;
-
     u32 max_verts;
 
     vec2* verts;
     u32* indices;
+
+    f32 win_mat[16];
 
     #if defined (AP_OPENGL)
     struct {

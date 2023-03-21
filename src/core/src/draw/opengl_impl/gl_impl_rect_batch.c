@@ -8,8 +8,6 @@ static const char* frag_source;
 draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, draw_rectb);
 
-    batch->win = win;
-
     batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;
     
@@ -187,7 +185,8 @@ void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec4d col) {
 
 void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
-    gl_impl_view_mat(batch->win, batch->gl.win_mat_loc);
+    //gl_impl_view_mat(batch->win, batch->gl.win_mat_loc);
+    glUniformMatrix4fv(batch->gl.win_mat_loc, 1, GL_FALSE, batch->win_mat);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(batch->gl.vertex_array);
@@ -247,12 +246,12 @@ static const char* vert_source = ""
     "out vec4 col;"
     "out vec2 uv;"
 #endif
-    "uniform mat2 u_win_mat;"
+    "uniform mat4 u_win_mat;"
     "void main() {"
     "    col = a_col;"
     "    uv = a_tex_rect.xy + a_tex_rect.zw * a_pos_pattern;"
     "    vec2 pos = a_quad.xy + a_quad.zw * a_pos_pattern;"
-    "    gl_Position = vec4((pos * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "    gl_Position = vec4(pos, 0, 1) * u_win_mat;"
     "\n}";
         
 static const char* frag_source = ""

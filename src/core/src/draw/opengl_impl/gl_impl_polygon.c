@@ -3,12 +3,9 @@
 #include "draw/opengl_impl/gl_impl.h"
 
 static const char* vert_source;
-// gl_impl_color_frag
 
 draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts) {
     draw_polygon* poly = CREATE_ZERO_STRUCT(arena, draw_polygon);
-
-    poly->win = win;
 
     poly->max_verts = max_verts;
     poly->verts = CREATE_ARRAY(arena, vec2, max_verts);
@@ -53,7 +50,7 @@ void draw_poly_destroy(draw_polygon* poly) {
 static void poly_gl_setup(draw_polygon* poly, vec4d col, vec2d offset) {
     glUseProgram(poly->gl.shader_program);
 
-    gl_impl_view_mat(poly->win, poly->gl.win_mat_loc);
+    glUniformMatrix4fv(poly->gl.win_mat_loc, 1, GL_FALSE, poly->win_mat);
     glUniform4f(poly->gl.col_loc, col.x, col.y, col.z, col.w);
     glUniform2f(poly->gl.offset_loc, offset.x, offset.y);
 
@@ -119,24 +116,24 @@ static const char* vert_source = ""
 #ifdef __EMSCRIPTEN__
     "precision mediump float;"
     "attribute vec2 a_pos;"
-    "uniform mat2 u_win_mat;"
+    "uniform mat4 u_win_mat;"
     "uniform vec4 u_col;"
     "uniform vec2 u_offset;"
     "varying vec4 col;"
     "void main() {"
     "    col = u_col;"
-    "    gl_Position = vec4(((a_pos + u_offset) * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "    gl_Position = vec4(a_pos + u_offset, 0, 1) * u_win_mat;"
     "\n}";
 #else
     "#version 330 core\n"
     "layout (location = 0) in vec2 a_pos;"
-    "uniform mat2 u_win_mat;"
+    "uniform mat4 u_win_mat;"
     "uniform vec4 u_col;"
     "uniform vec2 u_offset;"
     "out vec4 col;"
     "void main() {"
     "    col = u_col;"
-    "    gl_Position = vec4(((a_pos + u_offset) * u_win_mat) + vec2(-1, 1), 0, 1);"
+    "    gl_Position = vec4(a_pos + u_offset, 0, 1) * u_win_mat;"
     "\n}";
 #endif
 

@@ -11,6 +11,12 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     opengl_load_functions(win);
 
     app->win = win;
+    
+    // TODO: remove temp code
+    app->ref_width = (f32)win_width;
+    app->ref_height = (f32)win_height;
+    app->aspect_ratio = (f32)win_width / (f32)win_height;
+    
     app->rectb = draw_rectb_create(arena, win, 1024, 32);
     app->cbezier = draw_cbezier_create(arena, win, 1024);
     app->poly = draw_poly_create(arena, win, 256);
@@ -47,7 +53,7 @@ void app_run(marena* arena, app_app* app) {
     draw_rectb_finalize_textures(app->rectb);
 
     gfx_win_alpha_blend(app->win, true);
-    gfx_win_clear_color(app->win, (vec3){ 0.5f, 0.6f, 0.7f });
+    gfx_win_clear_color(app->win, (vec3){ 0 });
 
     u64 time_prev = os_now_microseconds();
     while (!app->win->should_close) {
@@ -57,6 +63,33 @@ void app_run(marena* arena, app_app* app) {
         app_pres_update(app->pres, app, delta);
 
         gfx_win_clear(app->win);
+
+        f32 height = (f32)app->win->height;
+        f32 width = height * app->aspect_ratio;
+        
+        if (width > (f32)app->win->width) {
+            width = (f32)app->win->width;
+            height = width / app->aspect_ratio;
+        }
+        
+        f32 top = ((f32)app->win->height - height);
+        f32 left = ((f32)app->win->width - width);
+
+        app->win_mat[0 + 0 * 4] = (2.0f * (width / (f32)app->win->width)) / (f32)(app->ref_width);
+        app->win_mat[1 + 1 * 4] = (2.0f * (height / (f32)app->win->height)) / -(f32)(app->ref_height);
+        app->win_mat[2 + 2 * 4] = -1.0f;
+        app->win_mat[3 + 0 * 4] = -1.0f + left / (f32)(app->win->width);
+        app->win_mat[3 + 1 * 4] = 1.0f - top / (f32)(app->win->height);
+        app->win_mat[3 + 3 * 4] = 1;
+
+        // I could make all of these pointers,
+        // but this does not really affect performance
+        memcpy(app->cbezier->win_mat, app->win_mat, sizeof(app->win_mat));
+        memcpy(app->poly->win_mat, app->win_mat, sizeof(app->win_mat));
+        memcpy(app->rectb->win_mat, app->win_mat, sizeof(app->win_mat));
+
+        draw_rectb_push(app->rectb, (rect){ 0, 0, app->ref_width, app->ref_height }, (vec4d){ .5, .6, .7, 1 });
+        draw_rectb_flush(app->rectb);
 
         app_pres_draw(app->pres, app);
 

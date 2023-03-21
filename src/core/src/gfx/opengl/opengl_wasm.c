@@ -6,6 +6,7 @@
 
 static EM_BOOL on_mouse_event(int event_type, const EmscriptenMouseEvent* e, void* win_ptr);
 static EM_BOOL on_key_event(int event_type, const EmscriptenKeyboardEvent* e, void* win_ptr);
+static EM_BOOL on_ui_event(int event_type, const EmscriptenUiEvent *e, void *win_ptr);
 
 void opengl_load_functions(gfx_window* win) { }
 
@@ -22,7 +23,9 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
 
     win->wasm.ctx = emscripten_webgl_create_context("canvas", &attr);
 
-    emscripten_set_canvas_element_size("#canvas", width, height);
+    //emscripten_set_canvas_element_size("#canvas", width, height);
+    emscripten_get_canvas_element_size("#canvas", (int*)&win->width, (int*)&win->height);
+    gfx_win_set_title(win, title);
 
     emscripten_set_mousemove_callback("#canvas", win, true, on_mouse_event);
     emscripten_set_mousedown_callback("#canvas", win, true, on_mouse_event);
@@ -31,9 +34,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     emscripten_set_keydown_callback("body", win, true, on_key_event);
     emscripten_set_keyup_callback("body", win, true, on_key_event);
 
-    win->width = width;
-    win->height = height;
-    win->title = title;
+    emscripten_set_resize_callback("body", win, true, on_ui_event);
 
     return win;
 }
@@ -70,28 +71,38 @@ void gfx_win_process_events(gfx_window* win) {
 }
 
 void gfx_win_set_size(gfx_window* win, u32 width, u32 height) {
+    win->width = width;
+    win->height = height;
+    
     emscripten_set_canvas_element_size("#canvas", width, height);
+    glViewport(0, 0, win->width, win->height);
 }
-void gfx_win_set_title( gfx_window* win, string8 title) {
-    log_error("GFX set title unsupported in wasm");
+void gfx_win_set_title(gfx_window* win, string8 title) {
+    win->title = title;
+    
+    marena_temp scratch = marena_scratch_get(NULL, 0);
+    
+    u8* cstr = str8_to_cstr(scratch.arena, title);
+    
+    emscripten_set_window_title((char*)cstr);
+
+    marena_scratch_release(scratch);
 }
 
 static EM_BOOL on_mouse_event(int event_type, const EmscriptenMouseEvent* e, void* win_ptr) {
     gfx_window* win = (gfx_window*)win_ptr;
 
     switch (event_type) { 
-        case EMSCRIPTEN_EVENT_MOUSEDOWN:
+        case EMSCRIPTEN_EVENT_MOUSEDOWN: {
             win->mouse_buttons[e->button] = true;
-            break;
-        case EMSCRIPTEN_EVENT_MOUSEUP:
+        } break;
+        case EMSCRIPTEN_EVENT_MOUSEUP: {
             win->mouse_buttons[e->button] = false;
-            break;
-
-        case EMSCRIPTEN_EVENT_MOUSEMOVE:
+        } break;
+        case EMSCRIPTEN_EVENT_MOUSEMOVE: {
             win->mouse_pos.x = (f32)e->targetX;
             win->mouse_pos.y = (f32)e->targetY;
-            break;
-        
+        } break;
         default: break;
     }
 
@@ -104,18 +115,29 @@ static EM_BOOL on_key_event(int event_type, const EmscriptenKeyboardEvent* e, vo
     gfx_window* win = (gfx_window*)win_ptr;
 
     switch(event_type) {
-        case EMSCRIPTEN_EVENT_KEYDOWN: ;
+        case EMSCRIPTEN_EVENT_KEYDOWN: {
             gfx_key keydown = em_translate_keycode(e->code);
             win->keys[keydown] = true;
-
-            break;
-        case EMSCRIPTEN_EVENT_KEYUP: ;
+        } break;
+        case EMSCRIPTEN_EVENT_KEYUP: {
             gfx_key keyup = em_translate_keycode(e->code);
             win->keys[keyup] = false;
-
-            break;
+        } break;
     }
 
+    return true;
+}
+
+static EM_BOOL on_ui_event(int event_type, const EmscriptenUiEvent *e, void *win_ptr) {
+    gfx_window* win = (gfx_window*)win_ptr;
+
+    switch (event_type) {
+        case EMSCRIPTEN_EVENT_RESIZE: {
+            gfx_win_set_size(win, e->windowInnerWidth, e->windowInnerHeight);
+        } break;
+        default: break;
+    }
+    
     return true;
 }
 

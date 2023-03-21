@@ -14,14 +14,14 @@ typedef struct {
 } cb_vertex;
 
 typedef struct {
-    gfx_window* win;
-
     u32* indices;
     cb_vertex* vertices;
     u32 capacity;
 
     u32 index_pos;
     u32 vertex_pos;
+
+    f32 win_mat[16];
 
     #if defined(AP_OPENGL)
     struct {
