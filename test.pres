@@ -1,5 +1,5 @@
 plugins = [
-    "bin/Debug-linux-x86_64/libbuiltin_plugin.so",
+    "builtin_plugin.wasm",
 ],
 slides = [
     slide {
@@ -7,6 +7,7 @@ slides = [
             x = anim{
                 keys = [ 25, 75, 50 ],
                 times = [0, 0.25, 1.5 ],
+                pauses = [ false, true, false ],
                 repeat = LOOP
             },
             y = 50,

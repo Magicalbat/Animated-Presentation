@@ -6,6 +6,17 @@
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
 
+#ifdef __EMSCRIPTEN__
+
+EM_JS(void, test, (), {
+    const canvas = document.querySelector("#canvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+
+#endif
+
+
 int main(int argc, char** argv) {
     os_main_init(argc, argv);
 
@@ -19,6 +30,13 @@ int main(int argc, char** argv) {
         .desired_block_size = KiB(256)
     });
 
+    #ifdef __EMSCRIPTEN__
+
+    test();
+
+    #endif
+
+    
     app_app* app = app_create(perm_arena, STR8_LIT("test.pres"), WIDTH, HEIGHT);
     
     app_run(perm_arena, app);

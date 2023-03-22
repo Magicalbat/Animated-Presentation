@@ -31,10 +31,10 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     emscripten_set_mousedown_callback("#canvas", win, true, on_mouse_event);
     emscripten_set_mouseup_callback("#canvas", win, true, on_mouse_event);
 
-    emscripten_set_keydown_callback("body", win, true, on_key_event);
-    emscripten_set_keyup_callback("body", win, true, on_key_event);
+    emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, win, true, on_key_event);
+    emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, win, true, on_key_event);
 
-    emscripten_set_resize_callback("body", win, true, on_ui_event);
+    emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, win, true, on_ui_event);
 
     return win;
 }
