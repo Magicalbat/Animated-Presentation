@@ -104,11 +104,12 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
         }
 
         // Check for paused anims
-        if (true || anim->paused) {
+        if (anim->to_pause) {
             if (GFX_IS_KEY_JUST_DOWN(app->win, GFX_KEY_SPACE)) {
-                anim->paused = false;
+                anim->to_pause--;
+                anim_update_val(anim);
             }
-            if (anim->paused)
+            if (anim->to_pause)
                 continue;
         }
 
@@ -116,9 +117,7 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
 
         // Check for key advance
         if (anim->cur_time >= anim->times[anim->next_key]) {
-            if (anim->pauses[anim->next_key]) {
-                anim->paused = true;
-            }
+            anim->to_pause += anim->pauses[anim->next_key];
             
             anim->cur_time = anim->times[anim->next_key];
             anim->cur_key++;
@@ -134,7 +133,7 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
                         anim->cur_time = 0;
                         anim->cur_key = 0;
                         anim->next_key = 1;
-                        anim->paused = anim->pauses[0];
+                        anim->to_pause += anim->pauses[0];
                     } break;
                     // TODO: bounce
                     default: break;
@@ -142,7 +141,8 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
             }
         }
 
-        anim_update_val(anim);
+        if (!anim->to_pause)
+            anim_update_val(anim);
     }
 }
 
@@ -158,6 +158,8 @@ void app_anim_finalize(marena* arena, app_anim* anim) {
     if (anim->pauses == NULL) {
         anim->pauses = CREATE_ZERO_ARRAY(arena, b32, anim->num_keys);
     }
+    anim->to_pause += anim->pauses[0];
+    
     if (anim->times == NULL) {
         anim->times = CREATE_ARRAY(arena, f64, anim->num_keys);
         

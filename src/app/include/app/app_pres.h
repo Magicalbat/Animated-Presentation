@@ -31,6 +31,8 @@ typedef struct app_pres {
     app_slide_node* first_slide;
     app_slide_node* last_slide;
     u32 num_slides;
+
+    app_slide_node* cur_slide;
 } app_pres;
 
 #define PRES_MAX_DESCS 32

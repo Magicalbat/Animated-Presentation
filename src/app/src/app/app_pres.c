@@ -14,9 +14,20 @@ void app_pres_destroy(app_pres* pres) {
 
 // TODO: make final version
 void app_pres_draw(app_pres* pres, app_app* app) {
-    app_objp_draw(pres->first_slide->objs, pres->obj_reg, app);
+    app_objp_draw(pres->cur_slide->objs, pres->obj_reg, app);
 }
 void app_pres_update(app_pres* pres, app_app* app, f32 delta) {
-    app_animp_update(pres->first_slide->anims, app, delta);
-    app_objp_update(pres->first_slide->objs, pres->obj_reg, app, delta);
+    if (GFX_IS_KEY_JUST_DOWN(app->win, GFX_KEY_RIGHT)) {
+        if (pres->cur_slide->next != NULL) {
+            pres->cur_slide = pres->cur_slide->next;
+        }
+    }
+    if (GFX_IS_KEY_JUST_DOWN(app->win, GFX_KEY_LEFT)) {
+        if (pres->cur_slide->prev != NULL) {
+            pres->cur_slide = pres->cur_slide->prev;
+        }
+    }
+    
+    app_animp_update(pres->cur_slide->anims, app, delta);
+    app_objp_update(pres->cur_slide->objs, pres->obj_reg, app, delta);
 }

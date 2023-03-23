@@ -13,8 +13,10 @@ static void parse_next_char(pres_parser* parser);
 
 static void parse_syntax_error(pres_parser* parser);
 
+static void parse_settings(marena* arena, app_app* app, pres_parser* parser);
 static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, pres_parser* parser);
 static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, pres_parser* parser);
+
 static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, app_slide_node* slide, pres_parser* parser);
 
 static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_parser* parser);
@@ -56,10 +58,8 @@ app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path) {
             log_errorf("Invalid char '%c' after keyword, expected '='", P_CHAR(&parser));
             parse_syntax_error(&parser);
 
-            //marena_pop(arena, sizeof(app_pres));
-            //return NULL;
-            marena_scratch_release(scratch);
-            return pres;
+            marena_pop(arena, sizeof(app_pres));
+            return NULL;
         }
 
         parse_next_char(&parser);
@@ -69,6 +69,8 @@ app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path) {
             parse_plugins(arena, scratch, app, pres, &parser);
         } else if (str8_equals(keyword, STR8_LIT("slides"))) {
             parse_slides(arena, scratch, app, pres, &parser);
+        } else if (str8_equals(keyword, STR8_LIT("settings"))) {
+            parse_settings(arena, app, &parser);
         } else {
             log_errorf("Invalid keyword \"%.*s\"", (int)keyword.size, keyword.str);
             parse_syntax_error(&parser);
@@ -205,6 +207,68 @@ static void parse_syntax_error(pres_parser* parser) {
     log_errorf("%.*s", (int)line_ind_str.size, line_ind_str.str);
 }
 
+#define SETTINGS_CASE(s) (str8_equals(keyword, STR8_LIT(s)))
+static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
+    if (P_CHAR(parser) != '[') {
+        log_errorf("Invalid char '%c' at settings, expected '['", P_CHAR(parser));
+        parse_syntax_error(parser);
+
+        return;
+    }
+
+    parse_next_char(parser);
+    P_SKIP_SPACE(parser);
+
+    while (P_CHAR(parser) != ']') {
+        string8 keyword = parse_keyword(parser);
+
+        P_SKIP_SPACE(parser);
+        if (P_CHAR(parser) != '=') {
+            log_errorf("Invalid char '%c' after settings keyword, expected '='", P_CHAR(parser));
+            parse_syntax_error(parser);
+
+            break;
+        }
+        parse_next_char(parser);
+        P_SKIP_SPACE(parser);
+
+        if (SETTINGS_CASE("reference_dim")) {
+            field_val dim = parse_vec(parser);
+            if (dim.type != FIELD_VEC2D) {
+                log_error("Invalid type for reference dim, expected VEC2D");
+                parse_syntax_error(parser);
+
+                break;
+            }
+            
+            app->ref_width = (f32)dim.val.vec2d.x;
+            app->ref_height = (f32)dim.val.vec2d.y;
+        } else if (SETTINGS_CASE("background_color")) {
+            field_val col = parse_vec(parser);
+            if (col.type != FIELD_VEC4D) {
+                log_error("Invalid type for reference dim, expected VEC4D");
+                parse_syntax_error(parser);
+
+                break;
+            }
+
+            app->bg_col = col.val.vec4d;
+        } else if (SETTINGS_CASE("title")) {
+            string8 title = parse_string(arena, parser);
+            gfx_win_set_title(app->win, title);
+        } else {
+            log_errorf("Invalid keyword \"%.*s\" in settings", (int)keyword.size, keyword.str);
+            parse_syntax_error(parser);
+
+            break;
+        }
+
+        P_SKIP_SPACE(parser);
+        if (P_CHAR(parser) == ',') { parse_next_char(parser); }
+        P_SKIP_SPACE(parser);
+    }
+}
+
 typedef void (plugin_init_func)(marena* arena, app_app* app);
 static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, pres_parser* parser) {
     if (P_CHAR(parser) != '[') {
@@ -230,7 +294,6 @@ static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_
 
         P_SKIP_SPACE(parser);
         if (P_CHAR(parser) == ',') { parse_next_char(parser); }
-
         P_SKIP_SPACE(parser);
     }
 
@@ -276,6 +339,8 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
         slide->anims = app_animp_create(arena, PRES_MAX_ANIMS);
         
         DLL_PUSH_BACK(pres->first_slide, pres->last_slide, slide);
+        pres->num_slides++;
+        pres->cur_slide = pres->first_slide;
 
         parse_slide(arena, scratch, app, pres, slide, parser);
 

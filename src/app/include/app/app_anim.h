@@ -29,7 +29,7 @@ typedef struct {
     u32 cur_key;
     u32 next_key;
     f64 cur_time;
-    b32 paused;
+    u32 to_pause;
     b32 stopped;
 } app_anim;
 

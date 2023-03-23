@@ -2,20 +2,33 @@
 
 #include "os/os.h"
 
+#ifdef __EMSCRIPTEN__
+EM_JS(void, app_maximize_canvas, (), {
+    const canvas = document.querySelector("#canvas");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+#endif
+
+
 app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height) {
     app_app* app = CREATE_STRUCT(arena, app_app);
 
     gfx_window* win = gfx_win_create(arena, win_width, win_height, STR8_LIT("Animated Presentation"));
+
+#ifdef __EMSCRIPTEN__
+    app_maximize_canvas();
+#endif
     
     gfx_win_make_current(win);
     opengl_load_functions(win);
 
     app->win = win;
     
-    // TODO: remove temp code
+    app->bg_col = (vec4d){ .5, .6, .7, 1 };
+    
     app->ref_width = (f32)win_width;
     app->ref_height = (f32)win_height;
-    app->aspect_ratio = (f32)win_width / (f32)win_height;
     
     app->rectb = draw_rectb_create(arena, win, 1024, 32);
     app->cbezier = draw_cbezier_create(arena, win, 1024);
@@ -65,11 +78,11 @@ void app_run(marena* arena, app_app* app) {
         gfx_win_clear(app->win);
 
         f32 height = (f32)app->win->height;
-        f32 width = height * app->aspect_ratio;
+        f32 width = height * (app->ref_width / app->ref_height);
         
         if (width > (f32)app->win->width) {
             width = (f32)app->win->width;
-            height = width / app->aspect_ratio;
+            height = width * (app->ref_height / app->ref_width);
         }
         
         f32 top = ((f32)app->win->height - height);
@@ -88,7 +101,7 @@ void app_run(marena* arena, app_app* app) {
         memcpy(app->poly->win_mat, app->win_mat, sizeof(app->win_mat));
         memcpy(app->rectb->win_mat, app->win_mat, sizeof(app->win_mat));
 
-        draw_rectb_push(app->rectb, (rect){ 0, 0, app->ref_width, app->ref_height }, (vec4d){ .5, .6, .7, 1 });
+        draw_rectb_push(app->rectb, (rect){ 0, 0, app->ref_width, app->ref_height }, app->bg_col);
         draw_rectb_flush(app->rectb);
 
         app_pres_draw(app->pres, app);
