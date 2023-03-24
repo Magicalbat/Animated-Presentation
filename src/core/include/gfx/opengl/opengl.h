@@ -1,3 +1,5 @@
+#include "base/base_defs.h"
+
 #ifdef AP_OPENGL
 
 #ifndef OPENGL_H

@@ -735,7 +735,6 @@ static field_val parse_vec(pres_parser* parser) {
         
         return (field_val){ 0 };
     }
-    parse_next_char(parser);
     
     u32 vec_len = 0;
     switch (keyword.str[3]) {
@@ -753,10 +752,12 @@ static field_val parse_vec(pres_parser* parser) {
     }
 
     for (u32 i = 0; i < vec_len; i++) {
+        parse_next_char(parser);
         P_SKIP_SPACE(parser);
         out.val.vec4d.p[i] = parse_f64(parser);
-        parse_next_char(parser);
     }
+    P_SKIP_SPACE(parser);
+    if (P_CHAR(parser) == ',') { parse_next_char(parser); }
     P_SKIP_SPACE(parser);
     
     if (P_CHAR(parser) != '}') {

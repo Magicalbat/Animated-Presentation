@@ -1,3 +1,5 @@
+#include "base/base_defs.h"
+
 #if defined(AP_OPENGL) && defined(_WIN32)
 
 #include "gfx/gfx.h"

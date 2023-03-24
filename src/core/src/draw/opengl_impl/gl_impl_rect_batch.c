@@ -1,3 +1,5 @@
+#include "base/base_defs.h"
+
 #ifdef AP_OPENGL
 
 #include "draw/opengl_impl/gl_impl.h"

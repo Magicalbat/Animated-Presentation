@@ -20,13 +20,6 @@ function init_common()
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
     targetdir ("bin/" .. outputdir)
 
-    files {
-        "src/%{prj.name}/**.h",
-        "src/%{prj.name}/**.c",
-    }
-
-    defines { "AP_OPENGL" }
-
     filter "options:not wasm"
         architecture "x64"
 
@@ -56,6 +49,11 @@ project "core"
 
     includedirs {
         "src/%{prj.name}/include"
+    }
+
+    files {
+        "src/%{prj.name}/**.h",
+        "src/%{prj.name}/**.c",
     }
 
     init_common()
@@ -100,6 +98,10 @@ project "app"
     location "src/app"
     kind "ConsoleApp"
     
+    files {
+        "src/%{prj.name}/**.h",
+        "src/%{prj.name}/**.c",
+    }
 
     includedirs {
         "src/%{prj.name}/include",
@@ -134,26 +136,30 @@ project "app"
 
         filter { "options:wasm", "system:linux" }
             linkoptions { "--cache \"../../emcc-cache\""}
+
     else
         -- TODO: Test if links are necessary
-        filter "system:linux"            links {
+        filter "system:linux"
+            links {
                 "m", "X11", "GL", "GLX", "dl"
             }
 
         filter "system:windows"
             systemversion "latest"
 
-            links {
-                "gdi32", "kernel32", "user32", "winmm", "opengl32"
-            }
     end
 
-project "builtin_plugin"
-    location "src/builtin_plugin"
+project "plugin_basic"
+    location "plugins/basic"
     kind "SharedLib"
 
+    files {
+        "plugins/basic/**.h",
+        "plugins/basic/**.c",
+    }
+
     includedirs {
-        "src/%{prj.name}",
+        "plugins/basic",
         "src/core/include",
         "src/app/include"
     }
@@ -198,3 +204,4 @@ project "builtin_plugin"
                 "gdi32", "kernel32", "user32", "winmm", "opengl32"
             }
     end
+

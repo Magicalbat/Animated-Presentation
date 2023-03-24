@@ -1,3 +1,5 @@
+#include "base/base_defs.h"
+
 #if defined(AP_OPENGL) && defined(__linux__)
 
 #include "base/base.h"

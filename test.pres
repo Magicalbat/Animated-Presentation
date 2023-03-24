@@ -1,5 +1,5 @@
 plugins = [
-    "bin/Debug-linux-x86_64/libbuiltin_plugin.so",
+    "plugin_basic.dll",
 ],
 settings = [
     reference_dim = vec2{ 320, 180 },
@@ -8,13 +8,10 @@ settings = [
 ],
 slides = [
     slide {
-        rectangle{ x = 10, y = 10, w = 25, h = 25 }
+        image{
+            source = "monkey 1.png",
+            scale = vec2{0.1, 0.1}
+        },
+        rectangle{ x = 10, y = 10, w = 25, h = 25 },
     },
-    slide {
-        rectangle{
-            x = 20, y = 20, w = 25, h = 25,
-            col = vec4{ 0, 1, 1, 1 }
-        }
-    },
-    slide {}
 ]

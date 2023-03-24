@@ -6,10 +6,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
-#include <errno.h>
-#include <string.h>
 
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -36,6 +33,9 @@ typedef struct {
     u8 month;
     i32 year;
 } datetime;
+
+// I did not end up having multiple graphics backends 
+#define AP_OPENGL
 
 #if defined(_WIN32)
 #    define AP_EXPORT __declspec(dllexport) 
@@ -69,8 +69,6 @@ typedef struct {
 #        error "Invalid compiler/version for thead variable"
 #    endif
 #endif
-
-
 
 #ifdef AP_ASSERT
 # define ASSERT(a, b) do { \
@@ -137,8 +135,6 @@ typedef struct {
             ((l) = (l)->prev, (l)->next = 0) : \
             ((n)->next->prev = (n)->prev, \
             (n)->prev->next = (n)->next))
-
-#define TIME_REGION(t) for(struct { u64 start; u64 end; } _i_ = { os_now_microseconds(), 0 }; !_i_.end; _i_.end = os_now_microseconds(), t = _i_.end - _i_.start)
 
 #ifdef __cplusplus
 }
