@@ -338,6 +338,7 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
         slide->objs = app_objp_create(arena, pres->obj_reg, PRES_MAX_OBJS);
         slide->anims = app_animp_create(arena, PRES_MAX_ANIMS);
         
+        
         DLL_PUSH_BACK(pres->first_slide, pres->last_slide, slide);
         pres->num_slides++;
         pres->cur_slide = pres->first_slide;
@@ -552,6 +553,24 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
 
             ANIM_TRY_NUM_KEYS(pauses_field.val.bool32_arr.size);
             anim->pauses = pauses_field.val.bool32_arr.data;
+        } else if (ANIM_FIELD_CASE("bezier")) {
+            field_val bezier_field = parse_vec(parser);
+            if (bezier_field.type != FIELD_VEC4D) {
+                log_error("Bezier must be VEC4D");
+                parse_syntax_error(parser);
+
+                return;
+            }
+            
+            vec4d v = bezier_field.val.vec4d;
+            anim->bezier = (cbezier){
+                .p = {
+                    (vec2){ 0, 0 },
+                    (vec2){ (f32)v.x, (f32)v.y },
+                    (vec2){ (f32)v.z, (f32)v.w },
+                    (vec2){ 1, 1 },
+                }
+            };
         } else {
             log_errorf("Invalid field name \"%.*s\" in anim", (int)field_name.size, field_name.str);
             parse_syntax_error(parser);

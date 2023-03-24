@@ -21,12 +21,11 @@ premake5 gmake2
 make
 ```
 ### Emscripten
-On windows, premake5 automatically adds .exe to the output files. You can either rename the files after building, or edit the Makefile.
+This does not work well on Windows. If you only can use Windows, you will have to modify the makefile the premake5 generates.
 ```
 premake5 gmake2 --wasm
 emmake make
 ```
-
 
 ## Inspired by
 - [Mr. 4th Programming](https://www.youtube.com/c/Mr4thProgramming)

@@ -19,6 +19,7 @@ typedef struct {
     void* obj_field;
 
     f64 time;
+    cbezier bezier;
     app_anim_repeat repeat;
 
     u32 num_keys;
@@ -26,9 +27,10 @@ typedef struct {
     f64* times;
     b32* pauses;
 
-    u32 cur_key;
-    u32 next_key;
+    i32 cur_key;
+    i32 next_key;
     f64 cur_time;
+    i32 dir;
     u32 to_pause;
     b32 stopped;
 } app_anim;

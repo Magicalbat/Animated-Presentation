@@ -47,7 +47,6 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     return app;
 } 
 
-
 void app_run(marena* arena, app_app* app) {
     str8_reg_init_arr(arena, &app->temp.file_reg);
     

@@ -24,9 +24,11 @@ app_anim* app_animp_next(app_anim_pool* pool) {
 }
 
 static void anim_update_val(app_anim* anim) {
-    f64 t = 
+    f64 t = cbezier_calc_y(
+        &anim->bezier,
         (anim->cur_time - anim->times[anim->cur_key]) / 
-        (anim->times[anim->next_key] - anim->times[anim->cur_key]);
+        (anim->times[anim->next_key] - anim->times[anim->cur_key])
+    );
 
     switch (anim->type) {
         case FIELD_F64: {
@@ -113,17 +115,28 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
                 continue;
         }
 
-        anim->cur_time += (f64)(delta);
+        anim->cur_time += (f64)(delta * anim->dir);
 
         // Check for key advance
-        if (anim->cur_time >= anim->times[anim->next_key]) {
+        if ((anim->dir ==  1 && anim->cur_time >= anim->times[anim->next_key]) ||
+            (anim->dir == -1 && anim->cur_time <= anim->times[anim->next_key])) {
             anim->to_pause += anim->pauses[anim->next_key];
             
             anim->cur_time = anim->times[anim->next_key];
-            anim->cur_key++;
-            anim->next_key++;
-                
-            if (anim->next_key >= anim->num_keys) {
+            anim->cur_key += anim->dir;
+            anim->next_key += anim->dir;
+
+            if (anim->next_key < 0) {
+                switch (anim->repeat) {
+                    case ANIM_BOUNCE: {
+                        anim->cur_time = 0;
+                        anim->cur_key = 0;
+                        anim->next_key = 1;
+                        anim->dir = 1;
+                    } break;
+                    default: break;
+                }
+            } else if (anim->next_key >= anim->num_keys) {
                 switch (anim->repeat) {
                     case ANIM_STOP: {
                         anim->cur_time = anim->times[anim->num_keys - 1];
@@ -135,7 +148,12 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
                         anim->next_key = 1;
                         anim->to_pause += anim->pauses[0];
                     } break;
-                    // TODO: bounce
+                    case ANIM_BOUNCE: {
+                        anim->cur_time = anim->times[anim->num_keys - 1];
+                        anim->cur_key = anim->num_keys - 1;
+                        anim->next_key = anim->num_keys - 2;
+                        anim->dir = -1;
+                    } break;
                     default: break;
                 }
             }
@@ -160,13 +178,20 @@ void app_anim_finalize(marena* arena, app_anim* anim) {
     }
     anim->to_pause += anim->pauses[0];
     
+    if (anim->bezier.p2.x == 0 && anim->bezier.p2.y == 0)
+        anim->bezier.p2 = (vec2){ 1, 1 };
+    if (anim->bezier.p3.x == 0 && anim->bezier.p3.y == 0)
+        anim->bezier.p3 = (vec2){ 1, 1 };
+    
     if (anim->times == NULL) {
         anim->times = CREATE_ARRAY(arena, f64, anim->num_keys);
         
         for (u32 i = 0; i < anim->num_keys; i++) {
-            anim->times[i] = anim->time * ((f64)(i) / (f64)(anim->num_keys - 1));
+            anim->times[i] = anim->time * cbezier_calc_y(&anim->bezier, ((f64)(i) / (f64)(anim->num_keys - 1)));
         }
     }
+    
+    anim->dir = 1;
 
     anim_update_val(anim);
 }

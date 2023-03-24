@@ -1,5 +1,5 @@
 plugins = [
-    "plugin_basic.dll",
+    "bin/Debug-linux-x86_64/libplugin_basic.so",
 ],
 settings = [
     reference_dim = vec2{ 320, 180 },
@@ -10,7 +10,13 @@ slides = [
     slide {
         image{
             source = "monkey 1.png",
-            scale = vec2{0.1, 0.1}
+            scale = anim{
+                keys = [ vec2{0.1, 0.1}, vec2{ 0.25, 0.25 }, vec2{ 0.2, 0.2}],
+                pauses = [ true, true, true ],
+                bezier = vec4{ 0.5, 0, 0.5, 1 },
+                repeat = BOUNCE,
+                time = 2
+            }
         },
         rectangle{ x = 10, y = 10, w = 25, h = 25 },
     },
