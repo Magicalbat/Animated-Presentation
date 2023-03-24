@@ -21,7 +21,7 @@ premake5 gmake2
 make
 ```
 ### Emscripten
-This does not work well on Windows. If you only can use Windows, you will have to modify the makefile the premake5 generates.
+This does not work well on Windows. If you can only use Windows, you will have to modify the makefile that premake5 generates.
 ```
 premake5 gmake2 --wasm
 emmake make
