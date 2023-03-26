@@ -82,6 +82,8 @@ AP_EXPORT string8 str8_postfix(string8 str, u64 size);
 AP_EXPORT string8 str8_substr(string8 str, u64 start, u64 end);
 AP_EXPORT string8 str8_substr_size(string8 str, u64 start, u64 size);
 
+AP_EXPORT string8 str8_cut_end_until(string8 str, u8 c);
+
 AP_EXPORT void str8_list_push_existing(string8_list* list, string8 str, string8_node* node);
 AP_EXPORT void str8_list_push(marena* arena, string8_list* list, string8 str);
 

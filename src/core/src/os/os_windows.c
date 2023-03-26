@@ -82,12 +82,7 @@ void os_main_init(int argc, char** argv) {
 
         if (buffer != NULL) {
             string8 path_str = { .size = size, .str = buffer };
-            while (path_str.size > 0 && path_str.str[path_str.size - 1] != '\\') {
-                path_str.size--;
-            }
-
-            if (path_str.size != 0)
-                path_str.size--;
+            path_str = str8_cut_end_until(path_str, '\\');
 
             w32_binary_path = str8_copy(w32_arena, path_str);
         }

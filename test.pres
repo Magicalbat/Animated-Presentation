@@ -51,11 +51,6 @@ slides = [
             end_col = vec4{ 0, 1, 1, 1 },
             start_col = vec4{ 1, 1, 0, 1 },
         },
-        image {
-            x = 120, y = 60,
-            source = "monkey 1.png",
-            scale = vec2{ 0.15, 0.15 }
-        }
         polygon {
             x = 10,
             y = 10,

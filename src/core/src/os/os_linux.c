@@ -3,10 +3,14 @@
 #include <stdio.h>
 #include <stddef.h>
 
+#include <linux/limits.h>
+
 #include "os/os.h"
 
-static marena*       lnx_arena;
-static string8_list lnx_cmd_args;
+static marena*      lnx_arena = NULL;
+static string8_list lnx_cmd_args = { };
+static string8      lnx_binary_path = { };
+static string8      lnx_current_path = { };
 
 static string8 lnx_error_string(void) {
     char* err_cstr = strerror(errno);
@@ -32,12 +36,53 @@ void os_main_init(int argc, char** argv) {
         string8 str = str8_from_cstr((u8*)argv[i]);
         str8_list_push(lnx_arena, &lnx_cmd_args, str);
     }
+
+    marena_temp scratch = marena_scratch_get(NULL, 0);
+    {
+        u8* buffer = CREATE_ZERO_ARRAY(scratch.arena, u8, PATH_MAX);
+        ssize_t size = readlink("/proc/self/exe", (char*)buffer, PATH_MAX);
+        
+        if (size == -1) {
+            log_lnx_error("Failed to locate binary path");
+        } else {
+            string8 path_str = { .size = (u64)size, .str = buffer };
+            path_str = str8_cut_end_until(path_str, '/');
+
+            lnx_binary_path = str8_copy(lnx_arena, path_str);
+        }
+    }
+
+    {
+        u64 max_size = PATH_MAX;
+
+        for (u32 i = 0; i < 4; i++, max_size *= 4) {
+            u8* buffer = CREATE_ZERO_ARRAY(scratch.arena, u8, max_size);
+            if (getcwd((char*)buffer, max_size) == NULL) {
+                marena_temp_end(scratch);
+                continue;
+            }
+
+            string8 path_str = str8_from_cstr(buffer);
+            lnx_current_path = str8_copy(lnx_arena, path_str);
+
+            break;
+        }
+    }
+
+    marena_scratch_release(scratch);
 }
 void os_main_quit(void) {
     marena_destroy(lnx_arena);
 }
 string8_list os_get_cmd_args(void) {
     return lnx_cmd_args;
+}
+
+string8 os_binary_path(void) {
+    return lnx_binary_path;
+}
+string8 os_current_path(void) {
+    return lnx_current_path;
 }
 
 void* os_mem_reserve(u64 size) {
@@ -243,7 +288,7 @@ void os_file_close(os_file file) {
 static string8 dl_error_string(void) {
     char* err_cstr = dlerror();
     
-    return str8_from_cstr(err_cstr);
+    return str8_from_cstr((u8*)err_cstr);
 }
 #define log_dl_error(msg) do { \
         string8 err = dl_error_string(); \

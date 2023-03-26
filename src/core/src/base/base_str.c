@@ -113,6 +113,19 @@ string8 str8_substr_size(string8 str, u64 start, u64 size) {
     return str8_substr(str, start, start + size);
 }
 
+string8 str8_cut_end_until(string8 str, u8 c) {
+    string8 out = str;
+
+    while (out.size > 0 && out.str[out.size - 1] != c) {
+        out.size--;
+    }
+
+    if (out.size != 0)
+        out.size--;
+
+    return out;
+}
+
 void str8_list_push_existing(string8_list* list, string8 str, string8_node* node) {
     node->str = str;
     SLL_PUSH_BACK(list->first, list->last, node);

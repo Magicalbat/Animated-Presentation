@@ -225,7 +225,7 @@ void gfx_win_set_title(gfx_window* win, string8 title) {
 }
 
 void opengl_load_functions(gfx_window* win) {
-    #define X(ret, name, args) name = (gl_func_##name)glXGetProcAddress(#name);
+    #define X(ret, name, args) name = (gl_func_##name)glXGetProcAddress((const GLubyte*)#name);
     #include "gfx/opengl/opengl_xlist.h"
     #undef X
 }
