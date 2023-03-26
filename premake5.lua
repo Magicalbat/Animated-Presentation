@@ -19,6 +19,7 @@ function init_common()
 
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
     targetdir ("bin/" .. outputdir)
+    targetprefix ""
 
     filter "options:not wasm"
         architecture "x64"
@@ -169,6 +170,9 @@ project "plugin_basic"
     }
 
     init_common()
+
+    filter { }
+        targetdir("bin/" .. outputdir .. "/plugins")
 
     if _OPTIONS["wasm"] then
         filter "options:wasm"

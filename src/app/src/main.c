@@ -10,12 +10,12 @@
 // might be easier to use RenderDoc
 
 int main(int argc, char** argv) {
-    os_main_init(argc, argv);
-
     log_init(&(log_desc){ 
         .log_time = LOG_NO,
         .log_file = { 0, 0, LOG_NO, LOG_NO }
     });
+
+    os_main_init(argc, argv);
     
     marena* perm_arena = marena_create(&(marena_desc){
         .desired_max_size = MiB(4),

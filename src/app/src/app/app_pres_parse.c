@@ -285,12 +285,41 @@ static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_
 
     string8_list plugin_names = { 0 };
 
+    string8 bin_path = os_binary_path();
+    string8 plugin_str = STR8_LIT("/plugins/");
+    string8 plugin_path = {
+        .size = bin_path.size + plugin_str.size,
+        .str = CREATE_ZERO_ARRAY(scratch.arena, u8, bin_path.size + plugin_str.size)
+    };
+    memcpy(plugin_path.str, bin_path.str, bin_path.size);
+    memcpy(plugin_path.str + bin_path.size, plugin_str.str, plugin_str.size);
+
+    string8 suffix = {};
+
+#if defined(__linux__)
+    suffix = STR8_LIT(".so");
+#elif defined(_WIN32)
+    suffix = STR8_LIT(".dll");
+#elif defined(__EMSCRIPTEN__)
+    suffix = STR8_LIT(".wasm");
+#endif
+
     while (P_CHAR(parser) != ']') {
-        string8 str = parse_string(temp.arena, parser);
-        if (str.size == 0) {
+        string8 plugin_name = parse_string(temp.arena, parser);
+        if (plugin_name.size == 0) {
             break;
         }
-        str8_list_push(temp.arena, &plugin_names, str);
+
+        u64 path_size = plugin_path.size + plugin_name.size + suffix.size;
+        string8 path = {
+            .size = path_size,
+            .str = CREATE_ZERO_ARRAY(scratch.arena, u8, path_size)
+        };
+        memcpy(path.str, plugin_path.str, plugin_path.size);
+        memcpy(path.str + plugin_path.size, plugin_name.str, plugin_name.size);
+        memcpy(path.str + plugin_path.size + plugin_name.size, suffix.str, suffix.size);
+
+        str8_list_push(temp.arena, &plugin_names, path);
 
         P_SKIP_SPACE(parser);
         if (P_CHAR(parser) == ',') { parse_next_char(parser); }

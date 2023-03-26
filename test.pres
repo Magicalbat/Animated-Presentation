@@ -1,5 +1,5 @@
 plugins = [
-    "bin/Debug-linux-x86_64/libplugin_basic.so",
+    "plugin_basic",
 ],
 settings = [
     reference_dim = vec2{ 320, 180 },
@@ -8,16 +8,63 @@ settings = [
 ],
 slides = [
     slide {
-        image{
-            source = "monkey 1.png",
-            scale = anim{
-                keys = [ vec2{0.1, 0.1}, vec2{ 0.25, 0.25 }, vec2{ 0.2, 0.2}],
-                pauses = [ true, true, true ],
-                bezier = vec4{ 0.5, 0, 0.5, 1 },
-                repeat = BOUNCE,
-                time = 2
-            }
+        rectangle {
+            x = anim{
+                keys = [ 25, 75, 50 ],
+                times = [0, 0.25, 1.5 ],
+                repeat = BOUNCE
+            },
+            y = 50,
+            w = 50,
+            h = 50,
+            col = vec4{ 0, 0.5, 1, 1 },
+            outline = true,
+            outline_width = 5
         },
-        rectangle{ x = 10, y = 10, w = 25, h = 25 },
+        rectangle {
+            x = 200, y = 20,
+            w = 25, h = 30,
+            col = anim{
+                keys = [
+                    vec4{ 0, 1, 1, 1 },
+                    vec4{ 1, 0, 1, 0.5 },
+                    vec4{ 0, 1, 1, 1 },
+                ],
+                time = 2.5,
+                repeat = LOOP
+            },
+        },
+        bezier {
+            p0 = anim{
+                keys = [ vec2{ 0, 0 }, vec2{ 50, 50 }, vec2{ 0, 0 } ],
+                time = 2,
+                repeat = LOOP
+            },
+            p1 = vec2{ 100, 50 },
+            p2 = vec2{ 50, 100 },
+            p3 = anim{
+                keys = [ vec2{ 150, 0 }, vec2{ 150, 150 }, vec2{ 150, 0 } ],
+                time = 1.5,
+                repeat = LOOP
+            },
+            gradient = true,
+            end_col = vec4{ 0, 1, 1, 1 },
+            start_col = vec4{ 1, 1, 0, 1 },
+        },
+        image {
+            x = 120, y = 60,
+            source = "monkey 1.png",
+            scale = vec2{ 0.15, 0.15 }
+        }
+        polygon {
+            x = 10,
+            y = 10,
+            points = [
+                vec2 { -10, 10 },
+                vec2 { 0, -10 },
+                vec2 { 10, 10 },
+            ],
+            col = vec4 { 0.5, 0.75, 0.25, 1 },
+        }
     },
 ]

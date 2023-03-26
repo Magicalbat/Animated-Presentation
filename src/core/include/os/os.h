@@ -69,6 +69,9 @@ AP_EXPORT void         os_main_init(int argc, char** argv);
 AP_EXPORT void         os_main_quit(void);
 AP_EXPORT string8_list os_get_cmd_args(void);
 
+AP_EXPORT string8 os_binary_path(void);
+AP_EXPORT string8 os_current_path(void);
+
 AP_EXPORT void* os_mem_reserve(u64 size);
 AP_EXPORT b32   os_mem_commit(void* ptr, u64 size);
 AP_EXPORT void  os_mem_decommit(void* ptr, u64 size);

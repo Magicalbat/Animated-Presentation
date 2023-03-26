@@ -3,10 +3,12 @@
 #include "base/base.h"
 #include "os/os.h"
 
-static u64          w32_ticks_per_second;
+static u64          w32_ticks_per_second = 1;
 
-static marena*      w32_arena;
-static string8_list w32_cmd_args;
+static marena*      w32_arena = NULL;
+static string8_list w32_cmd_args = { };
+static string8      w32_binary_path = { };
+static string8      w32_current_path = { };
 
 static string8 win32_error_string(void) {
     DWORD err = GetLastError();
@@ -58,6 +60,49 @@ void os_main_init(int argc, char** argv) {
         string8 str = str8_from_cstr((u8*)argv[i]);
         str8_list_push(w32_arena, &w32_cmd_args, str);
     }
+
+    marena_temp scratch = marena_scratch_get(NULL, 0);
+    {
+        u32 max_size = 512;
+        u8* buffer = NULL;
+        u32 size = 0;
+
+        for (u32 i = 0; i < 4; i++, max_size *= 4) {
+            u8* cur_buffer = CREATE_ZERO_ARRAY(scratch.arena, u8, max_size);
+            u32 cur_size = (u32)GetModuleFileNameA(NULL, (LPSTR)cur_buffer, max_size);
+
+            if (cur_size == max_size && GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
+                marena_temp_end(scratch);
+                continue;
+            }
+
+            buffer = cur_buffer;
+            size = cur_size;
+        }
+
+        if (buffer != NULL) {
+            string8 path_str = { .size = size, .str = buffer };
+            while (path_str.size > 0 && path_str.str[path_str.size - 1] != '\\') {
+                path_str.size--;
+            }
+
+            if (path_str.size != 0)
+                path_str.size--;
+
+            w32_binary_path = str8_copy(w32_arena, path_str);
+        }
+    }
+
+    {
+        u32 buffer_size = (u32)GetCurrentDirectoryA(0, NULL);
+        u8* buffer = CREATE_ZERO_ARRAY(scratch.arena, u8, buffer_size);
+        GetCurrentDirectoryA(buffer_size, (LPSTR)buffer);
+
+        string8 path_str = { .size = buffer_size - 1, .str = buffer };
+        w32_current_path = str8_copy(w32_arena, path_str);
+    }
+
+    marena_scratch_release(scratch);
 }
 void os_main_quit(void) {
     marena_destroy(w32_arena);
@@ -65,6 +110,13 @@ void os_main_quit(void) {
 }
 string8_list os_get_cmd_args(void) {
     return w32_cmd_args;
+}
+
+string8 os_binary_path(void) {
+    return w32_binary_path;
+}
+string8 os_current_path(void) {
+    return w32_current_path;
 }
 
 void* os_mem_reserve(u64 size) {
