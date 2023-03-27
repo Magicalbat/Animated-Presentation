@@ -14,12 +14,12 @@ EM_JS(void, app_maximize_canvas, (), {
 app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height) {
     app_app* app = CREATE_STRUCT(arena, app_app);
 
-    gfx_window* win = gfx_win_create(arena, win_width, win_height, STR8_LIT("Animated Presentation"));
-
 #ifdef __EMSCRIPTEN__
     app_maximize_canvas();
 #endif
-    
+
+    gfx_window* win = gfx_win_create(arena, win_width, win_height, STR8_LIT("Animated Presentation"));
+
     gfx_win_make_current(win);
     opengl_load_functions(win);
 

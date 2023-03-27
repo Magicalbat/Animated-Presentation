@@ -5,8 +5,9 @@
 
 #include "os/os.h"
 
-static marena*      wasm_arena;
-static string8_list wasm_cmd_args;
+static marena*      wasm_arena = NULL;
+static string8_list wasm_cmd_args = { };
+static string8 wasm_empty_str = { .size = 0, .str = (u8*)"" };
 
 void os_main_init(int argc, char** argv) {
     wasm_arena = marena_create(&(marena_desc){
@@ -23,6 +24,13 @@ void os_main_quit(void) {
 }
 string8_list os_get_cmd_args(void) {
     return wasm_cmd_args;
+}
+
+string8 os_binary_path(void) {
+    return wasm_empty_str;
+}
+string8 os_current_path(void) { 
+    return wasm_empty_str;
 }
 
 void* os_mem_reserve(u64 size) {

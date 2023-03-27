@@ -63,7 +63,10 @@ string8 os_file_read(marena* arena, string8 path) {
 }
 
 EM_ASYNC_JS(int, js_load_lib, (char* file_name), {
-    const fileName = UTF8ToString(file_name);
+    let fileName = UTF8ToString(file_name);
+    if (fileName.charAt(0) === '/') {
+        fileName = fileName.substring(1);
+    }
 
     const response = await fetch(fileName);
     if (!response.ok) {
@@ -72,6 +75,12 @@ EM_ASYNC_JS(int, js_load_lib, (char* file_name), {
 
     const blob = await response.blob();
     const data = new Uint8Array(await blob.arrayBuffer());
+
+    for (let i = 0; i < fileName.length; i++) {
+        if (fileName.charAt(i) === '/') {
+            FS.mkdir(fileName.substring(0, i));
+        }
+    }
 
     const stream = FS.open(fileName, "w+");
     FS.write(stream, data, 0, data.length, 0);
@@ -93,7 +102,7 @@ os_library os_lib_load(string8 path) {
     marena_scratch_release(temp);
 
     if (handle == NULL) {
-        log_errorf("Failed to dynamic library \"%.*s\"", (int)path.size, path.str);
+        log_errorf("Failed to load dynamic library \"%.*s\"", (int)path.size, path.str);
     }
 
     return (os_library){
