@@ -57,12 +57,12 @@ void app_run(marena* arena, app_app* app) {
     }
 
     for (app_slide_node* slide = app->pres->first_slide; slide != NULL; slide = slide->next) {
-        app_objp_file(slide->objs, app->pres->obj_reg, app);
+        app_objp_file(arena, slide->objs, app->pres->obj_reg, app);
     }
 
-    marena_destroy(app->temp.arena);
-    
     draw_rectb_finalize_textures(app->rectb);
+    
+    marena_destroy(app->temp.arena);
 
     gfx_win_alpha_blend(app->win, true);
     gfx_win_clear_color(app->win, (vec3){ 0 });

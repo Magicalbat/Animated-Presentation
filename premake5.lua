@@ -209,3 +209,62 @@ project "plugin_basic"
             }
     end
 
+project "plugin_text"
+    location "plugins/text"
+    kind "SharedLib"
+
+    files {
+        "plugins/text/**.h",
+        "plugins/text/**.c",
+    }
+
+    includedirs {
+        "plugins/text",
+        "src/core/include",
+        "src/app/include"
+    }
+
+    links {
+        "core",
+    }
+
+    init_common()
+
+    filter { }
+        targetdir("bin/" .. outputdir .. "/plugins")
+
+    if _OPTIONS["wasm"] then
+        filter "options:wasm"
+            buildoptions  {
+                "-fPIC",
+            }
+
+            linkoptions {
+                "-sFETCH=1",
+                "-sWASM=1",
+                "-sALLOW_MEMORY_GROWTH=1",
+                "-sASYNCIFY=1",
+                "-sFORCE_FILESYSTEM=1",
+                "-sOFFSCREEN_FRAMEBUFFER=1",
+                "-sMIN_WEBGL_VERSION=2",
+                "-sSIDE_MODULE=2"
+            }
+
+            targetextension ".wasm"
+
+        filter { "options:wasm", "system:linux" }
+            linkoptions { "--cache \"../../emcc-cache\""}
+    else
+        filter "system:linux"
+            links {
+                "m", "X11", "GL", "GLX", "dl"
+            }
+
+        filter "system:windows"
+            systemversion "latest"
+
+            links {
+                "gdi32", "kernel32", "user32", "winmm", "opengl32"
+            }
+    end
+

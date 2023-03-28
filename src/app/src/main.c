@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     });
 
     os_main_init(argc, argv);
-    
+
     marena* perm_arena = marena_create(&(marena_desc){
         .desired_max_size = MiB(4),
         .desired_block_size = KiB(256)

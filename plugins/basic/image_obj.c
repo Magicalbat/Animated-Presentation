@@ -26,10 +26,10 @@ void image_default(marena* arena, app_app* app, void* obj) {
 void image_init(marena* arena, app_app* app, void* obj) {
     pres_image* img = (pres_image*)obj;
 
-    img->file_id = str8_reg_push(arena, &app->temp.file_reg, img->source);
+    img->file_id = str8_reg_push(app->temp.arena, &app->temp.file_reg, img->source);
 }
 
-void image_file(app_app* app, void* obj) {
+void image_file(marena* arena, app_app* app, void* obj) {
     pres_image* img = (pres_image*)obj;
     
     string8 file = str8_reg_get(&app->temp.file_reg, img->file_id);

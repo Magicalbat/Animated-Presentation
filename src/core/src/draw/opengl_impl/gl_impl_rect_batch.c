@@ -159,6 +159,9 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    u32 texture_loc = glGetUniformLocation(batch->gl.shader_program, "u_texture");
+    glUniform1i(texture_loc, batch->gl.texture);
+
     marena_destroy(batch->temp.arena);
 }
 

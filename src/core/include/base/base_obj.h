@@ -59,7 +59,7 @@ typedef void (desc_destroy_func)(void* custom_data);
 
 typedef void (obj_create_default_func)(marena* arena, app_app* app, void* obj);
 typedef void (obj_init_func)(marena* arena, app_app* app, void* obj);
-typedef void (obj_file_func)(app_app* app, void* obj);
+typedef void (obj_file_func)(marena* arena, app_app* app, void* obj);
 typedef void (obj_destroy_func)(void* obj);
 typedef void (obj_draw_func)(app_app* app, void* obj);
 typedef void (obj_update_func)(app_app* app, void* obj, f32 delta);
