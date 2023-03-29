@@ -24,9 +24,6 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
     glBindVertexArray(batch->gl.vertex_array);
 #endif
 
-    batch->gl.vertex_buffer = gl_impl_create_buffer(
-        GL_ARRAY_BUFFER, sizeof(draw_rectb_rect) * capacity, NULL, GL_DYNAMIC_DRAW
-    );
     f32 pos_pattern[] = {
         0, 1,
         1, 1,
@@ -38,6 +35,10 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
     
     batch->gl.pos_pattern_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(pos_pattern), &pos_pattern[0], GL_STATIC_DRAW
+    );
+    
+    batch->gl.vertex_buffer = gl_impl_create_buffer(
+        GL_ARRAY_BUFFER, sizeof(draw_rectb_rect) * capacity, NULL, GL_DYNAMIC_DRAW
     );
 
     batch->max_textures = max_textures;
@@ -158,6 +159,9 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
     }
 
     glGenerateMipmap(GL_TEXTURE_2D);
+
+    u32 texture_loc = glGetUniformLocation(batch->gl.shader_program, "u_texture");
+    glUniform1i(texture_loc, batch->gl.texture);
 
     marena_destroy(batch->temp.arena);
 }

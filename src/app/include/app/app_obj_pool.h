@@ -20,7 +20,7 @@ typedef struct {
 
 app_obj_pool* app_objp_create(marena* arena, obj_register* obj_reg, u32 max_objs);
 app_obj_ref app_objp_add(app_obj_pool* pool, obj_register* obj_reg, string8 name, marena* arena, app_app* app);
-void app_objp_file(app_obj_pool* pool, obj_register* obj_reg, app_app* app);
+void app_objp_file(marena* arena, app_obj_pool* pool, obj_register* obj_reg, app_app* app);
 void app_objp_update(app_obj_pool* pool, obj_register* obj_reg, app_app* app, f32 delta);
 void app_objp_draw(app_obj_pool* pool, obj_register* obj_reg, app_app* app);
 void app_objp_destroy(app_obj_pool* pool, obj_register* obj_reg);

@@ -82,8 +82,8 @@ app_obj_ref app_objp_add(app_obj_pool* pool, obj_register* obj_reg, string8 name
         } \
     }
 
-void app_objp_file(app_obj_pool* pool, obj_register* obj_reg, app_app* app) {
-    CALL_OBJ_FUNCS(file_func, app, obj);
+void app_objp_file(marena* arena, app_obj_pool* pool, obj_register* obj_reg, app_app* app) {
+    CALL_OBJ_FUNCS(file_func, arena, app, obj);
 }
 void app_objp_draw(app_obj_pool* pool, obj_register* obj_reg, app_app* app) {
     CALL_OBJ_FUNCS(draw_func, app, obj);

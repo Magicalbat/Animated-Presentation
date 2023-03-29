@@ -28,3 +28,5 @@ infgen.c
 **.wasm
 emcc-cache
 .ccls
+**.ttf
+**.otf

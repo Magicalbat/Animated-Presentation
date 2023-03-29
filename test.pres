@@ -1,5 +1,6 @@
 plugins = [
     "plugin_basic",
+    "plugin_text",
 ],
 settings = [
     reference_dim = vec2{ 320, 180 },
@@ -8,6 +9,14 @@ settings = [
 ],
 slides = [
     slide {
+        font {
+            source = "res/Hack.ttf",
+            size = 48
+        },
+        font {
+            source = "res/Chomsky.otf",
+            size = 96
+        }
         rectangle {
             x = anim{
                 keys = [ 25, 75, 50 ],
@@ -53,7 +62,7 @@ slides = [
         },
         image {
             x = 130, y = 60,
-            source = "monkey 1.png",
+            source = "res/monkey 1.png",
             scale = anim{
                 keys = [ vec2{ 0.1, 0.1 }, vec2{ 0.2, 0.2, }, vec2{ 0.15, 0.15 } ],
                 time = 2,
