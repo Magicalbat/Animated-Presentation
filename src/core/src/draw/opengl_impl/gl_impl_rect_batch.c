@@ -71,6 +71,12 @@ void draw_rectb_destroy(draw_rectb* batch) {
     glDeleteTextures(1, &batch->gl.texture);
 }
 
+void draw_rectb_set_channels(draw_rectb* batch, u32 channels) {
+    batch->temp.channels = channels;
+}
+void draw_rectb_set_filter(draw_rectb* batch, draw_filter_type filter_type) {
+    batch->temp.filter_type = filter_type;
+}
 u32 draw_rectb_add_tex(draw_rectb* batch, image img) {
     u32 id = batch->num_textures;
     if (id >= batch->max_textures) {
@@ -143,10 +149,24 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    if (batch->temp.filter_type == DRAW_FILTER_LINEAR) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    } else {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+
+    u32 color_type = GL_RGBA;
+    switch (batch->temp.channels) {
+        case 1: { color_type = GL_RED; break; }
+        case 2: { color_type = GL_RG; break; }
+        case 3: { color_type = GL_RGB; break; }
+        case 4: { color_type = GL_RGBA; break; }
+        default: break;
+    }
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)boundary.w, (GLsizei)boundary.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, color_type, (GLsizei)boundary.w, (GLsizei)boundary.h, 0, color_type, GL_UNSIGNED_BYTE, NULL);
 
     for (u32 i = 0; i < batch->num_textures; i++) {
         image* img = &batch->temp.imgs[i];
@@ -155,7 +175,7 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
         glTexSubImage2D(GL_TEXTURE_2D, 0,
             (GLint)rect->x, (GLint)rect->y,
             (GLsizei)rect->w, (GLsizei)rect->h,
-            GL_RGBA, GL_UNSIGNED_BYTE, img->data);
+            color_type, GL_UNSIGNED_BYTE, img->data);
     }
 
     glGenerateMipmap(GL_TEXTURE_2D);
@@ -191,7 +211,6 @@ void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec4d col) {
 
 void draw_rectb_flush(draw_rectb* batch) {
     glUseProgram(batch->gl.shader_program);
-    //gl_impl_view_mat(batch->win, batch->gl.win_mat_loc);
     glUniformMatrix4fv(batch->gl.win_mat_loc, 1, GL_FALSE, batch->win_mat);
 
 #ifndef __EMSCRIPTEN__

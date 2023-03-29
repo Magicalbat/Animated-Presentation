@@ -18,7 +18,8 @@ typedef struct {
 
 #define MAX_FACES 8
 #define MAX_FONTS 8
-static struct {
+
+typedef struct {
     stbtt_fontinfo font_info;
     f32 sizes[MAX_FONTS];
     stbtt_packedchar* glyph_metrics[MAX_FONTS];
@@ -27,7 +28,9 @@ static struct {
     string8 source;
     u64 reg_id;
     b32 loaded;
-} faces[MAX_FACES] = { 0 };
+} font_face;
+
+static font_face faces[MAX_FACES] = { 0 };
 
 typedef struct {
     u32 face_index;
@@ -41,6 +44,14 @@ typedef struct {
 } text_draw_elem;
 
 static font_ref default_font = { 0 };
+static draw_rectb* rectb = NULL;
+static u32 rect_tex_id;
+
+void font_desc_destroy(void* obj) {
+    if (rectb != NULL) {
+        draw_rectb_destroy(rectb);
+    }
+}
 
 void font_obj_default(marena* arena, app_app* app, void* obj) {
     pres_font* font = (pres_font*)obj;
@@ -150,7 +161,22 @@ void font_obj_file(marena* arena, app_app* app, void* obj) {
 
     stbtt_PackEnd(&pc);
 
-    // TODO: rendering
+    rectb = draw_rectb_create(arena, app->win, 64, 4);
+
+    //draw_rectb_set_channels(rectb, 1);
+    //draw_rectb_set_filter(rectb, DRAW_FILTER_LINEAR);
+
+    image img = {
+        .width = width,
+        .height = height,
+        .data = bitmap,
+        .channels = 1,
+        .valid = true
+    };
+
+    //rect_tex_id = draw_rectb_add_tex(rectb, img);
+
+    draw_rectb_finalize_textures(rectb);
 
     marena_scratch_release(scratch);
 }
@@ -160,6 +186,7 @@ typedef struct {
     b32 center_x, center_y;
     string8 font_name;
     f64 font_size;
+    vec4d col;
     string8 text;
 
     font_ref font;
@@ -168,7 +195,9 @@ typedef struct {
 void text_obj_default(marena* arena, app_app* app, void* obj) {
     pres_text* text = (pres_text*)obj;
 
-    *text = (pres_text) { };
+    *text = (pres_text) {
+        .col = (vec4d){ 1, 1, 1, 1 }
+    };
 }
 
 void text_obj_init(marena* arena, app_app* app, void* obj) {
@@ -212,12 +241,26 @@ void text_obj_init(marena* arena, app_app* app, void* obj) {
 
 void text_obj_draw(app_app* app, void* obj) {
     pres_text* text = (pres_text*)obj;
+
+    memcpy(rectb->win_mat, app->win_mat, sizeof(app->win_mat));
+
+    //font_face* face = faces + text->font.face_index;
+    //u32 font_index = text->font.font_index;
+
+    // for testing
+    //stbtt_packedchar glyph_metric = face->glyph_metrics[font_index]['a'];
+
+    draw_rectb_push(rectb, (rect) { 5, 5, 310, 170 }, text->col );
+
+    draw_rectb_flush(rectb);
 }
 
 AP_EXPORT void plugin_init(marena* arena, app_app* app) {
     obj_desc font_desc = {
         .name = STR("font"),
         .obj_size = sizeof(pres_font),
+
+        .desc_destroy_func = font_desc_destroy,
 
         .default_func = font_obj_default,
         .init_func = font_obj_init,
@@ -245,6 +288,7 @@ AP_EXPORT void plugin_init(marena* arena, app_app* app) {
             { STR("center_y" ), FIELD_BOOL32, offsetof(pres_text, center_y ) },
             { STR("font_name"), FIELD_STR8,   offsetof(pres_text, font_name) },
             { STR("font_size"), FIELD_F64,    offsetof(pres_text, font_size) },
+            { STR("col"      ), FIELD_VEC4D,  offsetof(pres_text, col      ) },
             { STR("text"     ), FIELD_STR8,   offsetof(pres_text, text     ) },
         }
     };

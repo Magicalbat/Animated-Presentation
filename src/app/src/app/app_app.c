@@ -10,7 +10,6 @@ EM_JS(void, app_maximize_canvas, (), {
 });
 #endif
 
-
 app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height) {
     app_app* app = CREATE_STRUCT(arena, app_app);
 
@@ -30,9 +29,9 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     app->ref_width = (f32)win_width;
     app->ref_height = (f32)win_height;
     
-    app->rectb = draw_rectb_create(arena, win, 1024, 32);
-    app->cbezier = draw_cbezier_create(arena, win, 1024);
-    app->poly = draw_poly_create(arena, win, 256);
+    app->rectb = draw_rectb_create(arena, win, 256, 32);
+    app->cbezier = draw_cbezier_create(arena, win, 256);
+    app->poly = draw_poly_create(arena, win, 128);
     
     app->temp.arena = marena_create(
         &(marena_desc){

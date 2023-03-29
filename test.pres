@@ -13,71 +13,13 @@ slides = [
             source = "res/Hack.ttf",
             size = 48
         },
-        font {
+        /*font {
             source = "res/Chomsky.otf",
             size = 96
-        }
-        rectangle {
-            x = anim{
-                keys = [ 25, 75, 50 ],
-                times = [0, 0.25, 1.5 ],
-                repeat = BOUNCE
-            },
-            y = 50,
-            w = 50,
-            h = 50,
-            col = vec4{ 0, 0.5, 1, 1 },
-            outline = true,
-            outline_width = 5
+        },*/
+        text {
+            font_name = "Hack.ttf",
+            font_size = 48
         },
-        rectangle {
-            x = 200, y = 20,
-            w = 25, h = 30,
-            col = anim{
-                keys = [
-                    vec4{ 0, 1, 1, 1 },
-                    vec4{ 1, 0, 1, 0.5 },
-                    vec4{ 0, 1, 1, 1 },
-                ],
-                time = 2.5,
-                repeat = LOOP
-            },
-        },
-        bezier {
-            p0 = anim{
-                keys = [ vec2{ 0, 0 }, vec2{ 50, 50 }, vec2{ 0, 0 } ],
-                time = 2,
-                repeat = LOOP
-            },
-            p1 = vec2{ 100, 50 },
-            p2 = vec2{ 50, 100 },
-            p3 = anim{
-                keys = [ vec2{ 150, 0 }, vec2{ 150, 150 }, vec2{ 150, 0 } ],
-                time = 1.5,
-                repeat = LOOP
-            },
-            gradient = true,
-            end_col = vec4{ 0, 1, 1, 1 },
-            start_col = vec4{ 1, 1, 0, 1 },
-        },
-        image {
-            x = 130, y = 60,
-            source = "res/monkey 1.png",
-            scale = anim{
-                keys = [ vec2{ 0.1, 0.1 }, vec2{ 0.2, 0.2, }, vec2{ 0.15, 0.15 } ],
-                time = 2,
-                repeat = BOUNCE
-            }
-        },
-        polygon {
-            x = 10,
-            y = 10,
-            points = [
-                vec2 { -10, 10 },
-                vec2 { 0, -10 },
-                vec2 { 10, 10 },
-            ],
-            col = vec4 { 0.5, 0.75, 0.25, 1 },
-        }
     },
 ]
