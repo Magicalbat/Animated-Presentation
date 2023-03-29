@@ -52,7 +52,6 @@ void font_obj_default(marena* arena, app_app* app, void* obj) {
 
 void font_obj_init(marena* arena, app_app* app, void* obj) {
     pres_font* font = (pres_font*)obj;
-    
     i32 font_index = -1;
     for (i32 i = 0; i < MAX_FACES; i++) {
         if (str8_equals(font->source, faces[i].source)) {
@@ -91,7 +90,7 @@ void font_obj_init(marena* arena, app_app* app, void* obj) {
                 
                 faces[i].source = font->source;
                 faces[i].loaded = true;
-
+                
                 break;
             }
         }
