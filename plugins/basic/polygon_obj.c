@@ -40,10 +40,10 @@ void polygon_obj_init(marena* arena, app_app* app) {
         .draw_func = poly_draw,
 
         .fields = {
-            { STR("x"), FIELD_F64, offsetof(pres_poly, x) },
-            { STR("y"), FIELD_F64, offsetof(pres_poly, y) },
+            { STR("x"     ), FIELD_F64,       offsetof(pres_poly, x     ) },
+            { STR("y"     ), FIELD_F64,       offsetof(pres_poly, y     ) },
             { STR("points"), FIELD_VEC2D_ARR, offsetof(pres_poly, points) },
-            { STR("col"), FIELD_VEC4D, offsetof(pres_poly, col) },
+            { STR("col"   ), FIELD_VEC4D,     offsetof(pres_poly, col   ) },
         }
     };
 

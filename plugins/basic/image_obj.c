@@ -64,11 +64,11 @@ void image_obj_init(marena* arena, app_app* app) {
         .draw_func = image_draw,
 
         .fields = {
-            { STR("x"), FIELD_F64, offsetof(pres_image, x) },
-            { STR("y"), FIELD_F64, offsetof(pres_image, y) },
-            { STR("scale"), FIELD_VEC2D, offsetof(pres_image, scale) },
-            { STR("source"), FIELD_STR8, offsetof(pres_image, source) },
-            { STR("col"), FIELD_VEC4D, offsetof(pres_image, col) },
+            { STR("x"     ), FIELD_F64,   offsetof(pres_image, x     ) },
+            { STR("y"     ), FIELD_F64,   offsetof(pres_image, y     ) },
+            { STR("scale" ), FIELD_VEC2D, offsetof(pres_image, scale ) },
+            { STR("source"), FIELD_STR8,  offsetof(pres_image, source) },
+            { STR("col"   ), FIELD_VEC4D, offsetof(pres_image, col   ) },
         }
     };
 

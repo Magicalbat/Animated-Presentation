@@ -6,9 +6,10 @@
 #include "gfx/gfx.h"
 #include "gfx/opengl/opengl.h"
 
-#define X(ret, name, args) gl_func_##name name = NULL;
+#define X(ret, name, args) gl_func_##name name= NULL;
     #include "gfx/opengl/opengl_xlist.h"
 #undef X
+
 
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
@@ -93,7 +94,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     );
     
     win->glx.del_window = XInternAtom(win->glx.display, "WM_DELETE_WINDOW", 0);
-    XSetWMProtocols(win->glx.display , win->glx.window, &win->glx.del_window, 1);
+    XSetWMProtocols(win->glx.display, win->glx.window, &win->glx.del_window, 1);
     XMapWindow(win->glx.display, win->glx.window);
     
     XFree(visual);
@@ -110,8 +111,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
         None
     };
 
-    //win->glx.context = 0;
-    if (!isExtensionSupported( glx_exts, "GLX_ARB_create_context")) {
+    if (!isExtensionSupported(glx_exts, "GLX_ARB_create_context")) {
         win->glx.context = glXCreateNewContext(win->glx.display, win->glx.fb_config, GLX_RGBA_TYPE, 0, true);
     } else {
         win->glx.context = glXCreateContextAttribsARB(win->glx.display, win->glx.fb_config, 0, true, context_attribs);

@@ -40,15 +40,16 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
     batch->gl.vertex_buffer = gl_impl_create_buffer(
         GL_ARRAY_BUFFER, sizeof(draw_rectb_rect) * capacity, NULL, GL_DYNAMIC_DRAW
     );
-
+    
     batch->max_textures = max_textures;
     batch->tex_rects = CREATE_ZERO_ARRAY(arena, rect, max_textures);
     batch->img_rects = CREATE_ZERO_ARRAY(arena, rect, max_textures);
 
+    batch->temp.channels = 4;
+    batch->temp.filter_type = DRAW_FILTER_NEAREST;
     batch->temp.arena = marena_create(&(marena_desc){ .desired_max_size = MiB(64) });
     batch->temp.imgs = CREATE_ZERO_ARRAY(batch->temp.arena, image, max_textures);
 
-    //draw_rectb_create_tex(batch, STR8_LIT("test_img.png"));
     u32* color = (u32*)marena_push(batch->temp.arena, sizeof(u32));
     *color = 0xffffffff;
     draw_rectb_add_tex(batch, (image){
@@ -129,7 +130,6 @@ u32 draw_rectb_load_tex(draw_rectb* batch, string8 file_path, vec2* dim) {
     return id;
 }
 void draw_rectb_finalize_textures(draw_rectb* batch) {
-
     rect boundary = rect_pack(batch->img_rects, batch->num_textures);
     
     batch->texture_boundary = boundary;

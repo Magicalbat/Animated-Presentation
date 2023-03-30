@@ -12,6 +12,7 @@ typedef struct app_pres app_pres;
 
 typedef struct app_app {
     gfx_window* win;
+    u32 screen_tex;
 
     vec4d bg_col;
     f32 ref_width;

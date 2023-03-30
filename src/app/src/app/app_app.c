@@ -21,7 +21,7 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
 
     gfx_win_make_current(win);
     opengl_load_functions(win);
-
+    
     app->win = win;
     
     app->bg_col = (vec4d){ .5, .6, .7, 1 };
@@ -106,7 +106,7 @@ void app_run(marena* arena, app_app* app) {
 
         draw_rectb_flush(app->rectb);
         draw_cbezier_flush(app->cbezier);
-
+        
         gfx_win_swap_buffers(app->win);
         gfx_win_process_events(app->win);
 

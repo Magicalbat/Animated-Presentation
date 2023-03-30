@@ -58,15 +58,15 @@ void bezier_obj_init(marena* arena, app_app* app) {
         .draw_func = bezier_draw,
 
         .fields = {
-            { STR("p0"), FIELD_VEC2D, offsetof(pres_bezier, p0) },
-            { STR("p1"), FIELD_VEC2D, offsetof(pres_bezier, p1) },
-            { STR("p2"), FIELD_VEC2D, offsetof(pres_bezier, p2) },
-            { STR("p3"), FIELD_VEC2D, offsetof(pres_bezier, p3) },
-            { STR("width"), FIELD_F64, offsetof(pres_bezier, width) },
-            { STR("col"), FIELD_VEC4D, offsetof(pres_bezier, col) },
-            { STR("gradient"), FIELD_BOOL32, offsetof(pres_bezier, gradient) },
-            { STR("start_col"), FIELD_VEC4D, offsetof(pres_bezier, start_col) },
-            { STR("end_col"), FIELD_VEC4D, offsetof(pres_bezier, end_col) },
+            { STR("p0"       ), FIELD_VEC2D,  offsetof(pres_bezier, p0       ) },
+            { STR("p1"       ), FIELD_VEC2D,  offsetof(pres_bezier, p1       ) },
+            { STR("p2"       ), FIELD_VEC2D,  offsetof(pres_bezier, p2       ) },
+            { STR("p3"       ), FIELD_VEC2D,  offsetof(pres_bezier, p3       ) },
+            { STR("width"    ), FIELD_F64,    offsetof(pres_bezier, width    ) },
+            { STR("col"      ), FIELD_VEC4D,  offsetof(pres_bezier, col      ) },
+            { STR("gradient" ), FIELD_BOOL32, offsetof(pres_bezier, gradient ) },
+            { STR("start_col"), FIELD_VEC4D,  offsetof(pres_bezier, start_col) },
+            { STR("end_col"  ), FIELD_VEC4D,  offsetof(pres_bezier, end_col  ) },
         }
     };
 

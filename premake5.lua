@@ -266,5 +266,4 @@ project "plugin_text"
             links {
                 "gdi32", "kernel32", "user32", "winmm", "opengl32"
             }
-    end
-
+end

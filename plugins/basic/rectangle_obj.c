@@ -59,16 +59,16 @@ void rectangle_obj_init(marena* arena, app_app* app) {
         .draw_func = rect_draw,
 
         .fields = {
-            { STR("x"), FIELD_F64, offsetof(pres_rect, x) },
-            { STR("y"), FIELD_F64, offsetof(pres_rect, y) },
-            { STR("w"), FIELD_F64, offsetof(pres_rect, w) },
-            { STR("h"), FIELD_F64, offsetof(pres_rect, h) },
-            { STR("fill"), FIELD_BOOL32, offsetof(pres_rect, fill) },
-            { STR("fill_col"), FIELD_VEC4D, offsetof(pres_rect, fill_col) },
-            { STR("col"), FIELD_VEC4D, offsetof(pres_rect, fill_col) },
-            { STR("outline"), FIELD_BOOL32, offsetof(pres_rect, outline) },
-            { STR("outline_col"), FIELD_VEC4D, offsetof(pres_rect, outline_col) },
-            { STR("outline_width"), FIELD_F64, offsetof(pres_rect, outline_width) },
+            { STR("x"            ), FIELD_F64,    offsetof(pres_rect, x            ) },
+            { STR("y"            ), FIELD_F64,    offsetof(pres_rect, y            ) },
+            { STR("w"            ), FIELD_F64,    offsetof(pres_rect, w            ) },
+            { STR("h"            ), FIELD_F64,    offsetof(pres_rect, h            ) },
+            { STR("fill"         ), FIELD_BOOL32, offsetof(pres_rect, fill         ) },
+            { STR("fill_col"     ), FIELD_VEC4D,  offsetof(pres_rect, fill_col     ) },
+            { STR("col"          ), FIELD_VEC4D,  offsetof(pres_rect, fill_col     ) },
+            { STR("outline"      ), FIELD_BOOL32, offsetof(pres_rect, outline      ) },
+            { STR("outline_col"  ), FIELD_VEC4D,  offsetof(pres_rect, outline_col  ) },
+            { STR("outline_width"), FIELD_F64,    offsetof(pres_rect, outline_width) },
         }
     };
 
