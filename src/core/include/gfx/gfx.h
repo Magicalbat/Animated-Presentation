@@ -39,7 +39,7 @@ extern "C" {
 #define GFX_NUM_KEYS          256
 #define GFX_NUM_MOUSE_BUTTONS 5
 
-typedef struct {
+typedef struct gfx_window {
     u32 width;
     u32 height;
 

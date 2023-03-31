@@ -54,7 +54,7 @@ typedef struct field_val {
 
 typedef struct app_app app_app;
 
-typedef void (desc_init_func)(void* custom_data);
+typedef void (desc_init_func)(marena* arena, app_app* app, void* custom_data);
 typedef void (desc_destroy_func)(void* custom_data);
 
 typedef void (obj_create_default_func)(marena* arena, app_app* app, void* obj);
@@ -97,7 +97,7 @@ typedef struct {
 } obj_register;
 
 AP_EXPORT obj_register* obj_reg_create(marena* arena, u32 max_descs);
-AP_EXPORT void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc);
+AP_EXPORT void obj_reg_add_desc(marena* arena, app_app* app, obj_register* obj_reg, obj_desc* desc);
 AP_EXPORT void obj_reg_destroy(obj_register* obj_reg);
 
 #ifdef __cplusplus

@@ -46,6 +46,12 @@ typedef struct {
 #    define AP_EXPORT 
 #endif
 
+#if defined(_WIN32)
+#   define AP_IMPORT __declspec(dllimport)
+#else
+#   define AP_IMPORT
+#endif
+
 #define STRINGIFY_NX(a) #a
 #define STRINGIFY(a) STRINGIFY_NX(a)
 

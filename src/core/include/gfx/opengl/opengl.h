@@ -9,11 +9,11 @@
 extern "C" { 
 #endif
 
-#include "gfx/gfx.h"
 #include "opengl_defs.h"
 
 // TODO: Error handling on both platforms
 
+typedef struct gfx_window gfx_window;
 AP_EXPORT void opengl_load_functions(gfx_window* win);
 
 // https://www.khronos.org/opengl/wiki/OpenGL_Error

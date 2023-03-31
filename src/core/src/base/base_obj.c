@@ -11,7 +11,7 @@ obj_register* obj_reg_create(marena* arena, u32 max_descs) {
     
     return obj_reg;
 }
-void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc) {
+void obj_reg_add_desc(marena* arena, app_app* app, obj_register* obj_reg, obj_desc* desc) {
     if (obj_reg->num_descs >= obj_reg->max_descs) {
         log_error("Ran out of desc slots");
         return;
@@ -21,7 +21,7 @@ void obj_reg_add_desc(obj_register* obj_reg, obj_desc* desc) {
     obj_reg->num_descs++;
 
     if (desc->desc_init_func != NULL)
-        desc->desc_init_func(desc->custom_data);
+        desc->desc_init_func(arena, app, desc->custom_data);
 }
 void obj_reg_destroy(obj_register* obj_reg) {
     for (u32 i = 0; i < obj_reg->num_descs; i++) {

@@ -330,7 +330,7 @@ static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_
     pres->plugins = CREATE_ZERO_ARRAY(arena, os_library, pres->num_plugins);
 
     string8_node* node = plugin_names.first;
-    for (u32 i = 0; i < pres->num_plugins; i++) {
+    for (u32 i = 0; i < pres->num_plugins && node != NULL; i++) {
         pres->plugins[i] = os_lib_load(node->str);
         plugin_init_func* init_func = (plugin_init_func*)os_lib_func(pres->plugins[i], "plugin_init");
         init_func(arena, app);

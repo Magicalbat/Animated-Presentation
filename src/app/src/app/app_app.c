@@ -2,6 +2,8 @@
 
 #include "os/os.h"
 
+#include "draw/opengl_impl/gl_impl.h"
+
 #ifdef __EMSCRIPTEN__
 EM_JS(void, app_maximize_canvas, (), {
     const canvas = document.querySelector("#canvas");

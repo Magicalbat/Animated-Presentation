@@ -70,5 +70,5 @@ void bezier_obj_init(marena* arena, app_app* app) {
         }
     };
 
-    obj_reg_add_desc(app->pres->obj_reg, &desc);
+    obj_reg_add_desc(arena, app, app->pres->obj_reg, &desc);
 }

@@ -456,9 +456,9 @@ static image parse_qoi(marena* arena, string8 file, u32 num_channels) {
 }
 
 image parse_image(marena* arena, string8 file, u32 num_channels) {
-    if (file.size >= png_file_header.size && str8_equals(png_file_header, str8_substr(file, 0, png_file_header.size))) {
+    if (str8_equals(png_file_header, str8_substr(file, 0, png_file_header.size))) {
         return parse_png(arena, file, num_channels);
-    } else if (file.size >= qoi_file_header.size && str8_equals(qoi_file_header, str8_substr(file, 0, qoi_file_header.size))) {
+    } else if (str8_equals(qoi_file_header, str8_substr(file, 0, qoi_file_header.size))) {
         return parse_qoi(arena, file, num_channels);
     }
     

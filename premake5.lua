@@ -57,6 +57,10 @@ project "core"
         "src/%{prj.name}/**.c",
     }
 
+    defines {
+        "AP_CORE"
+    }
+
     init_common()
 
     if _OPTIONS["wasm"] then

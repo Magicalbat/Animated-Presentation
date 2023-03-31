@@ -7,17 +7,31 @@
 static const char* vert_source;
 static const char* frag_source;
 
+static struct {
+    b32 initalized;
+
+    u32 program;
+    u32 win_mat_loc;
+    u32 texture_loc;
+} shader = { .initalized = false };
+static i32 rectb_count = 0;
+
 draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, draw_rectb);
+    rectb_count++;
 
     batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;
     
-    batch->gl.shader_program = gl_impl_create_shader_program(vert_source, frag_source);
+    if (shader.initalized == false) {
+        shader.program = gl_impl_create_shader_program(vert_source, frag_source); 
+        glUseProgram(shader.program);
 
-    glUseProgram(batch->gl.shader_program);
-    
-    batch->gl.win_mat_loc = glGetUniformLocation(batch->gl.shader_program, "u_win_mat");
+        shader.win_mat_loc = glGetUniformLocation(shader.program, "u_win_mat");
+        shader.texture_loc = glGetUniformLocation(shader.program, "u_texture");
+
+        shader.initalized = true;
+    }
 
 #ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &batch->gl.vertex_array);
@@ -62,7 +76,14 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
     return batch;
 }
 void draw_rectb_destroy(draw_rectb* batch) {
-    glDeleteProgram(batch->gl.shader_program);
+    rectb_count--;
+
+    if (rectb_count <= 0) {
+        rectb_count = 0;
+        shader.initalized = false;
+        glDeleteProgram(shader.program);
+    }
+
 #ifndef __EMSCRIPTEN__
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
 #endif
@@ -180,9 +201,6 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    u32 texture_loc = glGetUniformLocation(batch->gl.shader_program, "u_texture");
-    glUniform1i(texture_loc, batch->gl.texture);
-
     marena_destroy(batch->temp.arena);
 }
 
@@ -210,14 +228,16 @@ void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec4d col) {
 }
 
 void draw_rectb_flush(draw_rectb* batch) {
-    glUseProgram(batch->gl.shader_program);
-    glUniformMatrix4fv(batch->gl.win_mat_loc, 1, GL_FALSE, batch->win_mat);
+    glUseProgram(shader.program);
+    glUniformMatrix4fv(shader.win_mat_loc, 1, GL_FALSE, batch->win_mat);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(batch->gl.vertex_array);
 #endif
 
     glBindTexture(GL_TEXTURE_2D, batch->gl.texture);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(shader.texture_loc, 0);
     
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);

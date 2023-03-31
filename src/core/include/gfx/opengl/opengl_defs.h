@@ -53,9 +53,15 @@ typedef void (*GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severi
     #include "opengl_xlist.h"
 #undef X
 
-#define X(ret, name, args) extern gl_func_##name name;
-    #include "opengl_xlist.h"
-#undef X
+#ifdef AP_CORE
+#   define X(ret, name, args) AP_EXPORT extern gl_func_##name name;
+#       include "opengl_xlist.h"
+#   undef X
+#else
+#   define X(ret, name, args) AP_IMPORT extern gl_func_##name name;
+#       include "opengl_xlist.h"
+#   undef X
+#endif
 
 #define GL_DEPTH_BUFFER_BIT               0x00000100
 #define GL_STENCIL_BUFFER_BIT             0x00000400
