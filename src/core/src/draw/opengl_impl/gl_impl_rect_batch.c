@@ -6,32 +6,39 @@
 
 static const char* vert_source;
 static const char* frag_source;
+static const char* frag_texture_opts[];
 
-static struct {
-    b32 initalized;
-
-    u32 program;
-    u32 win_mat_loc;
-    u32 texture_loc;
-} shader = { .initalized = false };
-static i32 rectb_count = 0;
-
-draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures) { 
+draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures, u32 channels) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, draw_rectb);
-    rectb_count++;
 
     batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;
-    
-    if (shader.initalized == false) {
-        shader.program = gl_impl_create_shader_program(vert_source, frag_source); 
-        glUseProgram(shader.program);
 
-        shader.win_mat_loc = glGetUniformLocation(shader.program, "u_win_mat");
-        shader.texture_loc = glGetUniformLocation(shader.program, "u_texture");
-
-        shader.initalized = true;
+    if (channels == 0 || channels > 4) {
+        log_errorf("Invalid number of channels %u for rect batch, defaulting to 4", channels);
+        batch->channels = 4;
+    } else {
+        batch->channels = channels;
     }
+    
+    {
+        marena_temp scratch = marena_scratch_get(&arena, 1);
+
+        const char* frag_opt = frag_texture_opts[batch->channels];
+        u64 frag_source_size = strlen(frag_source) + strlen(frag_opt) + 1;
+
+        u8* computed_frag = CREATE_ZERO_ARRAY(scratch.arena, u8, frag_source_size);
+        snprintf((char*)computed_frag, frag_source_size, frag_source, frag_opt);
+
+        batch->gl.shader_program = gl_impl_create_shader_program(vert_source, (char*)computed_frag); 
+        glUseProgram(batch->gl.shader_program);
+
+        marena_scratch_release(scratch);
+    }
+
+    batch->gl.win_mat_loc = glGetUniformLocation(batch->gl.shader_program, "u_win_mat");
+    batch->gl.texture_loc = glGetUniformLocation(batch->gl.shader_program, "u_texture");
+
 
 #ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &batch->gl.vertex_array);
@@ -59,7 +66,6 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
     batch->tex_rects = CREATE_ZERO_ARRAY(arena, rect, max_textures);
     batch->img_rects = CREATE_ZERO_ARRAY(arena, rect, max_textures);
 
-    batch->temp.channels = 4;
     batch->temp.filter_type = DRAW_FILTER_NEAREST;
     batch->temp.arena = marena_create(&(marena_desc){ .desired_max_size = MiB(64) });
     batch->temp.imgs = CREATE_ZERO_ARRAY(batch->temp.arena, image, max_textures);
@@ -76,13 +82,7 @@ draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 
     return batch;
 }
 void draw_rectb_destroy(draw_rectb* batch) {
-    rectb_count--;
-
-    if (rectb_count <= 0) {
-        rectb_count = 0;
-        shader.initalized = false;
-        glDeleteProgram(shader.program);
-    }
+    glDeleteProgram(batch->gl.shader_program);
 
 #ifndef __EMSCRIPTEN__
     glDeleteVertexArrays(1, &batch->gl.vertex_array);
@@ -93,9 +93,6 @@ void draw_rectb_destroy(draw_rectb* batch) {
     glDeleteTextures(1, &batch->gl.texture);
 }
 
-void draw_rectb_set_channels(draw_rectb* batch, u32 channels) {
-    batch->temp.channels = channels;
-}
 void draw_rectb_set_filter(draw_rectb* batch, draw_filter_type filter_type) {
     batch->temp.filter_type = filter_type;
 }
@@ -178,16 +175,16 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
+    u32 in_type = GL_RGBA8;
     u32 color_type = GL_RGBA;
-    switch (batch->temp.channels) {
-        case 1: { color_type = GL_RED; break; }
-        case 2: { color_type = GL_RG; break; }
-        case 3: { color_type = GL_RGB; break; }
-        case 4: { color_type = GL_RGBA; break; }
+    switch (batch->channels) {
+        case 1: { in_type = GL_R8; color_type = GL_RED; break; }
+        case 3: { in_type = GL_RGB8; color_type = GL_RGB; break; }
+        case 4: { in_type = GL_RGBA8; color_type = GL_RGBA; break; }
         default: break;
     }
     
-    glTexImage2D(GL_TEXTURE_2D, 0, color_type, (GLsizei)boundary.w, (GLsizei)boundary.h, 0, color_type, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, in_type, (GLsizei)boundary.w, (GLsizei)boundary.h, 0, color_type, GL_UNSIGNED_BYTE, NULL);
 
     for (u32 i = 0; i < batch->num_textures; i++) {
         image* img = &batch->temp.imgs[i];
@@ -228,8 +225,8 @@ void draw_rectb_push(draw_rectb* batch, rect draw_rect, vec4d col) {
 }
 
 void draw_rectb_flush(draw_rectb* batch) {
-    glUseProgram(shader.program);
-    glUniformMatrix4fv(shader.win_mat_loc, 1, GL_FALSE, batch->win_mat);
+    glUseProgram(batch->gl.shader_program);
+    glUniformMatrix4fv(batch->gl.win_mat_loc, 1, GL_FALSE, batch->win_mat);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(batch->gl.vertex_array);
@@ -237,7 +234,7 @@ void draw_rectb_flush(draw_rectb* batch) {
 
     glBindTexture(GL_TEXTURE_2D, batch->gl.texture);
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(shader.texture_loc, 0);
+    glUniform1i(batch->gl.texture_loc, 0);
     
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -306,7 +303,7 @@ static const char* frag_source = ""
     "varying vec2 uv;"
     "uniform sampler2D u_texture;"
     "void main() {"
-    "    gl_FragColor = texture2D(u_texture, uv) * col;"
+    "    gl_FragColor = %s * col;"
     "\n}";
 #else
     "#version 400 core\n"
@@ -315,9 +312,24 @@ static const char* frag_source = ""
     "in vec2 uv;"
     "uniform sampler2D u_texture;"
     "void main() {"
-    "    out_col = texture(u_texture, uv) * col;"
+    "    out_col = %s * col;"
     "\n}";
 #endif
 
+static const char* frag_texture_opts[] = {
+#ifdef __EMSCRIPTEN__
+    NULL,
+    "vec4(1, 1, 1, texture2D(u_texture, uv).r)",
+    NULL,
+    "texture2D(u_texture, uv)",
+    "texture2D(u_texture, uv)"
+#else
+    NULL,
+    "vec4(1, 1, 1, texture(u_texture, uv).r)",
+    NULL,
+    "texture(u_texture, uv)",
+    "texture(u_texture, uv)"
+#endif
+};
 
 #endif // AP_OPENGL

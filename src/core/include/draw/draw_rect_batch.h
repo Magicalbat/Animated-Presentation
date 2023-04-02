@@ -21,10 +21,11 @@ typedef struct {
     u32 capacity;
     u32 size;
 
+    u32 channels;
+
     f32 win_mat[16];
 
     struct {
-        u32 channels;
         draw_filter_type filter_type;
         marena* arena;
         image* imgs;
@@ -38,6 +39,10 @@ typedef struct {
 
     #ifdef AP_OPENGL
         struct {
+            u32 shader_program;
+            u32 win_mat_loc;
+            u32 texture_loc;
+
             u32 vertex_array;
             u32 vertex_buffer;
             u32 pos_pattern_buffer;
@@ -47,10 +52,9 @@ typedef struct {
     #endif
 } draw_rectb;
 
-AP_EXPORT draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures);
+AP_EXPORT draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures, u32 channels);
 AP_EXPORT void draw_rectb_destroy(draw_rectb* batch);
 
-AP_EXPORT void draw_rectb_set_channels(draw_rectb* batch, u32 channels);
 AP_EXPORT void draw_rectb_set_filter(draw_rectb* batch, draw_filter_type filter_type);
 AP_EXPORT u32 draw_rectb_add_tex(draw_rectb* batch, image img);
 AP_EXPORT u32 draw_rectb_create_tex(draw_rectb* batch, string8 image_file, vec2* dim);

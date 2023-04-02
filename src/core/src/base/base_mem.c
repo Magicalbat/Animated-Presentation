@@ -140,8 +140,9 @@ void marena_pop(marena* arena, u64 size) {
         free(temp);
     }
 
+    arena->malloc_backend.cur_node = node;
     node->pos -= size_left;
-    arena->pos -= size_left;
+    arena->pos -= size;
 }
 
 void marena_reset(marena* arena) {

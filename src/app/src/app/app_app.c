@@ -31,7 +31,7 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     app->ref_width = (f32)win_width;
     app->ref_height = (f32)win_height;
     
-    app->rectb = draw_rectb_create(arena, win, 256, 32);
+    app->rectb = draw_rectb_create(arena, win, 256, 32, 4);
     app->cbezier = draw_cbezier_create(arena, win, 256);
     app->poly = draw_poly_create(arena, win, 128);
     

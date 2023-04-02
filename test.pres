@@ -10,10 +10,10 @@ settings = [
 slides = [
     slide {
         font{},
-        rectangle {
-            x = 200, y = 130,
-            w = 50, h = 50,
-            col = vec4{ 0, 1, 1, 1 }
+        image {
+            source = "res/monkey 1.png",
+            x = 100, y = 30,
+            scale = vec2{ 0.2, 0.2 }
         }
     },
 ]
