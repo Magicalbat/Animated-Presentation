@@ -2,12 +2,12 @@
 
 #include "app/app.h"
 
-#define WIN_SCALE 1
+#define WIN_SCALE 3
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
 
-// TODO: Fix rectangle outlines
-// might be easier to use RenderDoc
+// TODO: app mouse pos
+// TODO: better win mat
 
 int main(int argc, char** argv) {
     log_init(&(log_desc){ 

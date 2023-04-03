@@ -9,7 +9,15 @@ settings = [
 ],
 slides = [
     slide {
-        font{},
+        font {
+            source = "res/Hack.ttf",
+            size = 48,
+            default = true
+        },
+        font {
+            source = "res/Chomsky.otf",
+            size = 48,
+        },
         image {
             source = "res/monkey 1.png",
             x = 30, y = 300,
