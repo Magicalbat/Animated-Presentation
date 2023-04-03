@@ -3,7 +3,7 @@ plugins = [
     "plugin_text"
 ],
 settings = [
-    reference_dim = vec2{ 320, 180 },
+    reference_dim = vec2{ 1600, 900 },
     background_color = vec4{ .5, 0.6, 0.7, 1 },
     title = "Test Presentation"
 ],
@@ -12,8 +12,8 @@ slides = [
         font{},
         image {
             source = "res/monkey 1.png",
-            x = 100, y = 30,
-            scale = vec2{ 0.2, 0.2 }
+            x = 30, y = 300,
+            scale = vec2{ 0.15, 0.15 }
         }
     },
 ]

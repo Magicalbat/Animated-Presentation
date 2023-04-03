@@ -20,6 +20,12 @@ typedef struct {
 
 static draw_rectb* rectb;
 static i32 font_img_id;
+static stbtt_packedchar glyph_metrics[95];
+static struct {
+    f32 ascent;
+    f32 descent;
+    f32 line_gap;
+} v_metrics = { 0 };
 
 void test_desc_init(marena* arena, app_app* app, void* custon_data) {
     rectb = draw_rectb_create(arena, app->win, 64, 4, 1);
@@ -27,20 +33,36 @@ void test_desc_init(marena* arena, app_app* app, void* custon_data) {
     marena_temp scratch = marena_scratch_get(&arena, 1);
 
     string8 ttf_file = os_file_read(scratch.arena, STR("res/Hack.ttf"));
-    stbtt_packedchar glyph_metrics[95];
     stbtt_pack_range ranges[1] = {
         { 96, 32, NULL, 95, glyph_metrics },
     };
 
     u32 width = 1024;
-    u32 height = 1024;
-    u8* bitmap = CREATE_ZERO_ARRAY(scratch.arena, u8, width * height);
+    u32 max_height = 1024;
+    u8* bitmap = CREATE_ZERO_ARRAY(scratch.arena, u8, width * max_height);
 
     stbtt_pack_context pc = { 0 };
-    stbtt_PackBegin(&pc, bitmap, width, height, 0, 1, NULL);
+    stbtt_PackBegin(&pc, bitmap, width, max_height, 0, 1, NULL);
     stbtt_PackSetOversampling(&pc, 1, 1);
     stbtt_PackFontRanges(&pc, ttf_file.str, 0, ranges, 1);
     stbtt_PackEnd(&pc);
+
+    u32 height = 0;
+    for (u32 i = 0; i < 95; i++) {
+        stbtt_packedchar c = glyph_metrics[i];
+        if (c.y1 > height) height = c.y1;
+    }
+
+    stbtt_fontinfo info = { 0 };
+    stbtt_InitFont(&info, ttf_file.str, stbtt_GetFontOffsetForIndex(ttf_file.str, 0));
+
+    f32 scale = stbtt_ScaleForPixelHeight(&info, 96);
+    i32 a, d, l;
+    stbtt_GetFontVMetrics(&info, &a, &d, &l);
+
+    v_metrics.ascent = (f32)(a * scale);
+    v_metrics.descent = (f32)(d * scale);
+    v_metrics.line_gap = (f32)(l * scale);
 
     draw_rectb_set_filter(rectb, DRAW_FILTER_LINEAR);
 
@@ -64,7 +86,40 @@ void test_desc_destroy(void* custon_data) {
 void test_draw(app_app* app, void* obj) {
     memcpy(rectb->win_mat, app->win_mat, sizeof(app->win_mat));
 
-    draw_rectb_push_ex(rectb, (rect){ 5, 5, 250, 150 }, (vec4d){ 1, 1, 1, 1 }, font_img_id, (rect){ 0 });
+    string8 str = STR("Hello World!\nHello Again");
+
+    f32 start_x = 50;
+    f32 x = start_x;
+    f32 start_y = 100;
+    f32 y = start_y;
+    for (u8* ptr = str.str; ptr < str.str + str.size; ptr += 1) {
+        switch (*ptr) {
+            case '\n': {
+                y += v_metrics.ascent - v_metrics.descent + v_metrics.line_gap;
+                x = start_x;
+            } break;
+            default: break;
+        }
+
+
+        if (*ptr < 32 || *ptr > 127)
+            continue;
+
+        stbtt_packedchar pc = glyph_metrics[*ptr - 32];
+
+        vec2 dim = { pc.x1 - pc.x0, pc.y1 - pc.y0 };
+
+        draw_rectb_push_ex(
+            rectb,
+            (rect){ x + pc.xoff, y + pc.yoff, dim.x, dim.y },
+            (vec4d){ 1, 1, 1, 1 },
+            font_img_id,
+            (rect){ pc.x0, pc.y0, dim.x, dim.y }
+        );
+
+        x += pc.xadvance;
+    }
+
     draw_rectb_flush(rectb);
 }
 

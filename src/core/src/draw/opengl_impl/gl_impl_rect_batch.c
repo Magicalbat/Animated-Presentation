@@ -175,6 +175,8 @@ void draw_rectb_finalize_textures(draw_rectb* batch) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
     u32 in_type = GL_RGBA8;
     u32 color_type = GL_RGBA;
     switch (batch->channels) {
