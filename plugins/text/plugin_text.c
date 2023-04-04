@@ -5,17 +5,24 @@
 #include "stb_truetype.h"
 
 typedef struct {
+    u32 face;
+    u32 font;
+} font_ref;
+
+typedef struct {
     string8 source;
-    f64 size;
+    struct { u64 size; f64* data; } sizes;
     b32 is_default;
 } pres_font;
 
 typedef struct {
     string8 text;
-    string8 font;
+    string8 font_name;
     f64 font_size;
     f64 x, y;
     vec4d col;
+
+    font_ref font;
 } pres_text;
 
 #define MAX_FACES 8
@@ -24,25 +31,25 @@ typedef struct {
 #define FIRST_CHAR 32
 
 typedef struct {
+    f32 size;
+
+    f32 ascent;
+    f32 descent;
+    f32 line_gap;
+    f32 tab_size;
+
+    stbtt_packedchar* glyph_metrics;
+} font_font;
+
+typedef struct {
     string8 source;
     string8 name;
 
     u64 file_reg_id;
 
     u32 num_fonts;
-    struct {
-        f32 size;
-        f32 ascent;
-        f32 descent;
-        f32 line_gap;
-        stbtt_packedchar* glyph_metrics;
-    } fonts[MAX_FONTS];
+    font_font fonts[MAX_FONTS];
 } font_face;
-
-typedef struct {
-    u32 face;
-    u32 font;
-} font_ref;
 
 static draw_rectb* rectb = NULL;
 static i32 font_img_id = -1;
@@ -61,9 +68,7 @@ void font_desc_destroy(void* custom_data) {
 void font_obj_default(marena* arena, app_app* app, void* obj) {
     pres_font* pfont = (pres_font*)obj;
 
-    *pfont = (pres_font){
-        .size = 12,
-    };
+    *pfont = (pres_font){ 0 };
 }
 void font_obj_init(marena* arena, app_app* app, void* obj) {
     pres_font* pfont = (pres_font*)obj;
@@ -107,28 +112,32 @@ void font_obj_init(marena* arena, app_app* app, void* obj) {
 
     font_face* face = &faces[face_index];
 
-    i64 font_index = -1;
-    for (u32 i = 0; i < MAX_FONTS; i++) {
-        if (face->fonts[i].size == pfont->size) {
-            font_index = i;
-            break;
+    for (u64 i = 0; i < pfont->sizes.size; i++) {
+        f64 size = pfont->sizes.data[i];
+
+        i64 font_index = -1;
+        for (u32 j = 0; j < MAX_FONTS; j++) {
+            if (face->fonts[j].size == size) {
+                font_index = j;
+                break;
+            }
         }
-    }
-    if (font_index == -1) {
-        font_index = face->num_fonts++;
-    }
+        if (font_index == -1) {
+            font_index = face->num_fonts++;
+        }
 
-    if (font_index >= MAX_FONTS) {
-        log_errorf("Out of fonts for font \"%.*s\"", (int)face->name.size, face->name.str);
-        return;
-    }
-    
-    if (pfont->is_default) {
-        default_font.face = face_index;
-        default_font.font = font_index;
-    }
+        if (font_index >= MAX_FONTS) {
+            log_errorf("Out of fonts for font \"%.*s\"", (int)face->name.size, face->name.str);
+            return;
+        }
+        
+        if (pfont->is_default && i == 0) {
+            default_font.face = face_index;
+            default_font.font = font_index;
+        }
 
-    face->fonts[font_index].size = pfont->size;
+        face->fonts[font_index].size = size;
+    }
 }
 
 static b32 first_file_call = true;
@@ -184,9 +193,13 @@ void font_obj_file(marena* arena, app_app* app, void* obj) {
             i32 a, d, l;
             stbtt_GetFontVMetrics(&info, &a, &d, &l);
 
+            i32 w, b;
+            stbtt_GetCodepointHMetrics(&info, ' ', &w, &b);
+
             faces[i].fonts[j].ascent = (f32)(a * scale);
             faces[i].fonts[j].descent = (f32)(d * scale);
             faces[i].fonts[j].line_gap = (f32)(l * scale);
+            faces[i].fonts[j].tab_size = (f32)(w * scale);
         }
     }
 
@@ -206,6 +219,88 @@ void font_obj_file(marena* arena, app_app* app, void* obj) {
     marena_scratch_release(scratch);
 }
 
+void text_obj_default(marena* arena, app_app* app, void* obj) {
+    pres_text* text = (pres_text*)obj;
+
+    *text = (pres_text){ 
+        .col = (vec4d){ 1, 1, 1, 1 }
+    };
+}
+void text_obj_init(marena* arena, app_app* app, void* obj) {
+    pres_text* text = (pres_text*)obj;
+
+    i64 face = -1;
+    for (u32 i = 0; i < num_faces; i++) {
+        if (str8_equals(faces[i].name, text->font_name)) {
+            face = i;
+            break;
+        }
+    }
+    if (face == -1) {
+        face = default_font.face;
+    }
+
+    i64 font = -1;
+    for (u32 i = 0; i < faces[face].num_fonts; i++) {
+        if (faces[face].fonts[i].size == text->font_size) {
+            font = i;
+            break;
+        }
+    }
+    if (font == -1) {
+        font = default_font.font;
+    }
+
+    text->font.face = (u32)face;
+    text->font.font = (u32)font;
+}
+void text_obj_draw(app_app* app, void* obj) {
+    pres_text* text = (pres_text*)obj;
+    font_font* font = &faces[text->font.face].fonts[text->font.font];
+
+    memcpy(rectb->win_mat, app->win_mat, sizeof(app->win_mat));
+
+    f32 start_x = text->x;
+    f32 x = text->x;
+
+    f32 line_height = font->ascent - font->descent + font->line_gap;
+    f32 y = text->y + line_height;
+
+    for (u64 i = 0; i < text->text.size; i++ ){
+        u8 c = text->text.str[i];
+
+        switch (c) {
+            case '\n': {
+                y += line_height;
+                x = start_x;
+            } break;
+            case '\t': {
+                x += font->tab_size;
+            } break;
+            default: break;
+        }
+
+        if (c < 32 || c > 127)
+            continue;
+
+        stbtt_packedchar* pc = &font->glyph_metrics[c - FIRST_CHAR];
+
+        vec2 dim = { pc->x1 - pc->x0, pc->y1 - pc->y0 };
+
+        draw_rectb_push_ex(
+            rectb,
+            (rect){ x + pc->xoff, y + pc->yoff, dim.x, dim.y },
+            text->col,
+            font_img_id,
+            (rect){ pc->x0, pc->y0, dim.x, dim.y }
+        );
+
+        x += pc->xadvance;
+    }
+
+    draw_rectb_flush(rectb);
+}
+
 AP_EXPORT void plugin_init(marena* arena, app_app* app) {
     obj_desc font_desc = {
         .name = STR("font"),
@@ -219,9 +314,9 @@ AP_EXPORT void plugin_init(marena* arena, app_app* app) {
         .file_func = font_obj_file,
 
         .fields = {
-            { STR("source" ), FIELD_STR8,   offsetof(pres_font, source    ) },
-            { STR("size"   ), FIELD_F64,    offsetof(pres_font, size      ) },
-            { STR("default"), FIELD_BOOL32, offsetof(pres_font, is_default) },
+            { STR("source" ), FIELD_STR8,    offsetof(pres_font, source    ) },
+            { STR("sizes"  ), FIELD_F64_ARR, offsetof(pres_font, sizes     ) },
+            { STR("default"), FIELD_BOOL32,  offsetof(pres_font, is_default) },
         }
     };
 
@@ -229,9 +324,13 @@ AP_EXPORT void plugin_init(marena* arena, app_app* app) {
         .name = STR("text"),
         .obj_size = sizeof(pres_text),
 
+        .default_func = text_obj_default,
+        .init_func = text_obj_init,
+        .draw_func = text_obj_draw,
+
         .fields = {
             { STR("text"     ), FIELD_STR8,  offsetof(pres_text, text     ) },
-            { STR("font"     ), FIELD_STR8,  offsetof(pres_text, font     ) },
+            { STR("font"     ), FIELD_STR8,  offsetof(pres_text, font_name) },
             { STR("font_size"), FIELD_F64,   offsetof(pres_text, font_size) },
             { STR("x"        ), FIELD_F64,   offsetof(pres_text, x        ) },
             { STR("y"        ), FIELD_F64,   offsetof(pres_text, y        ) },

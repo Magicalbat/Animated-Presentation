@@ -11,13 +11,17 @@ slides = [
     slide {
         font {
             source = "res/Hack.ttf",
-            size = 48,
+            sizes = [48, 96],
             default = true
         },
         font {
             source = "res/Chomsky.otf",
-            size = 48,
+            sizes = [48,96],
         },
+        text {
+            x = 50, y = 50,
+            text = "Hello World\n\tHello Again!"
+        }
         image {
             source = "res/monkey 1.png",
             x = 30, y = 300,

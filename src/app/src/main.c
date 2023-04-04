@@ -2,12 +2,16 @@
 
 #include "app/app.h"
 
+#include <commdlg.h>
+
 #define WIN_SCALE 3
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
 
 // TODO: app mouse pos
 // TODO: better win mat
+// TODO: global slide
+// TODO: system to get presentation file
 
 int main(int argc, char** argv) {
     log_init(&(log_desc){ 
@@ -23,7 +27,7 @@ int main(int argc, char** argv) {
     });
 
     app_app* app = app_create(perm_arena, STR8_LIT("test.pres"), WIDTH, HEIGHT);
-    
+
     app_run(perm_arena, app);
     app_destroy(app);
 
