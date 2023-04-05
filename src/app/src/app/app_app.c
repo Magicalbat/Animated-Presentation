@@ -114,7 +114,6 @@ void app_run(app_app* app) {
 
         if (cur_modify_time > app->pres_modify_time) {
             app->pres_modify_time = cur_modify_time;
-            log_debug("test");
             app_reset(app);
         }
 

@@ -105,10 +105,7 @@ u64 os_mem_pagesize(void) {
     return sysconf(_SC_PAGE_SIZE);
 }
 
-datetime os_now_localtime(void) {
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-
+datetime lnx_tm_to_datetime(struct tm tm) {
     return (datetime){
         .sec = tm.tm_sec,
         .min = tm.tm_min,
@@ -117,6 +114,13 @@ datetime os_now_localtime(void) {
         .month = tm.tm_mon + 1,
         .year = tm.tm_year + 1900
     };
+}
+
+datetime os_now_localtime(void) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    return lnx_tm_to_datetime(tm);
 }
 
 u64 os_now_microseconds(void) {
@@ -233,19 +237,28 @@ file_flags lnx_file_flags(mode_t mode) {
     return flags;
 }
 file_stats os_file_get_stats(string8 path) {
+    file_stats stats = { 0 };
+    
     marena_temp temp = marena_temp_begin(lnx_arena);
     
     u8* path_cstr = str8_to_cstr(temp.arena, path);
     
     struct stat file_stat;
-    stat((char*)path_cstr, &file_stat);
+    if (stat((char*)path_cstr, &file_stat) == -1) {
+        log_lnx_errorf("Failed to get stats for file \"%.*s\"", (int)path.size, path.str);
+
+    } else {
+        time_t modify_time = (time_t)file_stat.st_mtim.tv_sec;
+        struct tm tm = *localtime(&modify_time);
+
+        stats.size = file_stat.st_size;
+        stats.flags = lnx_file_flags(file_stat.st_mode);
+        stats.modify_time = lnx_tm_to_datetime(tm);
+    }
 
     marena_temp_end(temp);
 
-    return (file_stats){
-        .size = file_stat.st_size,
-        .flags = lnx_file_flags(file_stat.st_mode)
-    };
+    return stats;
 }
 
 os_file os_file_open(string8 path, file_mode open_mode) {

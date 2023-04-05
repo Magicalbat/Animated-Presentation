@@ -14,10 +14,6 @@ slides = [
             sizes = [48, 96],
             default = true
         },
-        font {
-            source = "res/Chomsky.otf",
-            sizes = [48,96],
-        },
         text {
             x = 50, y = 50,
             text = anim{
@@ -27,11 +23,6 @@ slides = [
                 pauses = [ false, false ]
             },
             col = vec4{ 0, 1, 1, 1 }
-        }
-        image {
-            source = "res/kodim23.qoi",
-            x = 30, y = 300,
-            scale = vec2{ 0.5, 0.5 }
         }
     },
 ]

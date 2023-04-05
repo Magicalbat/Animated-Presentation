@@ -2,8 +2,6 @@
 
 #include "app/app.h"
 
-#include <commdlg.h>
-
 #define WIN_SCALE 3
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
