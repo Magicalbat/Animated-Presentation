@@ -269,6 +269,14 @@ string8 str8_reg_get(string8_registry* reg, u64 id) {
     }
     return reg->strings[id];
 }
+void str8_reg_clear(string8_registry* reg) {
+    reg->num_strings = 0;
+
+    reg->names = (string8_list){
+        .first = NULL,
+        .last = NULL,
+    };
+}
 
 // https://github.com/skeeto/branchless-utf8/blob/master/utf8.h
 // https://github.com/Mr-4th-Programming/mr4th/blob/main/src/base/base_string.cpp

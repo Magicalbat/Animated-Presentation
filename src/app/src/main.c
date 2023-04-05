@@ -12,6 +12,7 @@
 // TODO: better win mat
 // TODO: global slide
 // TODO: system to get presentation file
+// TODO: reload pres file on save
 
 int main(int argc, char** argv) {
     log_init(&(log_desc){ 
@@ -28,7 +29,7 @@ int main(int argc, char** argv) {
 
     app_app* app = app_create(perm_arena, STR8_LIT("test.pres"), WIDTH, HEIGHT);
 
-    app_run(perm_arena, app);
+    app_run(app);
     app_destroy(app);
 
     marena_destroy(perm_arena);

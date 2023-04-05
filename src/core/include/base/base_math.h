@@ -56,6 +56,9 @@ typedef union {
     vec2 p[4];
 } cbezier;
 
+AP_EXPORT u64 datetime_to_sec(datetime t);
+AP_EXPORT i64 datetime_diff_sec(datetime a, datetime b);
+
 AP_EXPORT rect rect_pack(rect* rects, u32 num_rects);
 
 AP_EXPORT vec3 rgb_to_hsv(vec3 rgb);

@@ -135,9 +135,7 @@ u64 os_mem_pagesize(void) {
     return si.dwPageSize;
 }
 
-datetime os_now_localtime(void) {
-    SYSTEMTIME t;
-    GetLocalTime(&t);
+static datetime w32_systime_to_datetime(SYSTEMTIME t){  
     return (datetime){
         .sec   = (u8 )t.wSecond,
         .min   = (u8 )t.wMinute,
@@ -146,6 +144,12 @@ datetime os_now_localtime(void) {
         .month = (u8 )t.wMonth,
         .year  = (i32)t.wYear + 1601
     };
+}
+
+datetime os_now_localtime(void) {
+    SYSTEMTIME t;
+    GetLocalTime(&t);
+    return w32_systime_to_datetime(t);
 }
 
 u64 os_now_microseconds(void) {
@@ -317,9 +321,15 @@ file_stats os_file_get_stats(string8 path) {
     WIN32_FILE_ATTRIBUTE_DATA attribs = { 0 };
     if (GetFileAttributesEx((LPCWSTR)path16.str, GetFileExInfoStandard, &attribs) != FALSE) {
         stats.size = ((u64)attribs.nFileSizeHigh << 32) | attribs.nFileSizeLow;
+
         if (attribs.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
             stats.flags |= FILE_IS_DIR;
         }
+
+        SYSTEMTIME modify_sys_time = { 0 };
+        FileTimeToSystemTime(&attribs.ftLastWriteTime, &modify_sys_time);
+        stats.modify_time = w32_systime_to_datetime(modify_sys_time);
+
     } else {
         log_w32_errorf("Failed to open file \"%.*s\"",  (int)path.size, (char*)path.str);
     }

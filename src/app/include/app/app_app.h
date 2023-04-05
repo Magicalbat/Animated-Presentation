@@ -23,6 +23,9 @@ typedef struct app_app {
     draw_cbezier* cbezier;
     draw_polygon* poly;
 
+    string8 pres_path;
+    u64 pres_modify_time;
+    marena* pres_arena;
     app_pres* pres;
 
     struct {
@@ -32,7 +35,7 @@ typedef struct app_app {
 } app_app;
 
 app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height);
-void app_run(marena* arena, app_app* app);
+void app_run(app_app* app);
 void app_destroy(app_app* app);
 
 #ifdef __cplusplus

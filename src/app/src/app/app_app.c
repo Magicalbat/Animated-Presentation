@@ -12,6 +12,8 @@ EM_JS(void, app_maximize_canvas, (), {
 });
 #endif
 
+static void app_make_pres(app_app* app);
+
 app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_height) {
     app_app* app = CREATE_STRUCT(arena, app_app);
 
@@ -26,14 +28,28 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     
     app->win = win;
     
-    app->bg_col = (vec4d){ .5, .6, .7, 1 };
+    app->bg_col = (vec4d){ .5, .6, .7, 1};
     
     app->ref_width = (f32)win_width;
     app->ref_height = (f32)win_height;
     
-    app->rectb = draw_rectb_create(arena, win, 256, 32, 4);
-    app->cbezier = draw_cbezier_create(arena, win, 256);
-    app->poly = draw_poly_create(arena, win, 128);
+    app->pres_arena = marena_create(
+        &(marena_desc){ 
+            .desired_max_size = MiB(16),
+            .desired_block_size = KiB(256)
+        }
+    );
+
+    app->pres_path = pres_path;
+    app_make_pres(app);
+
+    return app;
+} 
+
+static void app_make_pres(app_app* app) {
+    app->rectb = draw_rectb_create(app->pres_arena, app->win, 256, 32, 4);
+    app->cbezier = draw_cbezier_create(app->pres_arena, app->win, 256);
+    app->poly = draw_poly_create(app->pres_arena, app->win, 128);
     
     app->temp.arena = marena_create(
         &(marena_desc){
@@ -43,30 +59,48 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     );
     app->temp.file_reg = (string8_registry){ 0 };
     
-    app->pres = app_pres_parse(arena, app, pres_path);
+    app->pres = app_pres_parse(app->pres_arena, app, app->pres_path);
 
-    return app;
-} 
+    datetime pres_modify_time = os_file_get_stats(app->pres_path).modify_time;
+    app->pres_modify_time = datetime_to_sec(pres_modify_time);
+}
 
-void app_run(marena* arena, app_app* app) {
-    str8_reg_init_arr(arena, &app->temp.file_reg);
+static void app_pre_run(app_app* app) {
+    str8_reg_init_arr(app->temp.arena, &app->temp.file_reg);
     
     string8_node* node = app->temp.file_reg.names.first;
     for(u64 i = 0; node != NULL; node = node->next, i++) {
-        string8 file = os_file_read(arena, node->str);
+        string8 file = os_file_read(app->temp.arena, node->str);
         app->temp.file_reg.strings[i] = file;
     }
 
     for (app_slide_node* slide = app->pres->first_slide; slide != NULL; slide = slide->next) {
-        app_objp_file(arena, slide->objs, app->pres->obj_reg, app);
+        app_objp_file(app->pres_arena, slide->objs, app->pres->obj_reg, app);
     }
 
     draw_rectb_finalize_textures(app->rectb);
     
     marena_destroy(app->temp.arena);
+}
 
+static void app_reset(app_app* app) {
+    app_pres_destroy(app->pres);
+
+    draw_rectb_destroy(app->rectb);
+    draw_cbezier_destroy(app->cbezier);
+    draw_poly_destroy(app->poly);
+
+    marena_reset(app->pres_arena);
+
+    app_make_pres(app);
+    app_pre_run(app);
+}
+
+void app_run(app_app* app) {
     gfx_win_alpha_blend(app->win, true);
     gfx_win_clear_color(app->win, (vec3){ 0 });
+    
+    app_pre_run(app);
 
     u64 time_prev = os_now_microseconds();
     while (!app->win->should_close) {
@@ -74,6 +108,15 @@ void app_run(marena* arena, app_app* app) {
         f32 delta = (f32)(time_now - time_prev) / 1000000.0f;
 
         app_pres_update(app->pres, app, delta);
+
+        datetime cur_modify_dt = os_file_get_stats(app->pres_path).modify_time;
+        u64 cur_modify_time = datetime_to_sec(cur_modify_dt);
+
+        if (cur_modify_time > app->pres_modify_time) {
+            app->pres_modify_time = cur_modify_time;
+            log_debug("test");
+            app_reset(app);
+        }
 
         gfx_win_clear(app->win);
 
@@ -124,6 +167,8 @@ void app_destroy(app_app* app) {
     draw_rectb_destroy(app->rectb);
     draw_cbezier_destroy(app->cbezier);
     draw_poly_destroy(app->poly);
+
+    marena_destroy(app->pres_arena);
 
     gfx_win_destroy(app->win);
 }

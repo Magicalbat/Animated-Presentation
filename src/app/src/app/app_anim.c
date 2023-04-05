@@ -49,11 +49,11 @@ static void anim_update_val(app_anim* anim) {
                 t = 1.0 - (t * 2.0);
             } else {
                 t = (t - 0.5) * 2.0;
-                target += 1;
+                target += anim->dir;
             }
 
             data->str = target->str;
-            data->size = (u64)(LERP(
+            data->size = (u32)round(LERP(
                 0.0, (f64)target->size, t
             ));
         } break;

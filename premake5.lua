@@ -31,6 +31,9 @@ function init_common()
     filter { "options:wasm", "system:linux" }
         linkoptions { "--cache \"../../emcc-cache\""}
 
+    filter { "options:not no-clang", "system:windows", "action:*gmake*" }
+        linkoptions { "-g" }
+
     filter "configurations:Debug"
         symbols "On"
 

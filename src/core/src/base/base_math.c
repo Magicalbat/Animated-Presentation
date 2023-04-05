@@ -1,6 +1,19 @@
 #include "base/base_math.h"
 #include "base/base_log.h"
 
+u64 datetime_to_sec(datetime t) {
+    return 
+        t.sec +
+        t.min * 60 +
+        t.hour * 60 * 60 + 
+        t.day * 60 * 60 * 24 +
+        (u64)(t.month * 60 * 60 * 24 * 30.437) +
+        (u64)(t.year * 60 * 60 * 24 * 365.25);
+}
+i64 datetime_diff_sec(datetime a, datetime b) {
+    return (i64)(datetime_to_sec(a)) - (i64)(datetime_to_sec(b));
+}
+
 // I could try different algorithms if I wanted to
 // With random rectangles it averages about 80% packing density
 rect rect_pack(rect* rects, u32 num_rects) {

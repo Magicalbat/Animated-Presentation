@@ -99,6 +99,7 @@ AP_EXPORT string8 str8_pushf(marena* arena, const char* fmt, ...);
 AP_EXPORT u64     str8_reg_push(marena* arena, string8_registry* reg, string8 name);
 AP_EXPORT void    str8_reg_init_arr(marena* arena, string8_registry* reg);
 AP_EXPORT string8 str8_reg_get(string8_registry* reg, u64 id);
+AP_EXPORT void    str8_reg_clear(string8_registry* reg);
 
 AP_EXPORT string_decode str_decode_utf8(u8* str, u32 cap);
 AP_EXPORT u32           str_encode_utf8(u8* dst, u32 code_point);

@@ -36,9 +36,9 @@ typedef enum {
 } file_flags;
 
 typedef struct {
-    // TODO: Time stuff
     u64 size;
     file_flags flags;
+    datetime modify_time;
 } file_stats;
 
 typedef enum {

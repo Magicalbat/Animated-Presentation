@@ -20,12 +20,18 @@ slides = [
         },
         text {
             x = 50, y = 50,
-            text = "Hello World\n\tHello Again!"
+            text = anim{
+                keys = [ "Hello World", "Hello Again" ],
+                time = 2,
+                repeat = BOUNCE,
+                pauses = [ false, false ]
+            },
+            col = vec4{ 0, 1, 1, 1 }
         }
         image {
-            source = "res/monkey 1.png",
+            source = "res/kodim23.qoi",
             x = 30, y = 300,
-            scale = vec2{ 0.15, 0.15 }
+            scale = vec2{ 0.5, 0.5 }
         }
     },
 ]
