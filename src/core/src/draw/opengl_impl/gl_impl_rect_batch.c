@@ -8,8 +8,10 @@ static const char* vert_source;
 static const char* frag_source;
 static const char* frag_texture_opts[];
 
-draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures, u32 channels) { 
+draw_rectb* draw_rectb_create(marena* arena, f32* win_mat, u32 capacity, u32 max_textures, u32 channels) { 
     draw_rectb* batch = CREATE_ZERO_STRUCT(arena, draw_rectb);
+
+    batch->win_mat = win_mat;
 
     batch->data = CREATE_ARRAY(arena, draw_rectb_rect, capacity);
     batch->capacity = capacity;

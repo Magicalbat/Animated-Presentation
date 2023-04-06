@@ -12,6 +12,7 @@ void rectangle_obj_init(marena* arena, app_app* app);
 void image_obj_init(marena* arena, app_app* app);
 void bezier_obj_init(marena* arena, app_app* app);
 void polygon_obj_init(marena* arena, app_app* app);
+void pointer_obj_init(marena* arena, app_app* app);
 
 #ifdef __cplusplus
 }

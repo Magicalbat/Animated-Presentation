@@ -14,7 +14,7 @@ typedef struct {
     vec2* verts;
     u32* indices;
 
-    f32 win_mat[16];
+    f32* win_mat;
 
     #if defined (AP_OPENGL)
     struct {
@@ -46,7 +46,7 @@ typedef struct {
     vec2d* data;
 } vec2d_arr;
 
-AP_EXPORT draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts);
+AP_EXPORT draw_polygon* draw_poly_create(marena* arena, f32* win_mat, u32 max_verts);
 AP_EXPORT void          draw_poly_destroy(draw_polygon* poly);
 
 AP_EXPORT void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list list);

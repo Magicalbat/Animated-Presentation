@@ -6,11 +6,7 @@
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
 
-// TODO: app mouse pos
-// TODO: better win mat
-// TODO: global slide
 // TODO: system to get presentation file
-// TODO: reload pres file on save
 
 int main(int argc, char** argv) {
     log_init(&(log_desc){ 

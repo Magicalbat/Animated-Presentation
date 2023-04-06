@@ -8,12 +8,18 @@ settings = [
     title = "Test Presentation"
 ],
 slides = [
-    slide {
+    global {
         font {
             source = "res/Hack.ttf",
             sizes = [48, 96],
             default = true
         },
+        pointer {
+            col = vec4{ 1, 0, 0, 0.5 },
+            source = "res/monkey 1.png",
+        }
+    },
+    slide {
         text {
             x = 50, y = 50,
             text = anim{
@@ -25,4 +31,16 @@ slides = [
             col = vec4{ 0, 1, 1, 1 }
         }
     },
+    slide {
+        text {
+            x = 100, y = 100,
+            text = anim{
+                keys = [ "Hello World", "Hello Again" ],
+                time = 2,
+                repeat = BOUNCE,
+                pauses = [ false, false ]
+            },
+            col = vec4{ 1, 0, 1, 1 }
+        }
+    }
 ]

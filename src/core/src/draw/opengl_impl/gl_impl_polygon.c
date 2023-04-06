@@ -6,8 +6,10 @@
 
 static const char* vert_source;
 
-draw_polygon* draw_poly_create(marena* arena, gfx_window* win, u32 max_verts) {
+draw_polygon* draw_poly_create(marena* arena, f32* win_mat, u32 max_verts) {
     draw_polygon* poly = CREATE_ZERO_STRUCT(arena, draw_polygon);
+
+    poly->win_mat = win_mat;
 
     poly->max_verts = max_verts;
     poly->verts = CREATE_ARRAY(arena, vec2, max_verts);

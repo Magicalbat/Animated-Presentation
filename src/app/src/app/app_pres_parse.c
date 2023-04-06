@@ -354,7 +354,10 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
     
     while (P_CHAR(parser) != ']') {
         string8 keyword = parse_keyword(parser);
-        if (!str8_equals(keyword, STR8_LIT("slide"))) {
+
+        b32 is_global = str8_equals(keyword, STR8_LIT("global"));
+
+        if (!is_global && !str8_equals(keyword, STR8_LIT("slide"))) {
             log_errorf("Invalid keyword \"%.*s\", expected \"slide\"", (int)keyword.size, keyword.str);
             parse_syntax_error(parser);
 
@@ -367,10 +370,13 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
         slide->objs = app_objp_create(arena, pres->obj_reg, PRES_MAX_OBJS);
         slide->anims = app_animp_create(arena, PRES_MAX_ANIMS);
         
-        
-        DLL_PUSH_BACK(pres->first_slide, pres->last_slide, slide);
-        pres->num_slides++;
-        pres->cur_slide = pres->first_slide;
+        if (is_global) {
+            pres->global_slide = slide;
+        } else {
+            DLL_PUSH_BACK(pres->first_slide, pres->last_slide, slide);
+            pres->num_slides++;
+            pres->cur_slide = pres->first_slide;
+        }
 
         parse_slide(arena, scratch, app, pres, slide, parser);
 

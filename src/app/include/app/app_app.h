@@ -12,12 +12,13 @@ typedef struct app_pres app_pres;
 
 typedef struct app_app {
     gfx_window* win;
-    u32 screen_tex;
 
     vec4d bg_col;
     f32 ref_width;
     f32 ref_height;
     f32 win_mat[16];
+
+    vec2 mouse_pos;
 
     draw_rectb* rectb;
     draw_cbezier* cbezier;

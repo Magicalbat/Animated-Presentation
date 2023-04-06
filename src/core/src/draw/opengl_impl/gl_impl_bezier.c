@@ -1,13 +1,14 @@
 #include "base/base_defs.h"
-
 #ifdef AP_OPENGL
 
 #include "draw/opengl_impl/gl_impl.h"
 
 static const char* vert_source;
 
-draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity) {
+draw_cbezier* draw_cbezier_create(marena* arena, f32* win_mat, u32 capacity) {
     draw_cbezier* draw_cb = CREATE_ZERO_STRUCT(arena, draw_cbezier);
+
+    draw_cb->win_mat = win_mat;
 
     draw_cb->capacity = capacity;
     draw_cb->indices = CREATE_ARRAY(arena, u32, capacity * 6);
@@ -141,7 +142,8 @@ void draw_cbezier_push(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d 
 
 void draw_cbezier_flush(draw_cbezier* draw_cb) {
     glUseProgram(draw_cb->gl.shader_program);
-    //gl_impl_view_mat(draw_cb->win, draw_cb->gl.win_mat_loc);
+
+
     glUniformMatrix4fv(draw_cb->gl.win_mat_loc, 1, GL_FALSE, draw_cb->win_mat);
 
 #ifndef __EMSCRIPTEN__

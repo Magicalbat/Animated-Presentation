@@ -54,8 +54,8 @@ typedef struct field_val {
 
 typedef struct app_app app_app;
 
-typedef void (desc_init_func)(marena* arena, app_app* app, void* custom_data);
-typedef void (desc_destroy_func)(void* custom_data);
+typedef void (desc_init_func)(marena* arena, app_app* app);
+typedef void (desc_destroy_func)(void);
 
 typedef void (obj_default_func)(marena* arena, app_app* app, void* obj);
 typedef void (obj_init_func)(marena* arena, app_app* app, void* obj);
@@ -74,8 +74,6 @@ typedef struct {
 typedef struct {
     string8 name;
     u32 obj_size;
-
-    void* custom_data;
 
     desc_init_func* desc_init_func;
     desc_destroy_func* desc_destroy_func;

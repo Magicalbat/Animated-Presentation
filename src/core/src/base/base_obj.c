@@ -21,11 +21,11 @@ void obj_reg_add_desc(marena* arena, app_app* app, obj_register* obj_reg, obj_de
     obj_reg->num_descs++;
 
     if (desc->desc_init_func != NULL)
-        desc->desc_init_func(arena, app, desc->custom_data);
+        desc->desc_init_func(arena, app);
 }
 void obj_reg_destroy(obj_register* obj_reg) {
     for (u32 i = 0; i < obj_reg->num_descs; i++) {
         if (obj_reg->descs[i].desc_destroy_func != NULL)
-            obj_reg->descs[i].desc_destroy_func(obj_reg->descs[i].custom_data);
+            obj_reg->descs[i].desc_destroy_func();
     }
 }

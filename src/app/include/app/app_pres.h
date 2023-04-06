@@ -32,13 +32,19 @@ typedef struct app_pres {
     app_slide_node* last_slide;
     u32 num_slides;
 
+    u32 slide_index;
     app_slide_node* cur_slide;
+
+    app_slide_node* global_slide;
 } app_pres;
 
 #define PRES_MAX_DESCS 32
 
 app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path);
 void app_pres_destroy(app_pres* pres);
+
+void app_pres_next_slide(app_pres* pres);
+void app_pres_prev_slide(app_pres* pres);
 
 void app_pres_draw(app_pres* pres, app_app* app);
 void app_pres_update(app_pres* pres, app_app* app, f32 delta);

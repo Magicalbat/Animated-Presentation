@@ -21,7 +21,7 @@ typedef struct {
     u32 index_pos;
     u32 vertex_pos;
 
-    f32 win_mat[16];
+    f32* win_mat;
 
     #if defined(AP_OPENGL)
     struct {
@@ -35,7 +35,7 @@ typedef struct {
     #endif
 } draw_cbezier;
 
-AP_EXPORT draw_cbezier* draw_cbezier_create(marena* arena, gfx_window* win, u32 capacity);
+AP_EXPORT draw_cbezier* draw_cbezier_create(marena* arena, f32* win_mat, u32 capacity);
 AP_EXPORT void          draw_cbezier_destroy(draw_cbezier* draw_cb);
 
 AP_EXPORT void draw_cbezier_push_grad(draw_cbezier* draw_cb, cbezier* bezier, u32 width, vec4d start_col, vec4d end_col);

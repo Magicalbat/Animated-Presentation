@@ -47,9 +47,9 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
 } 
 
 static void app_make_pres(app_app* app) {
-    app->rectb = draw_rectb_create(app->pres_arena, app->win, 256, 32, 4);
-    app->cbezier = draw_cbezier_create(app->pres_arena, app->win, 256);
-    app->poly = draw_poly_create(app->pres_arena, app->win, 128);
+    app->rectb = draw_rectb_create(app->pres_arena, app->win_mat, 256, 32, 4);
+    app->cbezier = draw_cbezier_create(app->pres_arena, app->win_mat, 256);
+    app->poly = draw_poly_create(app->pres_arena, app->win_mat, 128);
     
     app->temp.arena = marena_create(
         &(marena_desc){
@@ -74,6 +74,7 @@ static void app_pre_run(app_app* app) {
         app->temp.file_reg.strings[i] = file;
     }
 
+    app_objp_file(app->pres_arena, app->pres->global_slide->objs, app->pres->obj_reg, app);
     for (app_slide_node* slide = app->pres->first_slide; slide != NULL; slide = slide->next) {
         app_objp_file(app->pres_arena, slide->objs, app->pres->obj_reg, app);
     }
@@ -117,8 +118,6 @@ void app_run(app_app* app) {
             app_reset(app);
         }
 
-        gfx_win_clear(app->win);
-
         f32 height = (f32)app->win->height;
         f32 width = height * (app->ref_width / app->ref_height);
         
@@ -136,12 +135,11 @@ void app_run(app_app* app) {
         app->win_mat[3 + 0 * 4] = -1.0f + left / (f32)(app->win->width);
         app->win_mat[3 + 1 * 4] = 1.0f - top / (f32)(app->win->height);
         app->win_mat[3 + 3 * 4] = 1;
+        
+        app->mouse_pos.x = (app->win->mouse_pos.x - left * 0.5) * (f32)(app->ref_width / (app->win->width - left));
+        app->mouse_pos.y = (app->win->mouse_pos.y - top * 0.5) * (f32)(app->ref_height / (app->win->height - top));
 
-        // I could make all of these pointers,
-        // but this does not really affect performance
-        memcpy(app->cbezier->win_mat, app->win_mat, sizeof(app->win_mat));
-        memcpy(app->poly->win_mat, app->win_mat, sizeof(app->win_mat));
-        memcpy(app->rectb->win_mat, app->win_mat, sizeof(app->win_mat));
+        gfx_win_clear(app->win);
 
         draw_rectb_push(app->rectb, (rect){ 0, 0, app->ref_width, app->ref_height }, app->bg_col);
         draw_rectb_flush(app->rectb);

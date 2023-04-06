@@ -23,7 +23,7 @@ typedef struct {
 
     u32 channels;
 
-    f32 win_mat[16];
+    f32* win_mat;
 
     struct {
         draw_filter_type filter_type;
@@ -52,7 +52,7 @@ typedef struct {
     #endif
 } draw_rectb;
 
-AP_EXPORT draw_rectb* draw_rectb_create(marena* arena, gfx_window* win, u32 capacity, u32 max_textures, u32 channels);
+AP_EXPORT draw_rectb* draw_rectb_create(marena* arena, f32* win_mat, u32 capacity, u32 max_textures, u32 channels);
 AP_EXPORT void draw_rectb_destroy(draw_rectb* batch);
 
 AP_EXPORT void draw_rectb_set_filter(draw_rectb* batch, draw_filter_type filter_type);
