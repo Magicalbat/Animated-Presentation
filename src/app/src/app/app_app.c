@@ -61,8 +61,10 @@ static void app_make_pres(app_app* app) {
     
     app->pres = app_pres_parse(app->pres_arena, app, app->pres_path);
 
+#ifndef __EMSCRIPTEN__
     datetime pres_modify_time = os_file_get_stats(app->pres_path).modify_time;
     app->pres_modify_time = datetime_to_sec(pres_modify_time);
+#endif
 }
 
 static void app_pre_run(app_app* app) {
@@ -110,6 +112,7 @@ void app_run(app_app* app) {
 
         app_pres_update(app->pres, app, delta);
 
+#ifndef __EMSCRIPTEN__
         datetime cur_modify_dt = os_file_get_stats(app->pres_path).modify_time;
         u64 cur_modify_time = datetime_to_sec(cur_modify_dt);
 
@@ -117,6 +120,7 @@ void app_run(app_app* app) {
             app->pres_modify_time = cur_modify_time;
             app_reset(app);
         }
+#endif
 
         f32 height = (f32)app->win->height;
         f32 width = height * (app->ref_width / app->ref_height);

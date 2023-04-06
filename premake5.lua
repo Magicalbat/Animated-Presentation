@@ -31,7 +31,7 @@ function init_common()
     filter { "options:wasm", "system:linux" }
         linkoptions { "--cache \"../../emcc-cache\""}
 
-    filter { "options:not no-clang", "system:windows", "action:*gmake*" }
+    filter { "options:not no-clang", "system:windows", "action:*gmake*", "configurations:Debug" }
         linkoptions { "-g" }
 
     filter "configurations:Debug"
@@ -188,13 +188,8 @@ project "plugin_basic"
             }
 
             linkoptions {
-                "-sFETCH=1",
-                "-sWASM=1",
                 "-sALLOW_MEMORY_GROWTH=1",
                 "-sASYNCIFY=1",
-                "-sFORCE_FILESYSTEM=1",
-                "-sOFFSCREEN_FRAMEBUFFER=1",
-                "-sMIN_WEBGL_VERSION=2",
                 "-sSIDE_MODULE=2"
             }
 
@@ -247,13 +242,8 @@ project "plugin_text"
             }
 
             linkoptions {
-                "-sFETCH=1",
-                "-sWASM=1",
                 "-sALLOW_MEMORY_GROWTH=1",
                 "-sASYNCIFY=1",
-                "-sFORCE_FILESYSTEM=1",
-                "-sOFFSCREEN_FRAMEBUFFER=1",
-                "-sMIN_WEBGL_VERSION=2",
                 "-sSIDE_MODULE=2"
             }
 

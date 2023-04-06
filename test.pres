@@ -11,13 +11,9 @@ slides = [
     global {
         font {
             source = "res/Hack.ttf",
-            sizes = [48, 96],
+            sizes = [64, 96],
             default = true
         },
-        pointer {
-            col = vec4{ 1, 0, 0, 0.5 },
-            source = "res/monkey 1.png",
-        }
     },
     slide {
         text {

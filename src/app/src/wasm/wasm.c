@@ -77,7 +77,7 @@ EM_ASYNC_JS(int, js_load_lib, (char* file_name), {
     const data = new Uint8Array(await blob.arrayBuffer());
 
     for (let i = 0; i < fileName.length; i++) {
-        if (fileName.charAt(i) === '/') {
+        if (fileName.charAt(i) === '/' && !FS.analyzePath(fileName.substring(0, i)).exists) {
             FS.mkdir(fileName.substring(0, i));
         }
     }
