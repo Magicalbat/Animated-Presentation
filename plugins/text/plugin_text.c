@@ -20,6 +20,7 @@ typedef struct {
     string8 font_name;
     f64 font_size;
     f64 x, y;
+    b32 center_x, center_y;
     vec4d col;
 
     font_ref font;
@@ -37,6 +38,7 @@ typedef struct {
     f32 descent;
     f32 line_gap;
     f32 tab_size;
+    f32 line_height;
 
     stbtt_packedchar* glyph_metrics;
 } font_font;
@@ -200,6 +202,7 @@ void font_file(marena* arena, app_app* app, void* obj) {
             faces[i].fonts[j].descent = (f32)(d * scale);
             faces[i].fonts[j].line_gap = (f32)(l * scale);
             faces[i].fonts[j].tab_size = (f32)(w * scale);
+            faces[i].fonts[j].line_height = (f32)((a - d + l) * scale);
         }
     }
 
@@ -254,23 +257,74 @@ void text_init(marena* arena, app_app* app, void* obj) {
     text->font.face = (u32)face;
     text->font.font = (u32)font;
 }
+
+static f32 measure_text_height(font_font* font, string8 text) {
+    f32 height = 0;
+
+    f32 y = 0;
+
+    for (u64 i = 0; i < text.size; i++) {
+        u8 c = text.str[i];
+
+        if (c == '\n') {
+            y += font->line_height;
+        }
+
+        stbtt_packedchar* pc = &font->glyph_metrics[c - FIRST_CHAR];
+
+        height = MAX(height, y + pc->y1 - pc->y0);
+    }
+
+    return height;
+}
+static f32 measure_line_width(font_font* font, string8 text, u64 line_index) {
+    string8 line = { .str = text.str + line_index, .size = text.size - line_index };
+    for (u64 i = 0; i < line.size; i++) {
+        if (line.str[i] == '\n') {
+            line.size = i;
+            break;
+        }
+    }
+
+    f32 x = 0;
+    f32 width = 0;
+
+    for (u64 i = 0; i < line.size; i++) {
+        stbtt_packedchar* pc = &font->glyph_metrics[text.str[i] - FIRST_CHAR];
+
+        width = MAX(width, x + pc->xoff + pc->x1 - pc->x0);
+
+        x += pc->xadvance;
+    }
+
+    return width;
+}
+
 void text_draw(app_app* app, void* obj) {
     pres_text* text = (pres_text*)obj;
-    font_font* font = &faces[text->font.face].fonts[text->font.font];
+    font_font* font = &faces [text->font.face].fonts[text->font.font];
 
     f32 start_x = text->x;
     f32 x = text->x;
+    if (text->center_x) {
+        x -= measure_line_width(font, text->text, 0) * 0.5;
+    }
 
-    f32 line_height = font->ascent - font->descent + font->line_gap;
-    f32 y = text->y + line_height;
+    f32 y = text->y + font->ascent + font->descent * 0.75;
+    if (text->center_y) {
+        y -= measure_text_height(font, text->text) * 0.5;
+    }
 
     for (u64 i = 0; i < text->text.size; i++ ){
         u8 c = text->text.str[i];
 
         switch (c) {
             case '\n': {
-                y += line_height;
+                y += font->line_height;
                 x = start_x;
+                if (text->center_x) {
+                    x -= measure_line_width(font, text->text, i + 1) * 0.5;
+                }
             } break;
             case '\t': {
                 x += font->tab_size;
@@ -327,12 +381,14 @@ AP_EXPORT void plugin_init(marena* arena, app_app* app) {
         .draw_func = text_draw,
 
         .fields = {
-            { STR("text"     ), FIELD_STR8,  offsetof(pres_text, text     ) },
-            { STR("font"     ), FIELD_STR8,  offsetof(pres_text, font_name) },
-            { STR("font_size"), FIELD_F64,   offsetof(pres_text, font_size) },
-            { STR("x"        ), FIELD_F64,   offsetof(pres_text, x        ) },
-            { STR("y"        ), FIELD_F64,   offsetof(pres_text, y        ) },
-            { STR("col"      ), FIELD_VEC4D, offsetof(pres_text, col      ) },
+            { STR("text"     ), FIELD_STR8,   offsetof(pres_text, text     ) },
+            { STR("font"     ), FIELD_STR8,   offsetof(pres_text, font_name) },
+            { STR("font_size"), FIELD_F64,    offsetof(pres_text, font_size) },
+            { STR("x"        ), FIELD_F64,    offsetof(pres_text, x        ) },
+            { STR("y"        ), FIELD_F64,    offsetof(pres_text, y        ) },
+            { STR("center_x" ), FIELD_BOOL32, offsetof(pres_text, center_x ) },
+            { STR("center_y" ), FIELD_BOOL32, offsetof(pres_text, center_y ) },
+            { STR("col"      ), FIELD_VEC4D,  offsetof(pres_text, col      ) },
         }
     };
 

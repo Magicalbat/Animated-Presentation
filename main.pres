@@ -14,17 +14,21 @@ slides = [
             sizes = [64, 96],
             default = true
         },
+        font {
+            source = "res/Chomsky.otf",
+            sizes = [64, 96]
+        }
     },
     slide {
         text {
-            x = 50, y = 50,
-            text = anim{
-                keys = [ "Hello World", "Hello Again" ],
-                time = 2,
-                repeat = BOUNCE,
-                pauses = [ false, false ]
-            },
+            x = 300, y = 100,
+            text = "Hello World\nHello Again",
+            center_y = true, center_x = true
             col = vec4{ 0, 1, 1, 1 }
+        },
+        rectangle {
+            x = 300, y = 100,
+            w = 10, h = 10
         }
     },
     slide {
