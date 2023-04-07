@@ -191,6 +191,7 @@ project "plugin_basic"
             linkoptions {
                 "-sALLOW_MEMORY_GROWTH=1",
                 "-sASYNCIFY=1",
+                "-sOFFSCREEN_FRAMEBUFFER=1",
                 "-sSIDE_MODULE=2"
             }
 
@@ -245,6 +246,7 @@ project "plugin_text"
             linkoptions {
                 "-sALLOW_MEMORY_GROWTH=1",
                 "-sASYNCIFY=1",
+                "-sOFFSCREEN_FRAMEBUFFER=1",
                 "-sSIDE_MODULE=2"
             }
 

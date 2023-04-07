@@ -135,7 +135,7 @@ static void app_reset(app_app* app) {
 void app_run(app_app* app) {
     gfx_win_alpha_blend(app->win, true);
     gfx_win_clear_color(app->win, (vec3){ 0 });
-    
+
     app_pre_run(app);
 
     u64 time_prev = os_now_microseconds();

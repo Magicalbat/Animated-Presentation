@@ -23,7 +23,7 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     attr.explicitSwapControl = true;
     attr.renderViaOffscreenBackBuffer = true;
 
-    win->wasm.ctx = emscripten_webgl_create_context(CANVAS_ID, &attr);
+    win->wasm.ctx = emscripten_webgl_create_context("#" CANVAS_ID, &attr);
 
     emscripten_get_canvas_element_size("#" CANVAS_ID, (int*)&win->width, (int*)&win->height);
     gfx_win_set_title(win, title);

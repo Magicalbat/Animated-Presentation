@@ -10,7 +10,7 @@ settings = [
 slides = [
     global {
         font {
-            source = "C:\\Users\\magic\\Desktop\\Projects\\C\\Animated-Presentation\\res\\Chomsky.otf"
+            source = "res/Hack.ttf"
             sizes = [64, 96],
             default = true
         },
