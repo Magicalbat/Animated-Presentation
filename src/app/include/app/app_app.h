@@ -25,6 +25,7 @@ typedef struct app_app {
     draw_polygon* poly;
 
     string8 pres_path;
+    string8 pres_dir_path;
     u64 pres_modify_time;
     marena* pres_arena;
     app_pres* pres;

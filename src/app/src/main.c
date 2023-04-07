@@ -6,7 +6,16 @@
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
 
-// TODO: system to get presentation file
+#ifdef __EMSCRIPTEN__
+EM_JS(u8*, js_get_pres_source, (), {
+    const source = document.getElementById("presSource").innerHTML;
+
+    const ptr = _malloc(source.length + 1);
+    stringToUTF8(source, ptr, source.length + 1);
+
+    return ptr;
+})
+#endif
 
 int main(int argc, char** argv) {
     log_init(&(log_desc){ 
@@ -21,7 +30,25 @@ int main(int argc, char** argv) {
         .desired_block_size = KiB(256)
     });
 
-    app_app* app = app_create(perm_arena, STR8_LIT("test.pres"), WIDTH, HEIGHT);
+    string8 pres_source = STR8_LIT("main.pres"); 
+
+    #ifdef __EMSCRIPTEN__
+
+    u8* cstr_source = js_get_pres_source();
+    pres_source = str8_copy(perm_arena, str8_from_cstr(cstr_source));
+    free(cstr_source);
+
+    #else
+
+    // I know that this is not using the os args,
+    // but it is in the main function anyways, and this is easier
+    if (argc > 1) {
+        pres_source = str8_from_cstr((u8*)argv[1]);
+    }
+
+    #endif
+
+    app_app* app = app_create(perm_arena, pres_source, WIDTH, HEIGHT);
 
     app_run(app);
     app_destroy(app);

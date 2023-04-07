@@ -10,6 +10,8 @@ static EM_BOOL on_ui_event(int event_type, const EmscriptenUiEvent *e, void *win
 
 void opengl_load_functions(gfx_window* win) { }
 
+#define CANVAS_ID "APCanvas"
+
 gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
     gfx_window* win = CREATE_ZERO_STRUCT(arena, gfx_window);
 
@@ -21,15 +23,14 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
     attr.explicitSwapControl = true;
     attr.renderViaOffscreenBackBuffer = true;
 
-    win->wasm.ctx = emscripten_webgl_create_context("canvas", &attr);
+    win->wasm.ctx = emscripten_webgl_create_context(CANVAS_ID, &attr);
 
-    //emscripten_set_canvas_element_size("#canvas", width, height);
-    emscripten_get_canvas_element_size("#canvas", (int*)&win->width, (int*)&win->height);
+    emscripten_get_canvas_element_size("#" CANVAS_ID, (int*)&win->width, (int*)&win->height);
     gfx_win_set_title(win, title);
 
-    emscripten_set_mousemove_callback("#canvas", win, true, on_mouse_event);
-    emscripten_set_mousedown_callback("#canvas", win, true, on_mouse_event);
-    emscripten_set_mouseup_callback("#canvas", win, true, on_mouse_event);
+    emscripten_set_mousemove_callback("#" CANVAS_ID, win, true, on_mouse_event);
+    emscripten_set_mousedown_callback("#" CANVAS_ID, win, true, on_mouse_event);
+    emscripten_set_mouseup_callback("#" CANVAS_ID, win, true, on_mouse_event);
 
     emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, win, true, on_key_event);
     emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, win, true, on_key_event);

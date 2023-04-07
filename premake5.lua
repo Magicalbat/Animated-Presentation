@@ -105,6 +105,7 @@ project "core"
 project "app"
     location "src/app"
     kind "ConsoleApp"
+    targetname "Animated-Presentation"
     
     files {
         "src/%{prj.name}/**.h",

@@ -6,7 +6,7 @@
 
 #ifdef __EMSCRIPTEN__
 EM_JS(void, app_maximize_canvas, (), {
-    const canvas = document.querySelector("#canvas");
+    const canvas = document.querySelector("#APCanvas");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
@@ -41,6 +41,14 @@ app_app* app_create(marena* arena, string8 pres_path, u32 win_width, u32 win_hei
     );
 
     app->pres_path = pres_path;
+    app->pres_dir_path = pres_path;
+    for (i64 i = pres_path.size - 1; i >= 0; i--) {
+        if (pres_path.str[i] == '/' || pres_path.str[i] == '\\') {
+            break;
+        }
+        app->pres_dir_path.size--;
+    }
+
     app_make_pres(app);
 
     return app;
@@ -72,11 +80,36 @@ static void app_pre_run(app_app* app) {
     
     string8_node* node = app->temp.file_reg.names.first;
     for(u64 i = 0; node != NULL; node = node->next, i++) {
-        string8 file = os_file_read(app->temp.arena, node->str);
+        if (node->str.size <= 2)    continue;
+
+        string8 file;
+
+        if (node->str.str[0] == ':' || node->str.str[0] == '/' || node->str.str[0] == '~') {
+            file = os_file_read(app->temp.arena, node->str);
+        } else {
+            marena_temp scratch = marena_scratch_get(NULL, 0);
+
+            u64 total_size = app->pres_dir_path.size + node->str.size;
+            string8 total_path = {
+                .str = CREATE_ARRAY(scratch.arena, u8, total_size),
+                .size = total_size
+            };
+
+            memcpy(total_path.str, app->pres_dir_path.str, app->pres_dir_path.size);
+            memcpy(total_path.str + app->pres_dir_path.size, node->str.str, node->str.size);
+
+            file = os_file_read(app->temp.arena, total_path);
+
+            marena_scratch_release(scratch);
+        }
+
         app->temp.file_reg.strings[i] = file;
     }
 
-    app_objp_file(app->pres_arena, app->pres->global_slide->objs, app->pres->obj_reg, app);
+    if (app->pres->global_slide != NULL) {
+		app_objp_file(app->pres_arena, app->pres->global_slide->objs, app->pres->obj_reg, app);
+    }
+
     for (app_slide_node* slide = app->pres->first_slide; slide != NULL; slide = slide->next) {
         app_objp_file(app->pres_arena, slide->objs, app->pres->obj_reg, app);
     }
