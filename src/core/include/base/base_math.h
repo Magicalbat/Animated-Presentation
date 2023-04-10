@@ -126,6 +126,9 @@ AP_EXPORT f32  qbezier_calc_x(qbezier* b, f32 t);
 AP_EXPORT f32  qbezier_calc_y(qbezier* b, f32 t);
 AP_EXPORT vec2 qbezier_calc(qbezier* b, f32 t);
 
+// TODO: optimize bezier curves with pre-calculation?
+// https://searchfox.org/mozilla-central/source/servo/components/style/bezier.rs
+
 AP_EXPORT f32  cbezier_calc_x(cbezier* b, f32 t);
 AP_EXPORT f32  cbezier_calc_y(cbezier* b, f32 t);
 AP_EXPORT vec2 cbezier_calc(cbezier* b, f32 t);
@@ -133,6 +136,8 @@ AP_EXPORT vec2 cbezier_calc(cbezier* b, f32 t);
 AP_EXPORT f32  cbezier_calcd_x(cbezier* b, f32 t);
 AP_EXPORT f32  cbezier_calcd_y(cbezier* b, f32 t);
 AP_EXPORT vec2 cbezier_calcd(cbezier* b, f32 t);
+
+AP_EXPORT f32 cbezier_solve(cbezier* b, f32 x);
 
 #ifdef __cplusplus
 }

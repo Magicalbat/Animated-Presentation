@@ -3,6 +3,7 @@
 #include <ctype.h>
 
 typedef struct {
+    b32 valid;
     string8 file;
     u64 pos;
     u64 line;
@@ -45,7 +46,8 @@ app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path) {
     
     pres_parser parser = (pres_parser){
         .file = file,
-        .line = 1
+        .line = 1,
+        .valid = true,
     };
     
     b32 done = false;
@@ -58,8 +60,7 @@ app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path) {
             log_errorf("Invalid char '%c' after keyword, expected '='", P_CHAR(&parser));
             parse_syntax_error(&parser);
 
-            marena_pop(arena, sizeof(app_pres));
-            return NULL;
+            parser.valid = false;
         }
 
         parse_next_char(&parser);
@@ -74,6 +75,12 @@ app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path) {
         } else {
             log_errorf("Invalid keyword \"%.*s\"", (int)keyword.size, keyword.str);
             parse_syntax_error(&parser);
+
+            parser.valid = false;
+        }
+
+        if (!parser.valid) {
+            break;
         }
 
         while (!P_KEY_CHAR(&parser)) {
@@ -95,8 +102,12 @@ app_pres* app_pres_parse(marena* arena, app_app* app, string8 file_path) {
 }
 
 static void parse_next_char_noc(pres_parser* parser) {
-    if (parser->pos + 1 >= parser->file.size)
+    if (parser->pos + 1 >= parser->file.size) {
         log_error("Failed to parse presentation, past end of file");
+        parser->valid = false;
+
+        return;
+    }
     parser->pos++;
 
     if (P_CHAR(parser) == '\n') {
@@ -104,8 +115,12 @@ static void parse_next_char_noc(pres_parser* parser) {
     }
 }
 static void parse_next_char(pres_parser* parser) {
-    if (parser->pos + 1 >= parser->file.size)
+    if (parser->pos + 1 >= parser->file.size) {
         log_error("Failed to parse presentation, past end of file");
+        parser->valid = false;
+
+        return;
+    }
     parser->pos++;
 
     if (P_CHAR(parser) == '\n') {
@@ -209,9 +224,14 @@ static void parse_syntax_error(pres_parser* parser) {
 
 #define SETTINGS_CASE(s) (str8_equals(keyword, STR8_LIT(s)))
 static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
+    if (!parser->valid) {
+        return;
+    }
+
     if (P_CHAR(parser) != '[') {
         log_errorf("Invalid char '%c' at settings, expected '['", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return;
     }
@@ -226,6 +246,7 @@ static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
         if (P_CHAR(parser) != '=') {
             log_errorf("Invalid char '%c' after settings keyword, expected '='", P_CHAR(parser));
             parse_syntax_error(parser);
+            parser->valid = false;
 
             break;
         }
@@ -237,6 +258,7 @@ static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
             if (dim.type != FIELD_VEC2D) {
                 log_error("Invalid type for reference dim, expected VEC2D");
                 parse_syntax_error(parser);
+                parser->valid = false;
 
                 break;
             }
@@ -248,6 +270,7 @@ static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
             if (col.type != FIELD_VEC4D) {
                 log_error("Invalid type for reference dim, expected VEC4D");
                 parse_syntax_error(parser);
+                parser->valid = false;
 
                 break;
             }
@@ -259,6 +282,7 @@ static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
         } else {
             log_errorf("Invalid keyword \"%.*s\" in settings", (int)keyword.size, keyword.str);
             parse_syntax_error(parser);
+            parser->valid = false;
 
             break;
         }
@@ -271,9 +295,14 @@ static void parse_settings(marena* arena, app_app* app, pres_parser* parser) {
 
 typedef void (plugin_init_func)(marena* arena, app_app* app);
 static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, pres_parser* parser) {
+    if (!parser->valid) {
+        return;
+    }
+
     if (P_CHAR(parser) != '[') {
         log_errorf("Invalid char '%c' at plugins, expected '['", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return;
     }
@@ -342,9 +371,14 @@ static void parse_plugins(marena* arena, marena_temp scratch, app_app* app, app_
 }
 
 static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, pres_parser* parser) {
+    if (!parser->valid) {
+        return;
+    }
+
     if (P_CHAR(parser) != '[') {
         log_errorf("Invalid char '%c' at slides, expected '['", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return;
     }
@@ -360,6 +394,7 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
         if (!is_global && !str8_equals(keyword, STR8_LIT("slide"))) {
             log_errorf("Invalid keyword \"%.*s\", expected \"slide\"", (int)keyword.size, keyword.str);
             parse_syntax_error(parser);
+            parser->valid = false;
 
             break;
         }
@@ -384,6 +419,7 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
         if (P_CHAR(parser) != '}') {
             log_errorf("Invalid char '%c' at end of slide, expected '}'", P_CHAR(parser));
             parse_syntax_error(parser);
+            parser->valid = false;
 
             break;
         }
@@ -398,9 +434,14 @@ static void parse_slides(marena* arena, marena_temp scratch, app_app* app, app_p
 }
 
 static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pres* pres, app_slide_node* slide, pres_parser* parser) {
+    if (!parser->valid) {
+        return;
+    }
+
     if (P_CHAR(parser) != '{') {
         log_errorf("Invalid char '%c' at slide, expected '{'", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return;
     }
@@ -412,6 +453,8 @@ static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pr
         if (!P_KEY_CHAR(parser)) {
             log_errorf("Invalid char '%c' for object type, expected letter, number, or underscore", P_CHAR(parser));
             parse_syntax_error(parser);
+            parser->valid = false;
+
             break;
         }
 
@@ -421,6 +464,7 @@ static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pr
         if (ref.obj == NULL) {
             log_errorf("Invalid object name \"%.*s\"", (int)obj_name.size, obj_name.str);
             parse_syntax_error(parser);
+            parser->valid = false;
 
             break;
         }
@@ -429,6 +473,7 @@ static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pr
         if (P_CHAR(parser) != '{') {
             log_errorf("Invalid char '%c' at object, expected '{'", P_CHAR(parser));
             parse_syntax_error(parser);
+            parser->valid = false;
             
             break;
         }
@@ -439,6 +484,8 @@ static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pr
             if (!P_KEY_CHAR(parser)) {
                 log_errorf("Invalid char '%c' for object field, expected letter, number, or underscore", P_CHAR(parser));
                 parse_syntax_error(parser);
+                parser->valid = false;
+
                 break;
             }
             
@@ -448,6 +495,8 @@ static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pr
             if (P_CHAR(parser) != '=') {
                 log_errorf("Invalid char '%c' after object field, expected '='", P_CHAR(parser));
                 parse_syntax_error(parser);
+                parser->valid = false;
+
                 break;
             }
             parse_next_char(parser);
@@ -464,6 +513,9 @@ static void parse_slide(marena* arena, marena_temp scratch, app_app* app, app_pr
                 }
                 if (field_index == -1) {
                     log_errorf("Invalid field name \"%.*s\"", (int)field_name.size, field_name.str);
+                    parser->valid = false;
+
+                    break;
                 }
 
                 anim->obj_field = (void*)((u8*)ref.obj + cur_desc->fields[field_index].offset);
@@ -517,10 +569,15 @@ static const u32 elem_types[FIELD_COUNT] = {
         } \
     } while (0)
 static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_parser* parser) {
+    if (!parser->valid) {
+        return;
+    }
+
     string8 anim_keyword = parse_keyword(parser); 
     if (!str8_equals(anim_keyword, STR8_LIT("anim"))) {
         log_errorf("Invalid keyword \"%.*s\", expected \"anim\"", (int)anim_keyword.size, anim_keyword.str);
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return;
     }
@@ -530,6 +587,7 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
     if (P_CHAR(parser) != '{') {
         log_errorf("Invalid char '%c' at anim, expected '{'", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return;
     }
@@ -543,6 +601,8 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
         if (P_CHAR(parser) != '=') {
             log_errorf("Invalid char '%c' for anim field name, expected '='", P_CHAR(parser));
             parse_syntax_error(parser);
+            parser->valid = false;
+
             return;
         }
         parse_next_char(parser);
@@ -571,6 +631,7 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
             if (times_field.type != FIELD_F64_ARR) {
                 log_error("Anim times must be F64 array");
                 parse_syntax_error(parser);
+                parser->valid = false;
 
                 return;
             }
@@ -582,6 +643,7 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
             if (pauses_field.type != FIELD_BOOL32_ARR) {
                 log_error("Anim times must be BOOL32 array");
                 parse_syntax_error(parser);
+                parser->valid = false;
 
                 return;
             }
@@ -593,6 +655,7 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
             if (bezier_field.type != FIELD_VEC4D) {
                 log_error("Bezier must be VEC4D");
                 parse_syntax_error(parser);
+                parser->valid = false;
 
                 return;
             }
@@ -609,6 +672,7 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
         } else {
             log_errorf("Invalid field name \"%.*s\" in anim", (int)field_name.size, field_name.str);
             parse_syntax_error(parser);
+            parser->valid = false;
 
             return;
         }
@@ -622,6 +686,10 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
 }
 
 static field_val parse_field(marena* arena, marena_temp scratch, pres_parser* parser) {
+    if (!parser->valid) {
+        return (field_val){ 0 };
+    }
+    
     char c = P_CHAR(parser);
     field_val out = { 0 };
 
@@ -646,12 +714,17 @@ static field_val parse_field(marena* arena, marena_temp scratch, pres_parser* pa
             parser->pos += 5;
         } else {
             log_error("Invalid value for boolean, expected true or false");
+            parse_syntax_error(parser);
+
+            parser->valid = false;
         }
     } else if (c == '[') {
         out = parse_arr(arena, scratch, parser);
     } else {
         log_errorf("Invalid char '%c' for field value", c);
         parse_syntax_error(parser);
+
+        parser->valid = false;
     }
 
     return out;
@@ -702,9 +775,14 @@ const char* field_names[FIELD_COUNT] = {
 };
 
 static field_val parse_arr(marena* arena, marena_temp scratch, pres_parser* parser) {
+    if (!parser->valid) {
+        return (field_val){ 0 };
+    }
+
     if (P_CHAR(parser) != '[') {
         log_errorf("Invalid '%c' for list, expected '['", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
         
         return (field_val){ 0 };
     }
@@ -726,6 +804,7 @@ static field_val parse_arr(marena* arena, marena_temp scratch, pres_parser* pars
             if (type == FIELD_NULL) {
                 log_errorf("Invalid array type %s", field_names[type]);
                 parse_syntax_error(parser);
+                parser->valid = false;
                 
                 marena_temp_end(temp);
                 return (field_val) { 0 };
@@ -735,6 +814,7 @@ static field_val parse_arr(marena* arena, marena_temp scratch, pres_parser* pars
         } else if (elem_type != field.type) {
             log_errorf("Invalid field of type %s in %s array", field_names[field.type], field_names[elem_type]);
             parse_syntax_error(parser);
+            parser->valid = false;
             
             marena_temp_end(temp);
             return (field_val) { 0 };
@@ -774,11 +854,16 @@ static const field_type vec_types[] = {
     FIELD_VEC4D,
 };
 static field_val parse_vec(pres_parser* parser) {
+    if (!parser->valid) {
+        return (field_val){ 0 };
+    }
+
     string8 keyword = parse_keyword(parser);
     string8 test_str = str8_substr_size(keyword, 0, 3);
     if (!str8_equals(test_str, STR8_LIT("vec"))) {
         log_errorf("Invalid keyword \"%.*s\", expected vec", (int)test_str.size, test_str.str);
         parse_syntax_error(parser);
+        parser->valid = false;
         
         return (field_val){ 0 };
     }
@@ -786,6 +871,7 @@ static field_val parse_vec(pres_parser* parser) {
     if (P_CHAR(parser) != '{') {
         log_errorf("Invalid char '%c' for vector, expected '{'", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
         
         return (field_val){ 0 };
     }
@@ -795,7 +881,7 @@ static field_val parse_vec(pres_parser* parser) {
         case '2': vec_len = 2; break;
         case '3': vec_len = 3; break;
         case '4': vec_len = 4; break;
-        default: vec_len = 2; break;
+        default: vec_len = 0; break;
     }
 
     field_val out = { .type = vec_types[vec_len] };
@@ -803,6 +889,9 @@ static field_val parse_vec(pres_parser* parser) {
     if (out.type == FIELD_NULL) {
         log_error("Invalid type for vector");
         parse_syntax_error(parser);
+        parser->valid = false;
+
+        return (field_val){ 0 };
     }
 
     for (u32 i = 0; i < vec_len; i++) {
@@ -817,6 +906,7 @@ static field_val parse_vec(pres_parser* parser) {
     if (P_CHAR(parser) != '}') {
         log_errorf("Invalid char '%c' after vector, expected '}'", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
         
         return (field_val){ 0 };
     }
@@ -825,10 +915,16 @@ static field_val parse_vec(pres_parser* parser) {
     return out;
 }
 static f64 parse_f64(pres_parser* parser) {
+    if (!parser->valid) {
+        return 0.0;
+    }
+
     char c = P_CHAR(parser);
     if (!isdigit(c) && c != '.' && c != '+' && c != '-') {
         log_errorf("Invalid char '%c' for float 64", c);
         parse_syntax_error(parser);
+        parser->valid = false;
+
         return 0.0;
     }
 
@@ -842,17 +938,22 @@ static f64 parse_f64(pres_parser* parser) {
     char* unused_ptr = NULL;
 
     // Is this unsafe becuase it it not length based?
-    // I will leave that as an exercize for the reader.
+    // I wil leave that as an exercise for the reader.
     f64 out = (f64)(strtod(start_ptr, &unused_ptr));
 
     return out;
 }
 static string8 parse_string(marena* arena, pres_parser* parser) {
+    if (!parser->valid) {
+        return (string8){ 0 };
+    }
+
     P_SKIP_SPACE(parser);
 
     if (P_CHAR(parser) != '"') {
         log_errorf("Invalid char '%c', expected '\"'", P_CHAR(parser));
         parse_syntax_error(parser);
+        parser->valid = false;
 
         return (string8){ 0 };
     }
@@ -904,6 +1005,7 @@ static string8 parse_string(marena* arena, pres_parser* parser) {
                 default: {
                     log_errorf("Invalid escape char '%c' in string", *ptr);
                     parse_syntax_error(parser);
+                    parser->valid = false;
                     
                     return out;
                 } break;
@@ -920,11 +1022,16 @@ static string8 parse_string(marena* arena, pres_parser* parser) {
     return out;
 }
 static string8 parse_keyword(pres_parser* parser) {
+    if (!parser->valid) {
+        return (string8){ 0 };
+    }
+
     P_SKIP_SPACE(parser);
 
     if (!P_KEY_CHAR(parser)) {
         log_errorf("Invalid keyword char '%c'", parser->file.str[parser->pos]);
         parse_syntax_error(parser);
+        parser->valid = false;
         
         return (string8){ 0 };
     }

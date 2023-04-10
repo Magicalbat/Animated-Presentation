@@ -63,7 +63,10 @@ static void draw_cbezier_push_internal(draw_cbezier* draw_cb, cbezier* bezier, u
     f32 half_width = width * 0.5f;
 
     vec2 pos = cbezier_calc(bezier, 0);
-    vec2 perp = vec2_nrm(vec2_prp(cbezier_calcd(bezier, 0)));
+    vec2 perp = vec2_prp(cbezier_calcd(bezier, 0));
+    if (vec2_len(perp) != 0) {
+        perp = vec2_nrm(perp);
+    }
     vec3 col3 = scol;
     vec4 col = { 0 };
 
@@ -80,7 +83,11 @@ static void draw_cbezier_push_internal(draw_cbezier* draw_cb, cbezier* bezier, u
     f32 t = step;
     for (u32 i = 1; i < num_segs && t < 1.0f; i++, t += step) {
         pos = cbezier_calc(bezier, t);
-        perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, t))), half_width);
+        perp = vec2_prp(cbezier_calcd(bezier, t));
+        if (vec2_len(perp) != 0) {
+            perp = vec2_nrm(perp);
+        }
+        perp = vec2_mul(perp, half_width);
         col3 = hsv_to_rgb(vec3_add(vec3_mul(scol, 1 - t), vec3_mul(ecol, t)));
         col.x = col3.x;
         col.y = col3.y;
@@ -106,7 +113,11 @@ static void draw_cbezier_push_internal(draw_cbezier* draw_cb, cbezier* bezier, u
     }
 
     pos = cbezier_calc(bezier, 1);
-    perp = vec2_mul(vec2_nrm(vec2_prp(cbezier_calcd(bezier, 1))), half_width);
+    perp = vec2_prp(cbezier_calcd(bezier, 1));
+    if (vec2_len(perp) != 0) {
+        perp = vec2_nrm(perp);
+    }
+    perp = vec2_mul(perp, half_width);
 
     draw_cb->vertices[draw_cb->vertex_pos++] = (cb_vertex){
         .pos = vec2_add(pos, perp),

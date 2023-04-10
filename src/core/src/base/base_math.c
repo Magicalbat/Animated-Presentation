@@ -289,3 +289,54 @@ vec2 cbezier_calcd(cbezier* b, f32 t) {
              3 * t * t * (b->p3.y - b->p2.y)
     };
 }
+
+// Implementation based on one from FireFox
+// https://searchfox.org/mozilla-central/source/servo/components/style/bezier.rs
+
+#define BEZIER_EPSILON 1e-6
+#define BEZIER_NEWTON_ITERS 8
+static f32 cbezier_solve_curve_x(cbezier* b, f32 x) {
+    f32 t = x;
+    for (u32 i = 0; i < BEZIER_NEWTON_ITERS; i++) {
+        f32 x2 = cbezier_calc_x(b, t);
+        if (fabsf(x2 - x) < BEZIER_EPSILON) {
+            return t;
+        }
+
+        f32 dx = cbezier_calcd_x(b, t);
+        if (fabsf(dx) < 1e-6) {
+            break;
+        }
+
+        t -= (x2 - x) / dx;
+    }
+
+    f32 lo = 0.0f;
+    f32 hi = 1.0f;
+    t = x;
+
+    if (t < lo) return lo;
+    if (t > hi) return hi;
+
+    while (lo < hi) {
+        f32 x2 = cbezier_calc_x(b, t);
+        if (fabsf(x2 - x) < BEZIER_EPSILON) {
+            return t;
+        }
+
+        if (x > x2) {
+            lo = t;
+        } else {
+            hi = t;
+        }
+
+        t = (hi - lo) / 2.0f + lo;
+    }
+
+    return t;
+}
+
+f32 cbezier_solve(cbezier* b, f32 x) {
+    return cbezier_calc_y(b, cbezier_solve_curve_x(b, x));
+}
+

@@ -2,7 +2,6 @@
 # define X(ret, name, args)
 #endif
 
-// TODO: test which functions are defined on windows too
 #ifndef __linux__
 X(void, glActiveTexture, (GLenum texture))
 X(void, glBlendColor, (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha))

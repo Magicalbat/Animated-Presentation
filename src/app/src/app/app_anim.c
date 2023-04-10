@@ -24,11 +24,10 @@ app_anim* app_animp_next(app_anim_pool* pool) {
 }
 
 static void anim_update_val(app_anim* anim) {
-    f64 t = cbezier_calc_y(
-        &anim->bezier,
-        (anim->cur_time - anim->times[anim->cur_key]) / 
-        (anim->times[anim->next_key] - anim->times[anim->cur_key])
-    );
+    f64 total_time = anim->times[anim->num_keys - 1];
+
+    f64 t = (anim->cur_time - anim->times[anim->cur_key]) / (anim->times[anim->next_key] - anim->times[anim->cur_key]);
+    t = cbezier_solve(&anim->bezier, t);
 
     switch (anim->type) {
         case FIELD_F64: {
@@ -105,7 +104,6 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
             continue;
         }
 
-        // Check for paused anims
         if (anim->to_pause) {
             if (GFX_IS_KEY_JUST_DOWN(app->win, GFX_KEY_SPACE)) {
                 anim->to_pause--;
@@ -117,7 +115,6 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
 
         anim->cur_time += (f64)(delta * anim->dir);
 
-        // Check for key advance
         if ((anim->dir ==  1 && anim->cur_time >= anim->times[anim->next_key]) ||
             (anim->dir == -1 && anim->cur_time <= anim->times[anim->next_key])) {
             anim->to_pause += anim->pauses[anim->next_key];
@@ -177,7 +174,7 @@ void app_anim_finalize(marena* arena, app_anim* anim) {
         anim->pauses = CREATE_ZERO_ARRAY(arena, b32, anim->num_keys);
     }
     anim->to_pause += anim->pauses[0];
-    
+
     if (anim->bezier.p2.x == 0 && anim->bezier.p2.y == 0)
         anim->bezier.p2 = (vec2){ 1, 1 };
     if (anim->bezier.p3.x == 0 && anim->bezier.p3.y == 0)

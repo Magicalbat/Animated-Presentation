@@ -120,6 +120,9 @@ static void app_pre_run(app_app* app) {
 }
 
 static void app_reset(app_app* app) {
+    u32 slide_index = app->pres->slide_index;
+    u32 num_slides = app->pres->num_slides;
+
     app_pres_destroy(app->pres);
 
     draw_rectb_destroy(app->rectb);
@@ -130,6 +133,12 @@ static void app_reset(app_app* app) {
 
     app_make_pres(app);
     app_pre_run(app);
+
+    if (num_slides == app->pres->num_slides) {
+        for (u32 i = 0; i < slide_index; i++) {
+            app_pres_next_slide(app->pres);
+        }
+    }
 }
 
 void app_run(app_app* app) {

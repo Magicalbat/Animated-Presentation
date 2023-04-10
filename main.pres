@@ -22,25 +22,21 @@ slides = [
     slide {
         text {
             x = 300, y = 100,
-            text = "Hello World\nHello Again",
+            text = "Hello World\nHello\tAgain",
             center_y = true, center_x = true
             col = vec4{ 0, 1, 1, 1 }
         },
         rectangle {
-            x = 300, y = 100,
-            w = 10, h = 10
-        }
-    },
-    slide {
-        text {
-            x = 100, y = 100,
-            text = anim{
-                keys = [ "Hello World", "Hello Again" ],
-                time = 2,
+            x = anim{
+                keys = [ 100, 1500, 900 ],
                 repeat = BOUNCE,
-                pauses = [ false, false ]
+                time = 5,
+                bezier = vec4{ .42,0,.58,1 }
             },
-            col = vec4{ 1, 0, 1, 1 }
-        }
-    }
+            y = 500, w = 50, h = 50
+        },
+        rectangle {
+                x = 800, y = 400, w = 50, h = 50
+            }
+    },
 ]

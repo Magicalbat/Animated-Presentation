@@ -201,7 +201,7 @@ void font_file(marena* arena, app_app* app, void* obj) {
             faces[i].fonts[j].ascent = (f32)(a * scale);
             faces[i].fonts[j].descent = (f32)(d * scale);
             faces[i].fonts[j].line_gap = (f32)(l * scale);
-            faces[i].fonts[j].tab_size = (f32)(w * scale);
+            faces[i].fonts[j].tab_size = (f32)(w * scale * 4);
             faces[i].fonts[j].line_height = (f32)((a - d + l) * scale);
         }
     }
@@ -270,6 +270,9 @@ static f32 measure_text_height(font_font* font, string8 text) {
             y += font->line_height;
         }
 
+        if (c < 32 || c > 127)
+            continue;
+
         stbtt_packedchar* pc = &font->glyph_metrics[c - FIRST_CHAR];
 
         height = MAX(height, y + pc->y1 - pc->y0);
@@ -290,7 +293,16 @@ static f32 measure_line_width(font_font* font, string8 text, u64 line_index) {
     f32 width = 0;
 
     for (u64 i = 0; i < line.size; i++) {
-        stbtt_packedchar* pc = &font->glyph_metrics[text.str[i] - FIRST_CHAR];
+        u8 c = line.str[i];
+
+        if (c == '\t') {
+            x += font->tab_size;
+        }
+
+        if (c < 32 || c > 127)
+            continue;
+
+        stbtt_packedchar* pc = &font->glyph_metrics[c - FIRST_CHAR];
 
         width = MAX(width, x + pc->xoff + pc->x1 - pc->x0);
 
