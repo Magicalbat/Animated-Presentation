@@ -2,7 +2,7 @@
 
 #include "app/app.h"
 
-#define WIN_SCALE 3
+#define WIN_SCALE 1
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
 #ifdef __EMSCRIPTEN__

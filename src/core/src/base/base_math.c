@@ -337,6 +337,10 @@ static f32 cbezier_solve_curve_x(cbezier* b, f32 x) {
 }
 
 f32 cbezier_solve(cbezier* b, f32 x) {
+    if (b->p0.x == 0 && b->p0.y == 0 && b->p3.x == 1 && b->p3.y == 1 && b->p1.x == b->p2.x && b->p1.y == b->p2.y) {
+        return x;
+    }
+    
     return cbezier_calc_y(b, cbezier_solve_curve_x(b, x));
 }
 
