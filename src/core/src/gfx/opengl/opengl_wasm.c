@@ -8,11 +8,16 @@ static EM_BOOL on_mouse_event(int event_type, const EmscriptenMouseEvent* e, voi
 static EM_BOOL on_key_event(int event_type, const EmscriptenKeyboardEvent* e, void* win_ptr);
 static EM_BOOL on_ui_event(int event_type, const EmscriptenUiEvent *e, void *win_ptr);
 
-void opengl_load_functions(gfx_window* win) { }
+void opengl_load_functions(gfx_window* win) {
+    AP_UNUSED(win);
+}
 
 #define CANVAS_ID "APCanvas"
 
 gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) {
+    AP_UNUSED(width);
+    AP_UNUSED(height);
+
     gfx_window* win = CREATE_ZERO_STRUCT(arena, gfx_window);
 
     EmscriptenWebGLContextAttributes attr;
@@ -53,9 +58,13 @@ void gfx_win_clear_color(gfx_window* win, vec3 col) {
     glClearColor(col.x, col.y, col.z, 1.0f);
 }
 void gfx_win_clear(gfx_window* win) {
+    AP_UNUSED(win);
+
     glClear(GL_COLOR_BUFFER_BIT);
 }
 void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
+    AP_UNUSED(win);
+
     if (enable) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
@@ -64,6 +73,8 @@ void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
     }
 }
 void gfx_win_swap_buffers(gfx_window* win) {
+    AP_UNUSED(win);
+    
     emscripten_webgl_commit_frame();
 }
 void gfx_win_process_events(gfx_window* win) {

@@ -87,7 +87,7 @@ AP_EXPORT void os_sleep_milliseconds(u32 t);
 
 AP_EXPORT string8    os_file_read(marena* arena, string8 path);
 AP_EXPORT b32        os_file_write(string8 path, string8_list str_list);
-AP_EXPORT b32        os_file_append(string8 path, string8_list str_lit);
+AP_EXPORT b32        os_file_append(string8 path, string8_list str_list);
 AP_EXPORT file_stats os_file_get_stats(string8 path);
 
 AP_EXPORT os_file os_file_open(string8 path, file_mode open_mode);

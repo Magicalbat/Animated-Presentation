@@ -229,7 +229,7 @@ b32 os_file_append(string8 path, string8_list str_list) {
     return out;
 }
 file_flags lnx_file_flags(mode_t mode) {
-    file_flags flags;
+    file_flags flags = { 0 };
 
     if (S_ISDIR(mode))
         flags |= FILE_IS_DIR;

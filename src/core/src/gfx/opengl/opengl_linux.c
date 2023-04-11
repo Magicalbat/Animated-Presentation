@@ -149,9 +149,13 @@ void gfx_win_clear_color(gfx_window* win, vec3 col) {
     glClearColor(col.x, col.y, col.z, 1.0f);
 }
 void gfx_win_clear(gfx_window* win) {
+    AP_UNUSED(win);
+
     glClear(GL_COLOR_BUFFER_BIT);
 }
 void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
+    AP_UNUSED(win);
+
     if (enable) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
@@ -198,7 +202,7 @@ void gfx_win_process_events(gfx_window* win) {
                 win->keys[keyup] = false;
             } break;
             case ClientMessage: {
-                if (e.xclient.data.l[0] == win->glx.del_window) {
+                if ((i64)e.xclient.data.l[0] == (i64)win->glx.del_window) {
                     win->should_close = true;
                 }
             } break;
@@ -225,6 +229,8 @@ void gfx_win_set_title(gfx_window* win, string8 title) {
 }
 
 void opengl_load_functions(gfx_window* win) {
+    AP_UNUSED(win);
+
     #define X(ret, name, args) name = (gl_func_##name)glXGetProcAddress((const GLubyte*)#name);
     #include "gfx/opengl/opengl_xlist.h"
     #undef X

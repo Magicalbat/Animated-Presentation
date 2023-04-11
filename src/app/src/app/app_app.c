@@ -119,6 +119,7 @@ static void app_pre_run(app_app* app) {
     marena_destroy(app->temp.arena);
 }
 
+#ifndef __EMSCRIPTEN__
 static void app_reset(app_app* app) {
     u32 slide_index = app->pres->slide_index;
     u32 num_slides = app->pres->num_slides;
@@ -140,6 +141,7 @@ static void app_reset(app_app* app) {
         }
     }
 }
+#endif
 
 void app_run(app_app* app) {
     gfx_win_alpha_blend(app->win, true);

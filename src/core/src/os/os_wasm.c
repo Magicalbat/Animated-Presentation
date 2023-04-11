@@ -130,37 +130,56 @@ string8 os_file_read(marena* arena, string8 path) {
     return out;
 }*/
 string8 os_file_read(marena* arena, string8 path) {
+    AP_UNUSED(arena);
+    AP_UNUSED(path);
+
     log_error("OS file read unsupported in wasm side module");
     
     return (string8){ 0 };
 }
 b32 os_file_write(string8 path, string8_list str_list) {
+    AP_UNUSED(path);
+    AP_UNUSED(str_list);
+
     log_error("OS file write unsupported in wasm");
 
     return false;
 }
-b32 os_file_append(string8 path, string8_list str_lit) {
+b32 os_file_append(string8 path, string8_list str_list) {
+    AP_UNUSED(path);
+    AP_UNUSED(str_list);
+
     log_error("OS file append unsupported in wasm");
 
     return false;
 }
 file_stats os_file_get_stats(string8 path) {
+    AP_UNUSED(path);
+
     log_error("OS file stats unsupported in wasm");
 
     return (file_stats){ 0 };
 }
 
 os_file os_file_open(string8 path, file_mode open_mode) {
+    AP_UNUSED(path);
+    AP_UNUSED(open_mode);
+
     log_error("OS file open unsupported in wasm");
 
     return (os_file){ 0 };
 }
 b32 os_file_write_open(os_file file, string8 str) {
+    AP_UNUSED(file);
+    AP_UNUSED(str);
+
     log_error("OS file write open unsupported in wasm");
 
     return false;
 }
 void os_file_close(os_file file) {
+    AP_UNUSED(file);
+
     log_error("OS file close unsupported in wasm");
 }
 
@@ -219,6 +238,8 @@ os_library os_lib_load(string8 path) {
 }*/
 
 os_library os_lib_load(string8 path) {
+    AP_UNUSED(path);
+
     log_error("OS lib load unsupported in wasm side module");
     
     return (os_library){ 0 };
