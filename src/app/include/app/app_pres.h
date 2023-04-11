@@ -11,7 +11,7 @@ extern "C" {
 #include "app_anim.h"
 #include "app_obj_pool.h"
 
-#define PRES_MAX_OBJS 32
+#define PRES_MAX_OBJS 64
 #define PRES_MAX_ANIMS (PRES_MAX_OBJS * 2)
 
 typedef struct app_slide_node {
