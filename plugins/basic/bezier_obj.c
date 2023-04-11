@@ -13,6 +13,9 @@ typedef struct {
 } pres_bezier;
 
 void bezier_default(marena* arena, app_app* app, void* obj){
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_bezier* bez = (pres_bezier*)obj;
 
     *bez = (pres_bezier){

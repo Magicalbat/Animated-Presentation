@@ -11,6 +11,9 @@ typedef struct {
 } pres_rect;
 
 void rect_default(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_rect* r = (pres_rect*)obj;
 
     *r = (pres_rect){ 
@@ -33,19 +36,19 @@ void rect_draw(app_app* app, void* obj) {
     }
 
     if (r->outline) {
-        f64 w = r->outline_width;
+        f32 w = r->outline_width;
         
         draw_rectb_push(app->rectb, (rect){
-            (f32)r->x, (f32)r->y, (f32)w, (f32)r->h
+            (f32)r->x, (f32)r->y, w, (f32)r->h
         }, r->outline_col);
         draw_rectb_push(app->rectb, (rect){
-            (f32)r->x + w, (f32)r->y, (f32)r->w - w - w, (f32)w
+            (f32)r->x + w, (f32)r->y, (f32)r->w - w - w, w
         }, r->outline_col);
         draw_rectb_push(app->rectb, (rect){
-            (f32)r->x + r->w - w, (f32)r->y, (f32)w, (f32)r->h
+            (f32)r->x + r->w - w, (f32)r->y, w, (f32)r->h
         }, r->outline_col);
         draw_rectb_push(app->rectb, (rect){
-            (f32)r->x + w, (f32)r->y + r->h - w, (f32)r->w - w - w, (f32)w
+            (f32)r->x + w, (f32)r->y + r->h - w, (f32)r->w - w - w, w
         }, r->outline_col);
     }
 }

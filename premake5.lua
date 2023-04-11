@@ -21,12 +21,13 @@ function init_common()
     targetdir ("bin/" .. outputdir)
     targetprefix ""
 
+    warnings "Extra"
+
     filter "options:not wasm"
         architecture "x64"
 
     filter "options:not no-clang"
         toolset "clang"
-        buildoptions { "-Wno-missing-braces" }
 
     filter { "options:wasm", "system:linux" }
         linkoptions { "--cache \"../../emcc-cache\""}

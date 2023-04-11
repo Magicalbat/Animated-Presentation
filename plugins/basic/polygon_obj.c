@@ -11,6 +11,9 @@ typedef struct {
 } pres_poly;
 
 void poly_default(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_poly* poly = (pres_poly*)obj;
 
     *poly = (pres_poly){

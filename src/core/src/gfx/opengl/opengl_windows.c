@@ -187,9 +187,13 @@ void gfx_win_clear_color(gfx_window* win, vec3 col) {
     glClearColor(col.x, col.y, col.z, 1.0f);
 }
 void gfx_win_clear(gfx_window* win) {
+    AP_UNUSED(win);
+
     glClear(GL_COLOR_BUFFER_BIT);
 }
 void gfx_win_alpha_blend(gfx_window* win, b32 enable) {
+    AP_UNUSED(win);
+
     if (enable) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
@@ -290,6 +294,8 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 void opengl_load_functions(gfx_window* win) {
+    AP_UNUSED(win);
+
     #define X(ret, name, args) name = (gl_func_##name)wgl_get_proc_address(#name);
         #include "gfx/opengl/opengl_xlist.h"
     #undef X

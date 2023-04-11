@@ -2,9 +2,10 @@
 
 #include "app/app.h"
 
-#define WIN_SCALE 1
+#define WIN_SCALE 3
 #define WIDTH (u32)(320 * WIN_SCALE)
 #define HEIGHT (u32)(180 * WIN_SCALE)
+
 #ifdef __EMSCRIPTEN__
 EM_JS(u8*, js_get_pres_source, (), {
     const source = document.getElementById("presSource").innerHTML;

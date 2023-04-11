@@ -67,7 +67,7 @@ static void poly_gl_setup(draw_polygon* poly, vec4d col, vec2d offset) {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
 }
-static void poly_gl_end(draw_polygon* poly) {
+static void poly_gl_end(void) {
     glDisableVertexAttribArray(0);
 }
 
@@ -88,7 +88,7 @@ void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list
     
     glDrawArrays(GL_TRIANGLE_FAN, 0, list.size);
 
-    poly_gl_end(poly);
+    poly_gl_end();
 }
 void draw_poly_conv_arr(draw_polygon* poly, vec4d col, vec2d offset, vec2d_arr arr) {
     if (arr.size > poly->max_verts) {
@@ -106,7 +106,7 @@ void draw_poly_conv_arr(draw_polygon* poly, vec4d col, vec2d offset, vec2d_arr a
     
     glDrawArrays(GL_TRIANGLE_FAN, 0, arr.size);
 
-    poly_gl_end(poly);
+    poly_gl_end();
 }
 
 //void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list) {

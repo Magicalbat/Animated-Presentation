@@ -86,6 +86,8 @@ typedef struct {
 # define ASSERT(a, b)
 #endif
 
+#define AP_UNUSED(x) (void)(x)
+
 #define MIN(a, b)     (((a) < (b)) ? (a) : (b))
 #define MAX(a, b)     (((a) > (b)) ? (a) : (b))
 #define LERP(a, b, t) ((a) + ((b) - (a)) * (t))

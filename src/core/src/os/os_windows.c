@@ -126,6 +126,8 @@ void os_mem_decommit(void* ptr, u64 size) {
     VirtualFree(ptr, size, MEM_DECOMMIT);
 }
 void os_mem_release(void* ptr, u64 size) {
+    AP_UNUSED(size);
+
     VirtualFree(ptr, 0, MEM_RELEASE);
 }
 

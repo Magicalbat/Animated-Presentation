@@ -11,30 +11,24 @@ extern "C" {
 
 typedef struct { f32 x, y, w, h; } rect;
 
-typedef union {
-    struct { f32 x, y; };
-    f32 p[2];
+typedef struct {
+    f32 x, y;
 } vec2;
-typedef union {
-    struct { f32 x, y, z; };
-    f32 p[3];
+typedef struct {
+    f32 x, y, z;
 } vec3;
-typedef union {
-    struct { f32 x, y, z, w; };
-    f32 p[4];
+typedef struct {
+    f32 x, y, z, w;
 } vec4;
 
-typedef union {
-    struct { f64 x, y; };
-    f64 p[2];
+typedef struct {
+    f64 x, y;
 } vec2d;
-typedef union {
-    struct { f64 x, y, z; };
-    f64 p[3];
+typedef struct {
+    f64 x, y, z;
 } vec3d;
-typedef union {
-    struct { f64 x, y, z, w; };
-    f64 p[4];
+typedef struct {
+     f64 x, y, z, w;
 } vec4d;
 
 typedef union {

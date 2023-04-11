@@ -134,7 +134,7 @@ static void app_reset(app_app* app) {
     app_make_pres(app);
     app_pre_run(app);
 
-    if (num_slides == app->pres->num_slides) {
+    if (app->pres->num_slides >= num_slides) {
         for (u32 i = 0; i < slide_index; i++) {
             app_pres_next_slide(app->pres);
         }

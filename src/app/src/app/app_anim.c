@@ -24,8 +24,6 @@ app_anim* app_animp_next(app_anim_pool* pool) {
 }
 
 static void anim_update_val(app_anim* anim) {
-    f64 total_time = anim->times[anim->num_keys - 1];
-
     f64 t = (anim->cur_time - anim->times[anim->cur_key]) / (anim->times[anim->next_key] - anim->times[anim->cur_key]);
     t = cbezier_solve(&anim->bezier, t);
 
@@ -133,7 +131,7 @@ void app_animp_update(app_anim_pool* apool, app_app* app, f32 delta) {
                     } break;
                     default: break;
                 }
-            } else if (anim->next_key >= anim->num_keys) {
+            } else if (anim->next_key >= (i32)anim->num_keys) {
                 switch (anim->repeat) {
                     case ANIM_STOP: {
                         anim->cur_time = anim->times[anim->num_keys - 1];

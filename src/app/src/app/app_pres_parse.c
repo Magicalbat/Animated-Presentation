@@ -897,7 +897,15 @@ static field_val parse_vec(pres_parser* parser) {
     for (u32 i = 0; i < vec_len; i++) {
         parse_next_char(parser);
         P_SKIP_SPACE(parser);
-        out.val.vec4d.p[i] = parse_f64(parser);
+
+        f64* vnum = &out.val.vec4d.x;
+        switch (i) {
+            case 1: { vnum = &out.val.vec4d.y; } break;
+            case 2: { vnum = &out.val.vec4d.z; } break;
+            case 3: { vnum = &out.val.vec4d.w; } break;
+            default: break;
+        }
+        *vnum = parse_f64(parser);
     }
     P_SKIP_SPACE(parser);
     if (P_CHAR(parser) == ',') { parse_next_char(parser); }

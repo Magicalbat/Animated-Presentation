@@ -68,11 +68,16 @@ void font_desc_destroy() {
 }
 
 void font_default(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_font* pfont = (pres_font*)obj;
 
     *pfont = (pres_font){ 0 };
 }
 void font_init(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+
     pres_font* pfont = (pres_font*)obj;
 
     i64 face_index = -1;
@@ -144,6 +149,8 @@ void font_init(marena* arena, app_app* app, void* obj) {
 
 static b32 first_file_call = true;
 void font_file(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(obj);
+
     if (!first_file_call)
         return;
 
@@ -223,6 +230,9 @@ void font_file(marena* arena, app_app* app, void* obj) {
 }
 
 void text_default(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_text* text = (pres_text*)obj;
 
     *text = (pres_text){ 
@@ -230,6 +240,9 @@ void text_default(marena* arena, app_app* app, void* obj) {
     };
 }
 void text_init(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_text* text = (pres_text*)obj;
 
     i64 face = -1;
@@ -313,8 +326,10 @@ static f32 measure_line_width(font_font* font, string8 text, u64 line_index) {
 }
 
 void text_draw(app_app* app, void* obj) {
+    AP_UNUSED(app);
+
     pres_text* text = (pres_text*)obj;
-    font_font* font = &faces [text->font.face].fonts[text->font.font];
+    font_font* font = &faces[text->font.face].fonts[text->font.font];
 
     f32 start_x = text->x;
     f32 x = text->x;

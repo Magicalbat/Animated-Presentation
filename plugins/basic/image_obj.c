@@ -13,6 +13,9 @@ typedef struct {
 } pres_image;
 
 void image_default(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    AP_UNUSED(app);
+
     pres_image* img = (pres_image*)obj;
 
     *img = (pres_image){
@@ -24,12 +27,16 @@ void image_default(marena* arena, app_app* app, void* obj) {
 }
 
 void image_init(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+
     pres_image* img = (pres_image*)obj;
 
     img->file_id = str8_reg_push(app->temp.arena, &app->temp.file_reg, img->source);
 }
 
 void image_file(marena* arena, app_app* app, void* obj) {
+    AP_UNUSED(arena);
+    
     pres_image* img = (pres_image*)obj;
     
     string8 file = str8_reg_get(&app->temp.file_reg, img->file_id);
