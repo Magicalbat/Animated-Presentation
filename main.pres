@@ -13,16 +13,12 @@ slides = [
             source = "res/Hack.ttf"
             sizes = [64, 96],
             default = true
-        },
-        font {
-            source = "res/Chomsky.otf",
-            sizes = [64, 96]
         }
     },
     slide {
         text {
             x = 300, y = 100,
-            text = "Hello World\nHello\tAgain",
+            text = "Hello World\nHello Again",
             center_y = true, center_x = true
             col = vec4{ 0, 1, 1, 1 }
         },
@@ -31,14 +27,8 @@ slides = [
                 keys = [ 100, 1000 ],
                 repeat = BOUNCE,
                 time = 5,
-                //bezier = vec4{ .42,0,.58,1 }
             },
             y = 200, w = 500, h = 500,
-            outline = true, outline_width = 10,
-            outline_col = vec4{ 0, 0, 0, 1 }
         },
-        rectangle {
-                x = 800, y = 400, w = 50, h = 50
-            }
     },
 ]
