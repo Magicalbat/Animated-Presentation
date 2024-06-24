@@ -22,6 +22,7 @@ typedef struct {
         u32 win_mat_loc;
         u32 col_loc;
         u32 offset_loc;
+        u32 scale_loc;
 
         u32 vertex_array;
         u32 vertex_buffer;
@@ -49,8 +50,8 @@ typedef struct {
 AP_EXPORT draw_polygon* draw_poly_create(marena* arena, f32* win_mat, u32 max_verts);
 AP_EXPORT void          draw_poly_destroy(draw_polygon* poly);
 
-AP_EXPORT void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list list);
-AP_EXPORT void draw_poly_conv_arr (draw_polygon* poly, vec4d col, vec2d offset, vec2d_arr arr);
+AP_EXPORT void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d scale, vec2d_list list);
+AP_EXPORT void draw_poly_conv_arr (draw_polygon* poly, vec4d col, vec2d offset, vec2d scale, vec2d_arr arr);
 
 // TODO: write these two functiosn
 // void draw_poly_list(draw_polygon* poly, vec3 col, vec2_list list);

@@ -3,6 +3,7 @@
 typedef struct {
     f64 x;
     f64 y;
+    vec2d scale;
     struct {
         u64 size;
         vec2d* data;
@@ -17,6 +18,7 @@ void poly_default(marena* arena, app_app* app, void* obj) {
     pres_poly* poly = (pres_poly*)obj;
 
     *poly = (pres_poly){
+        .scale = (vec2d){ 1, 1 },
         .col = (vec4d){ 1, 1, 1, 1 }
     };
 }
@@ -30,6 +32,7 @@ void poly_draw(app_app* app, void* obj) {
         app->poly,
         poly->col,
         (vec2d){ poly->x, poly->y },
+        poly->scale,
         points
     );
 }
@@ -45,6 +48,7 @@ void polygon_obj_init(marena* arena, app_app* app) {
         .fields = {
             { STR("x"     ), FIELD_F64,       offsetof(pres_poly, x     ) },
             { STR("y"     ), FIELD_F64,       offsetof(pres_poly, y     ) },
+            { STR("scale" ), FIELD_VEC2D,     offsetof(pres_poly, scale ) },
             { STR("points"), FIELD_VEC2D_ARR, offsetof(pres_poly, points) },
             { STR("col"   ), FIELD_VEC4D,     offsetof(pres_poly, col   ) },
         }

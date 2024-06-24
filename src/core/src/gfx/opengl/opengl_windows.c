@@ -135,9 +135,9 @@ gfx_window* gfx_win_create(marena* arena, u32 width, u32 height, string8 title) 
         WGL_DOUBLE_BUFFER_ARB,      GL_TRUE,
         WGL_ACCELERATION_ARB,       WGL_FULL_ACCELERATION_ARB,
         WGL_PIXEL_TYPE_ARB,         WGL_TYPE_RGBA_ARB,
-        WGL_COLOR_BITS_ARB,         32,
-        WGL_DEPTH_BITS_ARB,         0,//24,
-        WGL_STENCIL_BITS_ARB,       0,//8,
+        WGL_COLOR_BITS_ARB,         24,
+        WGL_DEPTH_BITS_ARB,         0,
+        WGL_STENCIL_BITS_ARB,       0,
         0
     };
 
@@ -210,12 +210,8 @@ void gfx_win_process_events(gfx_window* win) {
 
     MSG msg;
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-        if (msg.message == WM_QUIT) {
-            win->should_close = true;
-        } else {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 }
 
@@ -285,9 +281,12 @@ LRESULT CALLBACK window_proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             break;
 
-        case WM_DESTROY:
+        case WM_CLOSE: {
+            win->should_close = true;
+        } break;
+        /*case WM_DESTROY:
             PostQuitMessage(0);
-            return 0;
+            break;*/
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);

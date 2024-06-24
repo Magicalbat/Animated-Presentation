@@ -26,6 +26,9 @@ draw_polygon* draw_poly_create(marena* arena, f32* win_mat, u32 max_verts) {
     
     poly->gl.offset_loc = glGetUniformLocation(poly->gl.shader_program, "u_offset");
     glUniform2f(poly->gl.offset_loc, 0.0f, 0.0f);
+
+    poly->gl.scale_loc = glGetUniformLocation(poly->gl.shader_program, "u_scale");
+    glUniform2f(poly->gl.scale_loc, 1.0f, 1.0f);
     
 #ifndef __EMSCRIPTEN__
     glGenVertexArrays(1, &poly->gl.vertex_array);
@@ -51,12 +54,13 @@ void draw_poly_destroy(draw_polygon* poly) {
     glDeleteBuffers(1, &poly->gl.index_buffer);
 }
 
-static void poly_gl_setup(draw_polygon* poly, vec4d col, vec2d offset) {
+static void poly_gl_setup(draw_polygon* poly, vec4d col, vec2d offset, vec2d scale) {
     glUseProgram(poly->gl.shader_program);
 
     glUniformMatrix4fv(poly->gl.win_mat_loc, 1, GL_FALSE, poly->win_mat);
     glUniform4f(poly->gl.col_loc, col.x, col.y, col.z, col.w);
     glUniform2f(poly->gl.offset_loc, offset.x, offset.y);
+    glUniform2f(poly->gl.scale_loc, scale.x, scale.y);
 
 #ifndef __EMSCRIPTEN__
     glBindVertexArray(poly->gl.vertex_array);
@@ -71,7 +75,7 @@ static void poly_gl_end(void) {
     glDisableVertexAttribArray(0);
 }
 
-void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list list) {
+void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d scale, vec2d_list list) {
     if (list.size > poly->max_verts) {
         log_errorf("Cannot draw polygon of %u (max is %u)", list.size, poly->max_verts);
         return;
@@ -82,7 +86,7 @@ void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list
         poly->verts[i++] = (vec2){ node->v.x, node->v.y };
     }
 
-    poly_gl_setup(poly, col, offset);
+    poly_gl_setup(poly, col, offset, scale);
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * list.size, poly->verts);
     
@@ -90,7 +94,7 @@ void draw_poly_conv_list(draw_polygon* poly, vec4d col, vec2d offset, vec2d_list
 
     poly_gl_end();
 }
-void draw_poly_conv_arr(draw_polygon* poly, vec4d col, vec2d offset, vec2d_arr arr) {
+void draw_poly_conv_arr(draw_polygon* poly, vec4d col, vec2d offset, vec2d scale, vec2d_arr arr) {
     if (arr.size > poly->max_verts) {
         log_errorf("Cannot draw polygon of %u (max is %u)", arr.size, poly->max_verts);
         return;
@@ -100,7 +104,7 @@ void draw_poly_conv_arr(draw_polygon* poly, vec4d col, vec2d offset, vec2d_arr a
         poly->verts[i] = (vec2){ arr.data[i].x, arr.data[i].y };
     }
 
-    poly_gl_setup(poly, col, offset);
+    poly_gl_setup(poly, col, offset, scale);
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vec2) * arr.size, poly->verts);
     
@@ -123,10 +127,11 @@ static const char* vert_source = ""
     "uniform mat4 u_win_mat;"
     "uniform vec4 u_col;"
     "uniform vec2 u_offset;"
+    "uniform vec2 u_scale;"
     "varying vec4 col;"
     "void main() {"
     "    col = u_col;"
-    "    gl_Position = vec4(a_pos + u_offset, 0, 1) * u_win_mat;"
+    "    gl_Position = vec4(a_pos * u_scale + u_offset, 0, 1) * u_win_mat;"
     "\n}";
 #else
     "#version 330 core\n"
@@ -134,10 +139,11 @@ static const char* vert_source = ""
     "uniform mat4 u_win_mat;"
     "uniform vec4 u_col;"
     "uniform vec2 u_offset;"
+    "uniform vec2 u_scale;"
     "out vec4 col;"
     "void main() {"
     "    col = u_col;"
-    "    gl_Position = vec4(a_pos + u_offset, 0, 1) * u_win_mat;"
+    "    gl_Position = vec4(a_pos * u_scale + u_offset, 0, 1) * u_win_mat;"
     "\n}";
 #endif
 

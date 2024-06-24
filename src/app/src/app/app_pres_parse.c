@@ -669,6 +669,9 @@ static void parse_anim(marena* arena, marena_temp scratch, app_anim* anim, pres_
                     (vec2){ 1, 1 },
                 }
             };
+        } else if (ANIM_FIELD_CASE("wait_keys")) {
+            f64 wait_float = parse_f64(parser);
+            anim->to_pause += (u32)wait_float;
         } else {
             log_errorf("Invalid field name \"%.*s\" in anim", (int)field_name.size, field_name.str);
             parse_syntax_error(parser);

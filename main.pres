@@ -29,16 +29,20 @@ slides = [
         rectangle {
             x = anim{
                 keys = [ 100, 1000 ],
-                repeat = BOUNCE,
-                time = 5,
-                //bezier = vec4{ .42,0,.58,1 }
+                wait_keys = 1,
+                time = 1,
             },
             y = 200, w = 500, h = 500,
             outline = true, outline_width = 10,
             outline_col = vec4{ 0, 0, 0, 1 }
         },
-        rectangle {
-                x = 800, y = 400, w = 50, h = 50
-            }
-    },
+        polygon {
+            points = [
+                vec2{ 0, 0 },
+                vec2{ 100, 100 },
+                vec2{ 0, 100 },
+            ],
+            scale = vec2{3, 3}
+        }
+    }
 ]
